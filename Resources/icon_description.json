@@ -1,0 +1,32 @@
+{
+    "CaffeineApp": {
+        "FrameColor": "#000000",
+        "FillColor": "#ffffff",
+        "CoffeeColor": "#400000",
+        "SteamColor": "#000000"
+    },
+    "CaffeineDisabled": {
+        "FrameColor": "#ffffff",
+        "FillColor": "none",
+        "CoffeeColor": "none",
+        "SteamColor": "none"
+    },
+    "CaffeineEnabled": {
+        "FrameColor": "#ffffff",
+        "FillColor": "none",
+        "CoffeeColor": "#400000",
+        "SteamColor": "#ffffff"
+    },
+    "CaffeineAutoInactive": {
+        "FrameColor": "#ffffff",
+        "FillColor": "#7f0000",
+        "CoffeeColor": "none",
+        "SteamColor": "none"
+    },
+    "CaffeineAutoActive": {
+        "FrameColor": "#ffffff",
+        "FillColor": "#7f0000",
+        "CoffeeColor": "#400000",
+        "SteamColor": "#ffffff"
+    } 
+}
