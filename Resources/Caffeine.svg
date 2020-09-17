@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="256"
+   height="256"
+   viewBox="0 0 67.733333 67.733335"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   sodipodi:docname="drawing.svg">
+  <defs
+     id="defs15" />
+  <title
+     id="title1878">Caffeine</title>
+  <sodipodi:namedview
+     inkscape:guide-bbox="true"
+     showguides="true"
+     units="px"
+     inkscape:pagecheckerboard="true"
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.4039733"
+     inkscape:cx="193.27641"
+     inkscape:cy="140.81915"
+     inkscape:document-units="mm"
+     inkscape:current-layer="g1474"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1053"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:document-rotation="0" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Caffeine</dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/" />
+        <dc:date>2020</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>VacuityBox</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>Caffeine</rdf:li>
+            <rdf:li>Coffee</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     id="layer1"
+     inkscape:groupmode="layer">
+    <g
+       transform="translate(-0.00607642)"
+       inkscape:label="Caffeine"
+       id="g1474">
+      <path
+         id="path1478"
+         style="fill:none;fill-opacity:1;stroke:none;stroke-width:4.74437;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         inkscape:label="Coffee"
+         d="M 46.030123,35.440418 A 18.065081,4.0340753 0 0 1 27.965042,39.474494 18.065081,4.0340753 0 0 1 9.8999615,35.440418 18.065081,4.0340753 0 0 1 27.965042,31.406343 18.065081,4.0340753 0 0 1 46.030123,35.440418" />
+      <path
+         inkscape:label="Handle"
+         style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:4.14607;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 51.878083,34.4967 c 0,0 11.442438,-1.917595 11.657502,6.225021 0.215057,8.142623 -11.657502,6.229108 -11.657502,6.229108"
+         id="path1462" />
+      <path
+         inkscape:label="FrameFill"
+         id="path2072"
+         style="display:inline;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 51.918647,38.470152 v 0 c 0,9.705353 -2.042287,19.01178 -10.049004,23.864456 -8.006726,4.852678 -19.399657,4.852678 -27.406382,0 C 6.4565362,57.481932 4.4142556,48.175508 4.4142556,38.470152 l 23.3730714,3.631364 z"
+         sodipodi:nodetypes="csssccc" />
+      <path
+         inkscape:label="FrameBottom"
+         id="path1464"
+         style="display:inline;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:16.9811;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 187.96027,143.39916 h 8.26769 v 0 c 0,36.68165 -7.71888,71.85555 -37.98049,90.19637 -30.26164,18.34083 -73.321539,18.34083 -103.583176,0 C 24.402657,215.25471 16.683801,180.08082 16.683801,143.39916 h 8.060863"
+         transform="scale(0.26458333)"
+         sodipodi:nodetypes="ccssscc" />
+      <path
+         inkscape:label="FrameTop"
+         id="path1466"
+         style="display:inline;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.41838;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 28.28559,27.598833 c -6.798548,0.07287 -13.74969,0.662802 -20.1367748,3.148785 -1.9768981,0.883518 -4.3010401,1.943994 -5.1062955,4.119668 -0.5547644,1.853652 1.0734936,3.43235 2.5084124,4.314034 4.2774459,2.546519 9.3165569,3.373043 14.1821649,4.001992 8.406552,0.871344 17.028963,0.630502 25.236227,-1.51207 2.857246,-0.868923 5.983149,-1.818759 7.979677,-4.181332 1.010576,-1.147665 0.848045,-2.948498 -0.221025,-3.999338 C 50.404035,31.087888 47.02529,30.153528 43.89565,29.300344 38.794346,28.062888 33.52542,27.614943 28.28559,27.598833 Z m -0.485756,1.981274 c 5.554514,0.05053 11.229591,0.44713 16.490466,2.359612 1.433438,0.622715 3.196595,1.319289 3.769785,2.913518 0.332259,1.415843 -1.06876,2.429864 -2.146143,3.026687 -3.760968,1.920992 -8.045146,2.457927 -12.195122,2.873733 C 27.035096,41.250354 20.206642,41.042428 13.700921,39.314485 11.726578,38.685255 9.5077118,38.055036 8.175677,36.353427 7.4551923,35.435995 7.9485161,34.149082 8.8097597,33.519491 11.115078,31.711312 14.095137,31.106734 16.899188,30.518123 20.491564,29.857821 24.1503,29.595135 27.799834,29.580107 Z" />
+      <path
+         id="path1472"
+         style="fill:#000000;fill-opacity:0.985459;stroke:#000000;stroke-width:1.98767;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         inkscape:label="Steam"
+         d="m 41.220645,0.96281035 c 0,0 -8.396468,3.94178905 0,11.32574365 8.396466,7.383957 -4.629191,11.325753 -4.629191,11.325753 0,0 9.10388,-3.51429 0,-11.325753 C 27.487571,4.4770923 41.220645,0.96281035 41.220645,0.96281035 Z m -11.036575,0 c 0,0 -8.396468,3.94178905 0,11.32574365 8.396466,7.383957 -4.629191,11.325753 -4.629191,11.325753 0,0 9.10388,-3.51429 0,-11.325753 C 16.450996,4.4770923 30.18407,0.96281035 30.18407,0.96281035 Z m -11.056804,0 c 0,0 -8.396468,3.94178905 0,11.32574265 8.396466,7.383958 -4.629192,11.325754 -4.629192,11.325754 0,0 9.103881,-3.514291 0,-11.325754 C 5.3941919,4.4770923 19.127266,0.96281035 19.127266,0.96281035 Z" />
+    </g>
+  </g>
+</svg>
