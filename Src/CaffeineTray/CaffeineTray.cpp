@@ -20,15 +20,22 @@ CaffeineTray::CaffeineTray()
     , mLogger(L"CaffeineTray.log")
     , Settings()
     , mLightTheme(false)
+    , mInitialized(false)
 {
     Log() << "---- Log started ----" << std::endl;
 }
 
 CaffeineTray::~CaffeineTray()
 {
-    SaveSettings();
-    DisableCaffeine();
-    DeleteNotifyIcon();
+    if (mInitialized)
+    {
+        SaveSettings();
+        DeleteNotifyIcon();
+    }
+    
+    if (Settings.mode == Mode::Enabled || Settings.mode == Mode::Auto_Active)
+        DisableCaffeine();
+
     UnregisterClassW(L"CaffeineTray_WndClass", mInstance);
 
     Log() << "---- Log ended ----" << std::endl;
@@ -117,6 +124,7 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
         UpdateCaffeine();
     }
 
+    mInitialized = true;
     Log() << "Initialization finished" << std::endl;
 
     return true;

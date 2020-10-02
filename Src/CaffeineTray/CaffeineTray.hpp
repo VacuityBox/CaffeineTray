@@ -62,6 +62,7 @@ class CaffeineTray
     bool      mEnumWindowsRetCode;
     bool      mIsTimerRunning;
     bool      mLightTheme;
+    bool      mInitialized;
 
     std::wofstream mLogger;
 
