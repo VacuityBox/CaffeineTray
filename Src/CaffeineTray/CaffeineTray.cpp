@@ -19,6 +19,7 @@ CaffeineTray::CaffeineTray()
     , mIsTimerRunning(false)
     , mLogger(L"CaffeineTray.log")
     , Settings()
+    , mLightTheme(false)
 {
     Log() << "---- Log started ----" << std::endl;
 }
@@ -108,6 +109,7 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
     // Load settings.
     {
         LoadSettings();
+        mLightTheme = IsLightTheme();
     }
 
     // Update icons, timer, power settings.
@@ -286,10 +288,34 @@ auto CaffeineTray::UpdateNotifyIcon() -> bool
 
 auto CaffeineTray::LoadIconHelper(WORD icon) -> HICON
 {
-    const UINT flags = LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED;
+    const auto flags = UINT{ LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED };
+
+    auto id = WORD{ 32512 };
+    if (mLightTheme)
+    {
+        switch (icon)
+        {
+        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_DARK;                  break;
+        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_CAFFEINE_DISABLED_DARK;      break;
+        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_CAFFEINE_ENABLED_DARK;       break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE_DARK; break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE_DARK;   break;
+        }
+    }
+    else
+    {
+        switch (icon)
+        {
+        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_LIGHT;                  break;
+        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_CAFFEINE_DISABLED_LIGHT;      break;
+        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_CAFFEINE_ENABLED_LIGHT;       break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE_LIGHT; break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE_LIGHT;   break;
+        }
+    }
 
     return static_cast<HICON>(
-        LoadImageW(mInstance, MAKEINTRESOURCEW(icon), IMAGE_ICON, 0, 0, flags)
+        LoadImageW(mInstance, MAKEINTRESOURCEW(id), IMAGE_ICON, 0, 0, flags)
         );
 }
 
@@ -685,6 +711,26 @@ auto CaffeineTray::CheckWindow(const std::wstring_view windowTitle) -> bool
     return false;
 }
 
+auto CaffeineTray::IsLightTheme() -> bool
+{
+    auto data = DWORD{ 0 };
+    auto dataSize = DWORD{ sizeof(data) };
+    auto status = ::RegGetValueW(
+        HKEY_CURRENT_USER,
+        L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        L"SystemUsesLightTheme",
+        RRF_RT_DWORD,
+        NULL,
+        &data,
+        &dataSize
+    );
+
+    if (status == ERROR_SUCCESS)
+        return data;
+
+    return false;
+}
+
 auto CaffeineTray::Log() -> std::wostream&
 {
     auto& stream = mLogger.good() ? mLogger : std::wcerr;
@@ -834,6 +880,20 @@ auto CALLBACK CaffeineTray::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
             break;
         }
         return 0;
+    }
+
+    case WM_WININICHANGE:
+    {
+        if (lParam)
+        {
+            auto str = reinterpret_cast<const wchar_t*>(lParam);
+            auto sysparam = std::wstring_view(str);
+            if (sysparam == L"ImmersiveColorSet")
+            {
+                caffeinePtr->mLightTheme = caffeinePtr->IsLightTheme();
+                caffeinePtr->UpdateNotifyIcon();
+            }
+        }
     }
     }
 

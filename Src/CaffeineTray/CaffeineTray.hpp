@@ -61,6 +61,7 @@ class CaffeineTray
     HINSTANCE mInstance;
     bool      mEnumWindowsRetCode;
     bool      mIsTimerRunning;
+    bool      mLightTheme;
 
     std::wofstream mLogger;
 
@@ -90,6 +91,8 @@ class CaffeineTray
     auto ScanWindows      () -> bool;
     auto CheckProcess (const std::wstring_view processImageName) -> bool;
     auto CheckWindow  (const std::wstring_view windowTitle) -> bool;
+
+    auto IsLightTheme () -> bool;
 
     auto Log      () -> std::wostream&;
     auto ModeToString (Mode mode) -> std::wstring_view;

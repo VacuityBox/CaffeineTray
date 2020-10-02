@@ -95,13 +95,25 @@ END
 // remains consistent on all systems.
 IDI_CAFFEINE_APP        ICON                    "..\\..\\Resources\\Icons\\CaffeineApp.ico"
 
-IDI_NOTIFY_CAFFEINE_DISABLED ICON                    "..\\..\\Resources\\Icons\\CaffeineDisabled.ico"
+IDI_CAFFEINE_APP_LIGHT        ICON                    "..\\..\\Resources\\Icons\\CaffeineAppLight.ico"
 
-IDI_NOTIFY_CAFFEINE_ENABLED ICON                    "..\\..\\Resources\\Icons\\CaffeineEnabled.ico"
+IDI_NOTIFY_CAFFEINE_DISABLED_LIGHT ICON                    "..\\..\\Resources\\Icons\\CaffeineDisabledLight.ico"
 
-IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE ICON                    "..\\..\\Resources\\Icons\\CaffeineAutoInactive.ico"
+IDI_NOTIFY_CAFFEINE_ENABLED_LIGHT ICON                    "..\\..\\Resources\\Icons\\CaffeineEnabledLight.ico"
 
-IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE ICON                    "..\\..\\Resources\\Icons\\CaffeineAutoActive.ico"
+IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE_LIGHT ICON                    "..\\..\\Resources\\Icons\\CaffeineAutoInactiveLight.ico"
+
+IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE_LIGHT ICON                    "..\\..\\Resources\\Icons\\CaffeineAutoActiveLight.ico"
+
+IDI_CAFFEINE_APP_DARK        ICON                    "..\\..\\Resources\\Icons\\CaffeineAppDark.ico"
+
+IDI_NOTIFY_CAFFEINE_DISABLED_DARK ICON                    "..\\..\\Resources\\Icons\\CaffeineDisabledDark.ico"
+
+IDI_NOTIFY_CAFFEINE_ENABLED_DARK ICON                    "..\\..\\Resources\\Icons\\CaffeineEnabledDark.ico"
+
+IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE_DARK ICON                    "..\\..\\Resources\\Icons\\CaffeineAutoInactiveDark.ico"
+
+IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE_DARK ICON                    "..\\..\\Resources\\Icons\\CaffeineAutoActiveDark.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////

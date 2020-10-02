@@ -39,16 +39,34 @@
     <Image Include="..\..\Resources\Icons\CaffeineApp.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineAutoActive.ico">
+    <Image Include="..\..\Resources\Icons\CaffeineAppDark.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineAutoInactive.ico">
+    <Image Include="..\..\Resources\Icons\CaffeineAppLight.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineDisabled.ico">
+    <Image Include="..\..\Resources\Icons\CaffeineAutoActiveDark.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineEnabled.ico">
+    <Image Include="..\..\Resources\Icons\CaffeineAutoActiveLight.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\CaffeineAutoInactiveDark.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\CaffeineAutoInactiveLight.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\CaffeineDisabledDark.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\CaffeineDisabledLight.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\CaffeineEnabledDark.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\CaffeineEnabledLight.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

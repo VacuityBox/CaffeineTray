@@ -179,10 +179,16 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Resources\Icons\CaffeineApp.ico" />
-    <Image Include="..\..\Resources\Icons\CaffeineAutoActive.ico" />
-    <Image Include="..\..\Resources\Icons\CaffeineAutoInactive.ico" />
-    <Image Include="..\..\Resources\Icons\CaffeineDisabled.ico" />
-    <Image Include="..\..\Resources\Icons\CaffeineEnabled.ico" />
+    <Image Include="..\..\Resources\Icons\CaffeineAppDark.ico" />
+    <Image Include="..\..\Resources\Icons\CaffeineAppLight.ico" />
+    <Image Include="..\..\Resources\Icons\CaffeineAutoActiveDark.ico" />
+    <Image Include="..\..\Resources\Icons\CaffeineAutoActiveLight.ico" />
+    <Image Include="..\..\Resources\Icons\CaffeineAutoInactiveDark.ico" />
+    <Image Include="..\..\Resources\Icons\CaffeineAutoInactiveLight.ico" />
+    <Image Include="..\..\Resources\Icons\CaffeineDisabledDark.ico" />
+    <Image Include="..\..\Resources\Icons\CaffeineDisabledLight.ico" />
+    <Image Include="..\..\Resources\Icons\CaffeineEnabledDark.ico" />
+    <Image Include="..\..\Resources\Icons\CaffeineEnabledLight.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
