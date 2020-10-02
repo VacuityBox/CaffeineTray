@@ -8,6 +8,7 @@
 #include <chrono>
 #include <iomanip>
 #include "resource.h"
+#include "json.hpp"
 
 namespace Caffeine {
 
@@ -24,6 +25,7 @@ CaffeineTray::CaffeineTray()
 
 CaffeineTray::~CaffeineTray()
 {
+    SaveSettings();
     DisableCaffeine();
     DeleteNotifyIcon();
     UnregisterClassW(L"CaffeineTray_WndClass", mInstance);
@@ -335,37 +337,202 @@ auto CaffeineTray::ShowNotifyContexMenu(HWND hWnd, LONG x, LONG y) -> void
     }
 }
 
-auto CaffeineTray::LoadSettings() -> void
+auto CaffeineTray::LoadSettings() -> bool
 {
+    // NOTE: Settings should be in UTF-8
+    // Read settings file.
+    auto file = std::ifstream("Caffeine.json");
+    if (!file)
+    {
+        Log() << "Can't open settings file 'Caffeine.json' for reading." << std::endl;
+        return false;
+    }
+
+    // Deserialize.
+    auto json = nlohmann::ordered_json();
+    try
+    {
+        file >> json;
+    }
+    catch (nlohmann::json::parse_error&)
+    {
+        Log() << "Failed to deserialize json." << std::endl;
+        return false;
+    }
+    
+    // Helper reading functions.
+    auto get_or_default = [](const nlohmann::json& json, const auto& key, auto def) {
+        auto val = json.find(key);
+        if (val == json.end())
+            return static_cast<decltype(def)>(def);
+
+        return static_cast<decltype(def)>(*val);
+    };
+
+    auto read_array = [](const nlohmann::json& json, const auto& key, auto& dest) {
+        auto val = json.find(key);
+        if (val == json.end() || !val->is_array())
+            return;
+
+        std::vector<std::string> arr = json[key];
+
+        for (const auto& str : arr)
+        {
+            // Convert UTF-8 to UTF-16.
+            if (auto utf16 = UTF8ToUTF16(str))
+                dest.push_back(utf16.value());
+        }
+    };
+
     // Global settings.
-    Settings.mode = Mode::Disabled;
-    Settings.logLevel = 4;
+    Settings.mode = get_or_default(json, "mode", Mode::Disabled);
 
     // Standard mode settings.
     {
-        Settings.Standard.keepDisplayOn = true;
+        Settings.Standard.keepDisplayOn = get_or_default(json["Standard"], "keepDisplayOn", 0);
     }
 
     // Auto mode settings.
     {
-        Settings.Auto.keepDisplayOn = true;
-        Settings.Auto.updateInterval = 1000;
+        Settings.Auto.keepDisplayOn = get_or_default(json["Auto"], "keepDisplayOn", 0);
+        Settings.Auto.scanInterval = get_or_default(json["Auto"], "scanInterval", 1000);
 
-        Settings.Auto.processPaths.clear();
-        Settings.Auto.processNames.clear();
-        Settings.Auto.windowTitles.clear();
-
-        // TODO remove this
-        //Settings.Auto.processNames.push_back(L"cmd.exe");
-        Settings.Auto.windowTitles.push_back(L"Command Prompt");
+        read_array(json["Auto"], "processPaths", Settings.Auto.processPaths);
+        read_array(json["Auto"], "processNames", Settings.Auto.processNames);
+        read_array(json["Auto"], "windowTitles", Settings.Auto.windowTitles);
     }
 
+    //Log() << json.dump(4).c_str() << std::endl;
     Log() << "Loaded settings" << std::endl;
+
+    return true;
+}
+
+auto CaffeineTray::SaveSettings() -> bool
+{
+    // Open settings file.
+    auto file = std::ofstream("Caffeine.json");
+    if (!file)
+    {
+        Log() << "Can't open settings file 'Caffeine.json' for writing." << std::endl;
+        return false;
+    }
+
+    // Helper.
+    auto write_array = [](auto& json, const auto& key, const std::vector<std::wstring>& src) {
+        auto& dest = json[key] = nlohmann::json::array();
+        for (const auto& str : src)
+        {
+            // Convert UTF-16 to UTF-8.
+            if (auto utf8 = UTF16ToUTF8(str))
+                dest.push_back(utf8.value());
+        }
+    };
+
+    // Create json.
+    auto json = nlohmann::ordered_json();
+
+    auto mode = static_cast<int>(Settings.mode);
+    if (Settings.mode == Mode::Auto_Active)
+        mode = static_cast<int>(Mode::Auto_Inactive);
+
+    json["mode"] = mode;
+
+    json["Standard"]["keepDisplayOn"] = Settings.Standard.keepDisplayOn;
+
+    json["Auto"]["scanInterval"] = Settings.Auto.scanInterval;
+    json["Auto"]["keepDisplayOn"] = Settings.Auto.keepDisplayOn;
+    write_array(json["Auto"], "processNames", Settings.Auto.processNames);
+    write_array(json["Auto"], "processPaths", Settings.Auto.processPaths);
+    write_array(json["Auto"], "windowTitles", Settings.Auto.windowTitles);
+
+    // Serialize.
+    file << std::setw(4) << json;
+
+    Log() << "Saved settings." << std::endl;
+    return true;
 }
 
 auto CaffeineTray::LaunchSettingsProgram() -> bool
 {
-    return false;
+    auto ret = ::ShellExecuteW(mWndHandle, L"open", L"CaffeineSettings.exe", nullptr, nullptr, SW_SHOWNORMAL);
+    return reinterpret_cast<intptr_t>(ret) > 32;
+}
+
+auto CaffeineTray::UTF8ToUTF16(const std::string_view str) -> std::optional<std::wstring>
+{
+    // Get size.
+    auto size = ::MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        str.data(),
+        static_cast<int>(str.size()),
+        nullptr,
+        0
+    );
+
+    if (size <= 0)
+    {
+        return std::nullopt;
+    }
+
+    // Convert.
+    auto utf16 = std::wstring(size, L'\0');
+    auto ret = ::MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        str.data(),
+        static_cast<int>(str.size()),
+        utf16.data(),
+        static_cast<int>(utf16.size())
+    );
+
+    if (ret == 0)
+    {
+        return std::nullopt;
+    }
+
+    return utf16;
+}
+
+auto CaffeineTray::UTF16ToUTF8(const std::wstring_view str) -> std::optional<std::string>
+{
+    // Get size.
+    auto size = ::WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        str.data(),
+        static_cast<int>(str.size()),
+        nullptr,
+        0,
+        nullptr,
+        nullptr
+    );
+
+    if (size <= 0)
+    {
+        return std::nullopt;
+    }
+    
+    // Convert.
+    auto utf8 = std::string(size, '\0');
+    auto ret = ::WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        str.data(),
+        static_cast<int>(str.size()),
+        utf8.data(),
+        static_cast<int>(utf8.size()),
+        nullptr,
+        nullptr
+    );
+
+    if (ret == 0)
+    {
+        return std::nullopt;
+    }
+
+    return utf8;
 }
 
 auto CaffeineTray::ResetTimer() -> bool
@@ -385,7 +552,7 @@ auto CaffeineTray::ResetTimer() -> bool
     case Mode::Auto_Inactive:
         if (!mIsTimerRunning)
         {
-            SetTimer(mWndHandle, IDT_CAFFEINE, Settings.Auto.updateInterval, nullptr);
+            SetTimer(mWndHandle, IDT_CAFFEINE, Settings.Auto.scanInterval, nullptr);
             mIsTimerRunning = true;
             Log() << "Starting timer" << std::endl;
         }

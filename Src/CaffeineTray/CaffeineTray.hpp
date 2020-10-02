@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <optional>
 
 namespace Caffeine {
 
@@ -27,7 +28,6 @@ class CaffeineTray
     struct Settings
     {
         Mode mode;
-        int logLevel;
         
         struct
         {
@@ -36,12 +36,25 @@ class CaffeineTray
 
         struct
         {
-            int updateInterval;
+            int scanInterval;
             bool keepDisplayOn;
             std::vector<std::wstring> processNames;
             std::vector<std::wstring> processPaths;
             std::vector<std::wstring> windowTitles;
-        } Auto;        
+        } Auto;
+
+        Settings()
+            : mode(Mode::Disabled)
+        {
+            Standard.keepDisplayOn = false;
+
+            Auto.keepDisplayOn = false;
+            Auto.scanInterval = 1000;
+
+            Auto.processNames.clear();
+            Auto.processPaths.clear();
+            Auto.windowTitles.clear();
+        }
     } Settings;
 
     HWND      mWndHandle;
@@ -64,8 +77,11 @@ class CaffeineTray
     auto LoadIconHelper       (WORD icon) -> HICON;
     auto ShowNotifyContexMenu (HWND hWnd, LONG x, LONG y) -> void;
 
-    auto LoadSettings          () -> void;
+    auto LoadSettings          () -> bool;
+    auto SaveSettings          () -> bool;
     auto LaunchSettingsProgram () -> bool;
+    static auto UTF8ToUTF16    (const std::string_view str) -> std::optional<std::wstring>;
+    static auto UTF16ToUTF8    (const std::wstring_view str) -> std::optional<std::string>;
 
     // Timer related/used by functions.
     auto ResetTimer       () -> bool;
