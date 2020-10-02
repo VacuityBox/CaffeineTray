@@ -7,4 +7,5 @@
 
 # Visual Studio
 *.vcxproj.user
+*.aps
 .vs/
