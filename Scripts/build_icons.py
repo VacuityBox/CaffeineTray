@@ -92,7 +92,7 @@ def build_svg(xml, filename, cup_desc):
     return True
 
 # Create cup description based on 4 colors proporties.
-def create_cup_desc(frame, fill, coffee, steam):
+def create_cup_desc(frame, fill, coffee, steam, auto):
     def create_style_desc(fc, fo, sc, so):
         return {
             "fill": fc,
@@ -108,6 +108,7 @@ def create_cup_desc(frame, fill, coffee, steam):
         "FrameBottom": create_style_desc("none", 1.0, frame, 1.0),
         "FrameTop": create_style_desc(frame, 1.0, frame, 1.0),
         "Steam": create_style_desc(steam, 1.0, steam, 1.0),
+        "Auto": create_style_desc(auto, 1.0, auto, 1.0),
     }
 
 def build(xml, desc):
@@ -122,7 +123,8 @@ def build(xml, desc):
             get_prop(v, "FrameColor"),
             get_prop(v, "FillColor"),
             get_prop(v, "CoffeeColor"),
-            get_prop(v, "SteamColor")
+            get_prop(v, "SteamColor"),
+            get_prop(v, "Auto")
         )
 
         svg = TEMP_DIR + k + ".svg"

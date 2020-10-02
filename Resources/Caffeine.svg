@@ -31,7 +31,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="2.4039733"
      inkscape:cx="193.27641"
-     inkscape:cy="140.81915"
+     inkscape:cy="126.63397"
      inkscape:document-units="mm"
      inkscape:current-layer="g1474"
      showgrid="false"
@@ -84,6 +84,11 @@
        transform="translate(-0.00607642)"
        inkscape:label="Caffeine"
        id="g1474">
+      <path
+         inkscape:label="Auto"
+         id="path840"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:22.5778px;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans Bold';fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.264583;stroke-opacity:1"
+         d="M 62.17541,17.5112 61.001364,13.672974 H 55.131136 L 53.95709,17.5112 H 50.276909 L 55.966515,1.3229168 h 4.176893 L 65.855591,17.5112 Z M 60.188563,10.805593 59.014518,7.0576782 Q 58.901629,6.6738556 58.721006,6.0868328 58.540384,5.49981 58.359762,4.8902093 58.179139,4.2806087 58.06625,3.8290527 57.953361,4.2806087 57.750161,4.9579427 57.569539,5.612699 57.388916,6.2222996 57.230872,6.8093224 57.14056,7.0576782 l -1.151468,3.7479148 z" />
       <path
          id="path1478"
          style="fill:none;fill-opacity:1;stroke:none;stroke-width:4.74437;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"

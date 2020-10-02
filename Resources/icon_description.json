@@ -2,31 +2,78 @@
     "CaffeineApp": {
         "FrameColor": "#000000",
         "FillColor": "#ffffff",
-        "CoffeeColor": "#400000",
-        "SteamColor": "#000000"
+        "CoffeeColor": "#4d3626",
+        "SteamColor": "#000000",
+        "Auto": "none"
     },
-    "CaffeineDisabled": {
+    "CaffeineAppLight": {
+        "FrameColor": "#000000",
+        "FillColor": "#ffffff",
+        "CoffeeColor": "#4d3626",
+        "SteamColor": "#000000",
+        "Auto": "none"
+    },
+    "CaffeineDisabledLight": {
         "FrameColor": "#ffffff",
-        "FillColor": "none",
+        "FillColor": "#ffffff",
         "CoffeeColor": "none",
-        "SteamColor": "none"
+        "SteamColor": "none",
+        "Auto": "none"
     },
-    "CaffeineEnabled": {
+    "CaffeineEnabledLight": {
         "FrameColor": "#ffffff",
-        "FillColor": "none",
-        "CoffeeColor": "#400000",
-        "SteamColor": "#ffffff"
+        "FillColor": "#ffffff",
+        "CoffeeColor": "#4d3626",
+        "SteamColor": "#ffffff",
+        "Auto": "none"
     },
-    "CaffeineAutoInactive": {
+    "CaffeineAutoInactiveLight": {
         "FrameColor": "#ffffff",
-        "FillColor": "#7f0000",
+        "FillColor": "#ffffff",
         "CoffeeColor": "none",
-        "SteamColor": "none"
+        "SteamColor": "none",
+        "Auto": "#ffffff"
     },
-    "CaffeineAutoActive": {
+    "CaffeineAutoActiveLight": {
         "FrameColor": "#ffffff",
-        "FillColor": "#7f0000",
+        "FillColor": "#ffffff",
         "CoffeeColor": "#400000",
-        "SteamColor": "#ffffff"
+        "SteamColor": "#ffffff",
+        "Auto": "#ffffff"
+    },
+    "CaffeineAppDark": {
+        "FrameColor": "#ffffff",
+        "FillColor": "#000000",
+        "CoffeeColor": "#be9b7b",
+        "SteamColor": "#ffffff",
+        "Auto": "none"
+    },
+    "CaffeineDisabledDark": {
+        "FrameColor": "#000000",
+        "FillColor": "#000000",
+        "CoffeeColor": "none",
+        "SteamColor": "none",
+        "Auto": "none"
+    },
+    "CaffeineEnabledDark": {
+        "FrameColor": "#000000",
+        "FillColor": "#000000",
+        "CoffeeColor": "#be9b7b",
+        "SteamColor": "#000000",
+        "Auto": "none"
+    },
+    "CaffeineAutoInactiveDark": {
+        "FrameColor": "#000000",
+        "FillColor": "#000000",
+        "CoffeeColor": "none",
+        "SteamColor": "none",
+        "Auto": "#000000"
+    },
+    "CaffeineAutoActiveDark": {
+        "FrameColor": "#000000",
+        "FillColor": "#000000",
+        "CoffeeColor": "#be9b7b",
+        "SteamColor": "#000000",
+        "Auto": "#000000"
     } 
 }
