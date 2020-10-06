@@ -59,6 +59,8 @@ class CaffeineTray
 
     HWND      mWndHandle;
     HINSTANCE mInstance;
+    HANDLE    mReloadEvent;
+    HANDLE    mReloadThread;
     bool      mEnumWindowsRetCode;
     bool      mIsTimerRunning;
     bool      mLightTheme;
@@ -82,6 +84,7 @@ class CaffeineTray
     auto LoadSettings          () -> bool;
     auto SaveSettings          () -> bool;
     auto LaunchSettingsProgram () -> bool;
+    auto ReloadSettings        () -> void;
     static auto UTF8ToUTF16    (const std::string_view str) -> std::optional<std::wstring>;
     static auto UTF16ToUTF8    (const std::wstring_view str) -> std::optional<std::string>;
 
@@ -99,6 +102,7 @@ class CaffeineTray
     auto ModeToString (Mode mode) -> std::wstring_view;
 
     // Window/timer callbacks.
+    static auto CALLBACK ReloadThreadProc(LPVOID lParam) -> DWORD;
     static auto CALLBACK EnumWindowsProc (HWND hWnd, LPARAM lParam) -> BOOL;
     static auto CALLBACK WndProc         (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT;
 

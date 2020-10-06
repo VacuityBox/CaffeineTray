@@ -1,5 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <string_view>
 
 #include "CaffeineTray.hpp"
 
@@ -19,6 +20,24 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             MB_OK
         );
         return -1;
+    }
+
+    if (GetLastError() == ERROR_ALREADY_EXISTS)
+    {
+        // Trigger settings reload.
+        auto cmd = std::wstring_view(lpCmdLine);
+        if (cmd == L"reload")
+        {
+            auto reloadEvent = ::OpenEventW(EVENT_ALL_ACCESS, FALSE, L"CaffeineTray_ReloadEvent");
+            if (reloadEvent)
+            {
+                SetEvent(reloadEvent);
+                CloseHandle(reloadEvent);
+            }
+        }
+
+        CloseHandle(mutex);
+        return 1;
     }
 
     auto caffe = Caffeine::CaffeineTray();

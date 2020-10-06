@@ -21,12 +21,20 @@ CaffeineTray::CaffeineTray()
     , Settings()
     , mLightTheme(false)
     , mInitialized(false)
+    , mReloadEvent(NULL)
+    , mReloadThread(NULL)
 {
     Log() << "---- Log started ----" << std::endl;
 }
 
 CaffeineTray::~CaffeineTray()
 {
+    if (mReloadThread)
+        ::TerminateThread(mReloadThread, 0);
+
+    if (mReloadEvent)
+        ::CloseHandle(mReloadEvent);
+
     if (mInitialized)
     {
         SaveSettings();
@@ -122,6 +130,24 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
     // Update icons, timer, power settings.
     {
         UpdateCaffeine();
+    }
+
+    // Create reload event and thread.
+    {
+        mReloadEvent = ::CreateEventW(NULL, FALSE, FALSE, L"CaffeineTray_ReloadEvent");
+        if (mReloadEvent == NULL)
+        {
+            Log() << "Failed to create reload event." << std::endl;
+        }
+        else
+        {
+            auto dwThreadId = DWORD{ 0 };
+            mReloadThread = ::CreateThread(NULL, 0, ReloadThreadProc, this, 0, &dwThreadId);
+            if (mReloadThread == NULL)
+            {
+                Log() << "Failed to create reload thread." << std::endl;
+            }
+        }
     }
 
     mInitialized = true;
@@ -493,6 +519,15 @@ auto CaffeineTray::LaunchSettingsProgram() -> bool
     return reinterpret_cast<intptr_t>(ret) > 32;
 }
 
+auto CaffeineTray::ReloadSettings() -> void
+{
+    Log() << "Settings reload triggered" << std::endl;
+    if (LoadSettings())
+    {
+        UpdateCaffeine();
+    }
+}
+
 auto CaffeineTray::UTF8ToUTF16(const std::string_view str) -> std::optional<std::wstring>
 {
     // Get size.
@@ -764,6 +799,28 @@ auto CaffeineTray::ModeToString(Mode mode) -> std::wstring_view
     }
 
     return L"Unknown mode";
+}
+
+auto CaffeineTray::ReloadThreadProc(LPVOID lParam) -> DWORD
+{
+    while (true)
+    {
+        auto caffeinePtr = reinterpret_cast<CaffeineTray*>(lParam);
+        if (!caffeinePtr)
+        {
+            return 1;
+        }
+
+        auto waitRet = ::WaitForSingleObject(caffeinePtr->mReloadEvent, INFINITE);
+        switch (waitRet)
+        {
+        case WAIT_OBJECT_0:
+            caffeinePtr->ReloadSettings();
+            break;
+        }
+    }
+
+    return 0;
 }
 
 auto CaffeineTray::EnumWindowsProc(HWND hWnd, LPARAM lParam) -> BOOL
