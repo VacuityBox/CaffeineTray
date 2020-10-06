@@ -8,8 +8,20 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    Caffeine::CaffeineTray caffe;
+    // Check if application is not running already.
+    auto mutex = ::CreateMutexW(NULL, FALSE, L"CaffeineTray_AppInstance");
+    if (mutex == NULL)
+    {
+        MessageBoxW(
+            0,
+            L"Failed to create mutex.",
+            L"Initialization failed",
+            MB_OK
+        );
+        return -1;
+    }
 
+    auto caffe = Caffeine::CaffeineTray();
     if (!caffe.Init(hInstance))
     {
         MessageBoxW(
@@ -18,16 +30,18 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             L"Initialization failed",
             MB_OK
         );
-        return 1;
+        return -2;
     }
 
     // Main message loop:
-    MSG msg;
+    auto msg = MSG{ 0 };
     while (GetMessage(&msg, nullptr, 0, 0))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
 
-    return (int)msg.wParam;
+    CloseHandle(mutex);
+
+    return static_cast<int>(msg.wParam);
 }
