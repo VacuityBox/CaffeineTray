@@ -1,0 +1,13 @@
+{
+    "mode": 0,
+    "Standard": {
+        "keepDisplayOn": 0
+    },
+    "Auto": {
+        "keepDisplayOn": 0,
+        "scanInterval": 2000,
+        "processPaths": [],
+        "processNames": [],
+        "windowTitles": []
+    }
+}
