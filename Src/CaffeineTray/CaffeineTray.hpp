@@ -102,6 +102,7 @@ class CaffeineTray
     auto ModeToString (Mode mode) -> std::wstring_view;
 
     // Window/timer callbacks.
+    static auto CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) -> INT_PTR;
     static auto CALLBACK ReloadThreadProc(LPVOID lParam) -> DWORD;
     static auto CALLBACK EnumWindowsProc (HWND hWnd, LPARAM lParam) -> BOOL;
     static auto CALLBACK WndProc         (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT;

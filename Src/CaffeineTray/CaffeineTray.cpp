@@ -2,6 +2,7 @@
 
 #include <shellapi.h>
 #include <Psapi.h>
+#include <commctrl.h>
 #include <array>
 #include <iostream>
 #include <fstream>
@@ -111,6 +112,12 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
 
         //ShowWindow(mHandle, SW_SHOW);
         UpdateWindow(mWndHandle);
+
+        // For hyperlinks in About dialog.
+        auto ccs = INITCOMMONCONTROLSEX{ 0 };
+        ccs.dwSize = sizeof(ccs);
+        ccs.dwICC = ICC_LINK_CLASS;
+        InitCommonControlsEx(&ccs);
     }
 
     // Create notification icon.
@@ -801,6 +808,80 @@ auto CaffeineTray::ModeToString(Mode mode) -> std::wstring_view
     return L"Unknown mode";
 }
 
+auto CaffeineTray::AboutDlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> INT_PTR
+{
+    const auto caffeineIcon = LoadImageW(
+        GetModuleHandleW(NULL),
+        MAKEINTRESOURCEW(IDI_CAFFEINE_APP),
+        IMAGE_ICON,
+        48,
+        48,
+        LR_DEFAULTCOLOR | LR_SHARED
+    );
+
+    const auto license = 
+        L"This program is free software: you can redistribute it and/or modify\r\n"
+        L"it under the terms of the GNU General Public License as published by\r\n"
+        L"the Free Software Foundation, either version 3 of the License, or\r\n"
+        L"(at your option) any later version.\r\n"
+        L"\r\n"
+        L"This program is distributed in the hope that it will be useful,\r\n"
+        L"but WITHOUT ANY WARRANTY; without even the implied warranty of\r\n"
+        L"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\r\n"
+        L"GNU General Public License for more details.\r\n"
+        L"\r\n"
+        L"You should have received a copy of the GNU General Public License\r\n"
+        L"along with this program.  If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a>\r\n"
+    ;
+
+    const auto homepage = L"<a href=\"https://github.com/VacuityBox/Caffeine\">https://github.com/VacuityBox/Caffeine</a>";
+
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        SendDlgItemMessageW(hWnd, IDC_CAFFEINE_LOGO, STM_SETIMAGE, IMAGE_ICON, reinterpret_cast<LPARAM>(caffeineIcon));
+        SetDlgItemTextW(hWnd, IDC_LICENSE, license);
+        SetDlgItemTextW(hWnd, IDC_HOMEPAGE, homepage);
+
+        return TRUE;
+
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDOK:
+            EndDialog(hWnd, IDOK);
+            break;
+
+        case IDCANCEL:
+            EndDialog(hWnd, IDOK);
+            break;
+        }
+        
+        return TRUE;
+
+    case WM_NOTIFY:
+        switch ((reinterpret_cast<LPNMHDR>(lParam))->code)
+        {
+        case NM_CLICK:
+        case NM_RETURN:
+        {
+            auto link = reinterpret_cast<PNMLINK>(lParam);
+            auto item = link->item;
+            ShellExecuteW(NULL, L"open", item.szUrl, NULL, NULL, SW_SHOW);
+            EndDialog(hWnd, IDOK);
+            break;
+        }
+        }
+        return TRUE;
+
+    case WM_CLOSE:
+        EndDialog(hWnd, IDOK);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 auto CaffeineTray::ReloadThreadProc(LPVOID lParam) -> DWORD
 {
     while (true)
@@ -890,6 +971,10 @@ auto CALLBACK CaffeineTray::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 
         case IDM_SETTINGS:
             caffeinePtr->LaunchSettingsProgram();
+            break;
+
+        case IDM_ABOUT:
+            DialogBoxW(caffeinePtr->mInstance, MAKEINTRESOURCE(IDD_ABOUT), hWnd, AboutDlgProc);
             break;
 
         case IDM_EXIT:
