@@ -59,8 +59,8 @@ namespace CaffeineSettings
 
             foreach (var p in processList)
             {
-                var name = p.ProcessName;
                 var path = p.GetMainModuleFileName();
+                var name = path is null || path.Length < 1 ? p.ProcessName : System.IO.Path.GetFileName(path);
                 var icon = IconCache.GetIcon(path);
                 var title = p.MainWindowTitle;
                 try
