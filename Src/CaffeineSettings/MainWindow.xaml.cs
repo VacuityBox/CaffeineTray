@@ -84,13 +84,15 @@ namespace CaffeineSettings
             {
                 MessageBox.Show("Failed to save settings file '" + settingsFilename + "'");
             }
-
-            // Trigger settings reload.
-            var reloadEvent = Kernel32Interop.OpenEvent(Kernel32Interop.EVENT_ALL_ACCESS, false, reloadEventName);
-            if (reloadEvent != IntPtr.Zero)
+            else
             {
-                Kernel32Interop.SetEvent(reloadEvent);
-                Kernel32Interop.CloseHandle(reloadEvent);
+                // Trigger settings reload.
+                var reloadEvent = Kernel32Interop.OpenEvent(Kernel32Interop.EVENT_ALL_ACCESS, false, reloadEventName);
+                if (reloadEvent != IntPtr.Zero)
+                {
+                    Kernel32Interop.SetEvent(reloadEvent);
+                    Kernel32Interop.CloseHandle(reloadEvent);
+                }
             }
 
             Application.Current.Shutdown();
