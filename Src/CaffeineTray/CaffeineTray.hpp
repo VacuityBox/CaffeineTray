@@ -11,8 +11,6 @@ namespace Caffeine {
 
 class CaffeineTray
 {
-    class __declspec(uuid("188C8294-3EB5-45BF-AC59-E4A94D7598AE")) CaffeineNotifyIcon;
-
     static constexpr auto WM_APP_NOTIFY = static_cast<UINT>(WM_APP + 1); // NotifyIcon messages.
     static constexpr auto IDT_CAFFEINE  = static_cast<UINT>(10001);      // Timer.
 

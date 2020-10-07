@@ -246,12 +246,12 @@ auto CaffeineTray::SetCaffeineMode(Mode mode) -> void
 
 auto CaffeineTray::AddNotifyIcon() -> bool
 {
-    NOTIFYICONDATA nid   = { 0 };
+    auto nid             = NOTIFYICONDATA{ 0 };
     nid.cbSize           = sizeof(nid);
     nid.hWnd             = mWndHandle;
-    nid.uFlags           = NIF_GUID | NIF_ICON | NIF_MESSAGE | NIF_TIP | NIF_SHOWTIP;
-    nid.guidItem         = __uuidof(CaffeineNotifyIcon);
+    nid.uFlags           = NIF_ICON | NIF_MESSAGE | NIF_TIP | NIF_SHOWTIP;
     nid.hIcon            = LoadIconHelper(IDI_NOTIFY_CAFFEINE_DISABLED);
+    nid.hWnd             = mWndHandle;
     nid.uCallbackMessage = WM_APP_NOTIFY;
     nid.uVersion         = NOTIFYICON_VERSION_4;
 
@@ -275,10 +275,11 @@ auto CaffeineTray::AddNotifyIcon() -> bool
 
 auto CaffeineTray::DeleteNotifyIcon() -> bool
 {
-    NOTIFYICONDATA nid = { 0 };
-    nid.cbSize         = sizeof(nid);
-    nid.uFlags         = NIF_GUID;
-    nid.guidItem       = __uuidof(CaffeineNotifyIcon);
+    auto nid             = NOTIFYICONDATA{ 0 };
+    nid.cbSize           = sizeof(nid);
+    nid.uFlags           = NIF_MESSAGE;
+    nid.hWnd             = mWndHandle;
+    nid.uCallbackMessage = WM_APP_NOTIFY;
 
     if (!Shell_NotifyIconW(NIM_DELETE, &nid))
     {
@@ -292,10 +293,11 @@ auto CaffeineTray::DeleteNotifyIcon() -> bool
 
 auto CaffeineTray::UpdateNotifyIcon() -> bool
 {
-    NOTIFYICONDATA nid = { 0 };
-    nid.cbSize         = sizeof(nid);
-    nid.uFlags         = NIF_GUID | NIF_ICON | NIF_TIP | NIF_SHOWTIP;
-    nid.guidItem       = __uuidof(CaffeineNotifyIcon);
+    auto nid             = NOTIFYICONDATA{ 0 };
+    nid.cbSize           = sizeof(nid);
+    nid.uFlags           = NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_SHOWTIP;
+    nid.hWnd             = mWndHandle;
+    nid.uCallbackMessage = WM_APP_NOTIFY;
 
     switch (Settings.mode)
     {
