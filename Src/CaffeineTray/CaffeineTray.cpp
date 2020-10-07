@@ -427,6 +427,9 @@ auto CaffeineTray::LoadSettings() -> bool
         return false;
     }
     
+    // Reset current settings.
+    Settings = Settings::Settings();
+
     // Helper reading functions.
     auto get_or_default = [](const nlohmann::json& json, const auto& key, auto def) {
         auto val = json.find(key);
