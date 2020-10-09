@@ -1,4 +1,4 @@
-<img src="Gallery/CaffeineAppLight.svg" width="32" height="32"> Caffeine - Don't let your computer to sleep <img src="Gallery/CaffeineAppDark.svg" width="32" height="32">
+<img src="Gallery/CaffeineApp.svg" width="32" height="32"> Caffeine - Don't let your computer to sleep
 ===========================================
 
 Installation
