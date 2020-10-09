@@ -562,8 +562,10 @@ auto CaffeineTray::LaunchSettingsProgram() -> bool
 auto CaffeineTray::ReloadSettings() -> void
 {
     Log() << "Settings reload triggered" << std::endl;
+    auto mode = Settings.mode;
     if (LoadSettings())
     {
+        Settings.mode = mode;
         UpdateCaffeine();
     }
 }
