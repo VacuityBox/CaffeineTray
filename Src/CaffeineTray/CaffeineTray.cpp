@@ -3,6 +3,7 @@
 #include <shellapi.h>
 #include <Psapi.h>
 #include <commctrl.h>
+#include <ShlObj.h>
 #include <array>
 #include <iostream>
 #include <fstream>
@@ -18,13 +19,33 @@ CaffeineTray::CaffeineTray()
     , mInstance(nullptr)
     , mEnumWindowsRetCode(false)
     , mIsTimerRunning(false)
-    , mLogger(L"CaffeineTray.log")
     , Settings()
     , mLightTheme(false)
     , mInitialized(false)
     , mReloadEvent(NULL)
     , mReloadThread(NULL)
+    , mSettingsFile(L"Caffeine.json")
 {
+    // Use AppData for settings if can't open local file.
+    auto f = std::ofstream(mSettingsFile);
+    if (!f.good())
+    {
+        auto appDataPath = std::array<wchar_t, MAX_PATH>();
+        if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, appDataPath.data())))
+        {
+            const auto dir = std::wstring(appDataPath.data()) + L"\\Caffeine\\";
+            ::CreateDirectoryW(dir.c_str(), NULL);
+            mSettingsFile = dir + L"Caffeine.json";
+
+            const auto logPath = dir + L"CaffeineTray.log";
+            mLogger = std::wofstream(logPath);
+        }
+    }
+    else
+    {
+        mLogger = std::wofstream("CaffeineTray.log");
+    }
+
     Log() << "---- Log started ----" << std::endl;
 }
 
@@ -130,6 +151,13 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
 
     // Load settings.
     {
+        // Create default settings file if not exists.
+        {
+            auto f = std::ifstream(mSettingsFile);
+            if (!f.good())
+                SaveSettings();
+        }
+
         LoadSettings();
         mLightTheme = IsLightTheme();
     }
@@ -410,10 +438,10 @@ auto CaffeineTray::LoadSettings() -> bool
 {
     // NOTE: Settings should be in UTF-8
     // Read settings file.
-    auto file = std::ifstream("Caffeine.json");
+    auto file = std::ifstream(mSettingsFile);
     if (!file)
     {
-        Log() << "Can't open settings file 'Caffeine.json' for reading." << std::endl;
+        Log() << "Can't open settings file '" << mSettingsFile.c_str() << "' for reading." << std::endl;
         return false;
     }
 
@@ -475,7 +503,7 @@ auto CaffeineTray::LoadSettings() -> bool
     }
 
     //Log() << json.dump(4).c_str() << std::endl;
-    Log() << "Loaded settings" << std::endl;
+    Log() << "Loaded settings '" << mSettingsFile.c_str() << "'" << std::endl;
 
     return true;
 }
@@ -483,10 +511,10 @@ auto CaffeineTray::LoadSettings() -> bool
 auto CaffeineTray::SaveSettings() -> bool
 {
     // Open settings file.
-    auto file = std::ofstream("Caffeine.json");
+    auto file = std::ofstream(mSettingsFile);
     if (!file)
     {
-        Log() << "Can't open settings file 'Caffeine.json' for writing." << std::endl;
+        Log() << "Can't open settings file '" << mSettingsFile.c_str() << "' for writing." << std::endl;
         return false;
     }
 
@@ -521,7 +549,7 @@ auto CaffeineTray::SaveSettings() -> bool
     // Serialize.
     file << std::setw(4) << json;
 
-    Log() << "Saved settings." << std::endl;
+    Log() << "Saved settings '" << mSettingsFile.c_str() << "'" << std::endl;
     return true;
 }
 

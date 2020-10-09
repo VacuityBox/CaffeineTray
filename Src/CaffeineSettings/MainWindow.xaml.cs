@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -33,19 +34,34 @@ namespace CaffeineSettings
     {
         private const string settingsFilename = "Caffeine.json";
         private const string reloadEventName  = "CaffeineTray_ReloadEvent";
+        private string settingsPath;
         
         public MainWindow()
         {
             InitializeComponent();
 
+            settingsPath = settingsFilename;
             try
             {
-                var settings = Settings.Load(settingsFilename);
+                File.Open(settingsPath, FileMode.Open, FileAccess.Read).Dispose();
+            }
+            catch (IOException)
+            {
+                settingsPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Caffeine",
+                    settingsFilename
+                );
+            }
+
+            try
+            {
+                var settings = Settings.Load(settingsPath);
                 DataContext = new SettingsViewModel(settings);
             }
             catch
             {
-                MessageBox.Show("Failed to load settings file '" + settingsFilename + "'");
+                MessageBox.Show("Failed to load settings file '" + settingsPath + "'");
                 DataContext = new SettingsViewModel(new Settings());
             }
         }
@@ -80,9 +96,9 @@ namespace CaffeineSettings
             var dc = DataContext as SettingsViewModel;
             var settings = dc.ToSettingsJson();
 
-            if (!Settings.Save(settingsFilename, settings))
+            if (!Settings.Save(settingsPath, settings))
             {
-                MessageBox.Show("Failed to save settings file '" + settingsFilename + "'");
+                MessageBox.Show("Failed to save settings file '" + settingsPath + "'");
             }
             else
             {

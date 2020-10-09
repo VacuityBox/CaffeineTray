@@ -17,6 +17,7 @@
     <Copyright>GPL-3.0-or-later</Copyright>
     <PackageProjectUrl>https://github.com/VacuityBox/Caffeine</PackageProjectUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

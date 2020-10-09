@@ -55,14 +55,15 @@ class CaffeineTray
         }
     } Settings;
 
-    HWND      mWndHandle;
-    HINSTANCE mInstance;
-    HANDLE    mReloadEvent;
-    HANDLE    mReloadThread;
-    bool      mEnumWindowsRetCode;
-    bool      mIsTimerRunning;
-    bool      mLightTheme;
-    bool      mInitialized;
+    HWND         mWndHandle;
+    HINSTANCE    mInstance;
+    HANDLE       mReloadEvent;
+    HANDLE       mReloadThread;
+    bool         mEnumWindowsRetCode;
+    bool         mIsTimerRunning;
+    bool         mLightTheme;
+    bool         mInitialized;
+    std::wstring mSettingsFile;
 
     std::wofstream mLogger;
 
