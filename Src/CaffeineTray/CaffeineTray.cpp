@@ -234,6 +234,10 @@ auto CaffeineTray::EnableCaffeine() -> void
         flags |= ES_DISPLAY_REQUIRED;
     }
 
+    // Disable previous request before enabling new.
+    SetThreadExecutionState(ES_CONTINUOUS);
+
+    // Activate new.
     SetThreadExecutionState(flags);
 
     Log() << "Caffeine Enabled. Preventing computer to sleep" << std::endl;
