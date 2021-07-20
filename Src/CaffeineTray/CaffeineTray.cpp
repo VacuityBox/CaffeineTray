@@ -62,9 +62,6 @@ CaffeineTray::~CaffeineTray()
         SaveSettings();
         DeleteNotifyIcon();
     }
-    
-    if (Settings.mode == Mode::Enabled || Settings.mode == Mode::Auto_Active)
-        DisableCaffeine();
 
     UnregisterClassW(L"CaffeineTray_WndClass", mInstance);
 
@@ -164,7 +161,7 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
 
     // Update icons, timer, power settings.
     {
-        UpdateCaffeine();
+        Update();
     }
 
     // Create reload event and thread.
@@ -191,89 +188,88 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
     return true;
 }
 
-auto CaffeineTray::UpdateCaffeine() -> void
+auto CaffeineTray::Update() -> void
 {
-    Log() << "Setting mode to " << ModeToString(Settings.mode) << std::endl;
-
-    switch (Settings.mode)
-    {
-    case Mode::Disabled:
-    case Mode::Auto_Inactive:
-        DisableCaffeine();
-        break;
-
-    case Mode::Enabled:
-    case Mode::Auto_Active:
-        EnableCaffeine();
-        break;
-    }
-
     ResetTimer();
     UpdateNotifyIcon();
 }
 
 auto CaffeineTray::EnableCaffeine() -> void
 {
-    bool keepDispalyOn = false;
+    bool keepDisplayOn = false;
     switch (Settings.mode)
     {
-    case Mode::Disabled:
-    case Mode::Enabled:
-        keepDispalyOn = Settings.Standard.keepDisplayOn;
+    case CaffeineMode::Disabled:
         break;
 
-    case Mode::Auto_Inactive:
-    case Mode::Auto_Active:
-        keepDispalyOn = Settings.Auto.keepDisplayOn;
+    case CaffeineMode::Enabled:
+        keepDisplayOn = Settings.Standard.keepDisplayOn;
+        break;
+
+    case CaffeineMode::Auto:
+        keepDisplayOn = Settings.Auto.keepDisplayOn;
         break;
     }
 
-    auto flags = ES_CONTINUOUS | ES_SYSTEM_REQUIRED;
-    if (keepDispalyOn)
+    auto result = mCaffeine.Enable(keepDisplayOn);
+    if (result)
     {
-        flags |= ES_DISPLAY_REQUIRED;
+        Log() << "Caffeine Enabled. Preventing computer to sleep" << std::endl;
     }
-
-    // Disable previous request before enabling new.
-    SetThreadExecutionState(ES_CONTINUOUS);
-
-    // Activate new.
-    SetThreadExecutionState(flags);
-
-    Log() << "Caffeine Enabled. Preventing computer to sleep" << std::endl;
 }
 
 auto CaffeineTray::DisableCaffeine() -> void
 {
-    SetThreadExecutionState(ES_CONTINUOUS);
-
-    Log() << "Caffeine Disabled. Allowing computer to sleep" << std::endl;
+    auto result = mCaffeine.Disable();
+    if (result)
+    {
+        Log() << "Caffeine Disabled. Allowing computer to sleep" << std::endl;
+    }
 }
 
 auto CaffeineTray::ToggleCaffeine() -> void
 {
     switch (Settings.mode)
     {
-    case Mode::Disabled:
-        Settings.mode = Mode::Enabled;
+    case CaffeineMode::Disabled:
+        Settings.mode = CaffeineMode::Enabled;
+        EnableCaffeine();
         break;
-    case Mode::Enabled:
-        Settings.mode = Mode::Auto_Inactive;
+    case CaffeineMode::Enabled:
+        Settings.mode = CaffeineMode::Auto;
+        DisableCaffeine();
         break;
-    case Mode::Auto_Inactive:
-    case Mode::Auto_Active:
-        Settings.mode = Mode::Disabled;
+    case CaffeineMode::Auto:
+        Settings.mode = CaffeineMode::Disabled;
+        DisableCaffeine();
         break;
     }
 
-    UpdateCaffeine();
+    Update();
 }
 
-auto CaffeineTray::SetCaffeineMode(Mode mode) -> void
+auto CaffeineTray::SetCaffeineMode(CaffeineMode mode) -> void
 {
+    if (mode == Settings.mode)
+    {
+        return;
+    }
     Settings.mode = mode;
 
-    UpdateCaffeine();
+    switch (Settings.mode)
+    {
+    case CaffeineMode::Disabled:
+        DisableCaffeine();
+        break;
+    case CaffeineMode::Enabled:
+        EnableCaffeine();
+        break;
+    case CaffeineMode::Auto:
+        DisableCaffeine();
+        break;
+    }
+
+    Update();
 }
 
 auto CaffeineTray::AddNotifyIcon() -> bool
@@ -333,21 +329,25 @@ auto CaffeineTray::UpdateNotifyIcon() -> bool
 
     switch (Settings.mode)
     {
-    case Mode::Disabled:
+    case CaffeineMode::Disabled:
         nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_DISABLED);
         LoadStringW(mInstance, IDS_CAFFEINE_DISABLED, nid.szTip, ARRAYSIZE(nid.szTip));
         break;
-    case Mode::Enabled:
+    case CaffeineMode::Enabled:
         nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_ENABLED);
         LoadStringW(mInstance, IDS_CAFFEINE_ENABLED, nid.szTip, ARRAYSIZE(nid.szTip));
         break;
-    case Mode::Auto_Inactive:
-        nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE);
-        LoadStringW(mInstance, IDS_CAFFEINE_AUTO_INACTIVE, nid.szTip, ARRAYSIZE(nid.szTip));
-        break;
-    case Mode::Auto_Active:
-        nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE);
-        LoadStringW(mInstance, IDS_CAFFEINE_AUTO_ACTIVE, nid.szTip, ARRAYSIZE(nid.szTip));
+    case CaffeineMode::Auto:
+        if (!mCaffeine.IsActive())
+        {
+            nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE);
+            LoadStringW(mInstance, IDS_CAFFEINE_AUTO_INACTIVE, nid.szTip, ARRAYSIZE(nid.szTip));
+        }
+        else
+        {
+            nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE);
+            LoadStringW(mInstance, IDS_CAFFEINE_AUTO_ACTIVE, nid.szTip, ARRAYSIZE(nid.szTip));
+        }
         break;
     }
 
@@ -399,14 +399,13 @@ auto CaffeineTray::ShowNotifyContexMenu(HWND hWnd, LONG x, LONG y) -> void
     auto hMenu = static_cast<HMENU>(0);
     switch (Settings.mode)
     {
-    case Mode::Disabled:
+    case CaffeineMode::Disabled:
         hMenu = LoadMenuW(mInstance, MAKEINTRESOURCE(IDC_CAFFEINE_DISABLED_CONTEXTMENU));
         break;
-    case Mode::Enabled:
+    case CaffeineMode::Enabled:
         hMenu = LoadMenuW(mInstance, MAKEINTRESOURCE(IDC_CAFFEINE_ENABLED_CONTEXTMENU));
         break;
-    case Mode::Auto_Inactive:
-    case Mode::Auto_Active:
+    case CaffeineMode::Auto:
         hMenu = LoadMenuW(mInstance, MAKEINTRESOURCE(IDC_CAFFEINE_AUTO_CONTEXTMENU));
         break;
     }
@@ -489,7 +488,7 @@ auto CaffeineTray::LoadSettings() -> bool
     };
 
     // Global settings.
-    Settings.mode = get_or_default(json, "mode", Mode::Disabled);
+    Settings.mode = get_or_default(json, "mode", CaffeineMode::Disabled);
 
     // Standard mode settings.
     {
@@ -537,9 +536,6 @@ auto CaffeineTray::SaveSettings() -> bool
     auto json = nlohmann::ordered_json();
 
     auto mode = static_cast<int>(Settings.mode);
-    if (Settings.mode == Mode::Auto_Active)
-        mode = static_cast<int>(Mode::Auto_Inactive);
-
     json["mode"] = mode;
 
     json["Standard"]["keepDisplayOn"] = Settings.Standard.keepDisplayOn;
@@ -570,7 +566,7 @@ auto CaffeineTray::ReloadSettings() -> void
     if (LoadSettings())
     {
         Settings.mode = mode;
-        UpdateCaffeine();
+        Update();
     }
 }
 
@@ -654,8 +650,8 @@ auto CaffeineTray::ResetTimer() -> bool
 {
     switch (Settings.mode)
     {
-    case Mode::Disabled:
-    case Mode::Enabled:
+    case CaffeineMode::Disabled:
+    case CaffeineMode::Enabled:
         if (mIsTimerRunning)
         {
             KillTimer(mWndHandle, IDT_CAFFEINE);
@@ -664,16 +660,13 @@ auto CaffeineTray::ResetTimer() -> bool
         }
         break;
 
-    case Mode::Auto_Inactive:
+    case CaffeineMode::Auto:
         if (!mIsTimerRunning)
         {
             SetTimer(mWndHandle, IDT_CAFFEINE, Settings.Auto.scanInterval, nullptr);
             mIsTimerRunning = true;
             Log() << "Starting timer" << std::endl;
         }
-        break;
-
-    case Mode::Auto_Active:
         break;
     }
 
@@ -686,19 +679,21 @@ auto CaffeineTray::TimerUpdateProc() -> void
     if (ScanProcesses() || ScanWindows())
     {
         // Activate only if inactive.
-        if (Settings.mode == Mode::Auto_Inactive)
+        if (!mCaffeine.IsActive())
         {
             Log() << "Found process/window. Activating caffeine." << std::endl;
-            SetCaffeineMode(Mode::Auto_Active);
+            EnableCaffeine();
+            Update();
         }
     }
     else
     {
         // Dectivate only if active.
-        if (Settings.mode == Mode::Auto_Active)
+        if (mCaffeine.IsActive())
         {
             Log() << "Process/window no longer exists. Deactivating caffeine." << std::endl;
-            SetCaffeineMode(Mode::Auto_Inactive);
+            DisableCaffeine();
+            Update();
         }
     }
 }
@@ -717,7 +712,7 @@ auto CaffeineTray::ScanProcesses() -> bool
     auto numberOfProccesses = bytesReturned / sizeof(DWORD);
 
     // Loop through running processes.
-    for (auto i = 0; i < numberOfProccesses; ++i)
+    for (auto i = unsigned long{ 0 }; i < numberOfProccesses; ++i)
     {
         auto pid = processList[i];
         if (pid != 0)
@@ -834,14 +829,13 @@ auto CaffeineTray::Log() -> std::wostream&
     return stream;
 }
 
-auto CaffeineTray::ModeToString(Mode mode) -> std::wstring_view
+auto CaffeineTray::ModeToString(CaffeineMode mode) -> std::wstring_view
 {
     switch (Settings.mode)
     {
-    case Mode::Disabled:      return L"Disabled";
-    case Mode::Enabled:       return L"Enabled";
-    case Mode::Auto_Inactive: return L"Auto (inactive)";
-    case Mode::Auto_Active:   return L"Auto (active)";
+    case CaffeineMode::Disabled:    return L"Disabled";
+    case CaffeineMode::Enabled:     return L"Enabled";
+    case CaffeineMode::Auto:        return L"Auto";
     }
 
     return L"Unknown mode";
@@ -997,15 +991,15 @@ auto CALLBACK CaffeineTray::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
             break;
 
         case IDM_DISABLE_CAFFEINE:
-            caffeinePtr->SetCaffeineMode(Mode::Disabled);
+            caffeinePtr->SetCaffeineMode(CaffeineMode::Disabled);
             break;
 
         case IDM_ENABLE_CAFFEINE:
-            caffeinePtr->SetCaffeineMode(Mode::Enabled);
+            caffeinePtr->SetCaffeineMode(CaffeineMode::Enabled);
             break;
 
         case IDM_ENABLE_AUTO:
-            caffeinePtr->SetCaffeineMode(Mode::Auto_Inactive);
+            caffeinePtr->SetCaffeineMode(CaffeineMode::Auto);
             break;
 
         case IDM_SETTINGS:

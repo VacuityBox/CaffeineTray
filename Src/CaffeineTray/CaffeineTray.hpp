@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Caffeine.hpp"
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <vector>
@@ -14,18 +16,9 @@ class CaffeineTray
     static constexpr auto WM_APP_NOTIFY = static_cast<UINT>(WM_APP + 1); // NotifyIcon messages.
     static constexpr auto IDT_CAFFEINE  = static_cast<UINT>(10001);      // Timer.
 
-    enum class Mode
-    {
-        Disabled,
-        Enabled,
-
-        Auto_Inactive,
-        Auto_Active,
-    };
-
     struct Settings
     {
-        Mode mode;
+        CaffeineMode mode;
         
         struct
         {
@@ -42,7 +35,7 @@ class CaffeineTray
         } Auto;
 
         Settings()
-            : mode(Mode::Disabled)
+            : mode(CaffeineMode::Disabled)
         {
             Standard.keepDisplayOn = false;
 
@@ -64,15 +57,17 @@ class CaffeineTray
     bool         mLightTheme;
     bool         mInitialized;
     std::wstring mSettingsFile;
+    Caffeine     mCaffeine;
 
     std::wofstream mLogger;
 
     // Updates icons/strings/power settings/timer. Call after mode change.
-    auto UpdateCaffeine  () -> void;
+    auto Update () -> void;
+
     auto EnableCaffeine  () -> void;    // Prevent computer from sleep.
     auto DisableCaffeine () -> void;    // Allow computer to sleep.
     auto ToggleCaffeine  () -> void;
-    auto SetCaffeineMode (Mode mode) -> void;
+    auto SetCaffeineMode (CaffeineMode mode) -> void;
 
     auto AddNotifyIcon        () -> bool;
     auto DeleteNotifyIcon     () -> bool;
@@ -98,7 +93,7 @@ class CaffeineTray
     auto IsLightTheme () -> bool;
 
     auto Log      () -> std::wostream&;
-    auto ModeToString (Mode mode) -> std::wstring_view;
+    auto ModeToString (CaffeineMode mode) -> std::wstring_view;
 
     // Window/timer callbacks.
     static auto CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) -> INT_PTR;

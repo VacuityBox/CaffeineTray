@@ -171,10 +171,12 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Caffeine.cpp" />
     <ClCompile Include="CaffeineTray.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Caffeine.hpp" />
     <ClInclude Include="CaffeineTray.hpp" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="resource.h" />
