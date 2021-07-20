@@ -37,16 +37,16 @@ CaffeineTray::CaffeineTray()
             ::CreateDirectoryW(dir.c_str(), NULL);
             mSettingsFile = dir + L"Caffeine.json";
 
-            const auto logPath = dir + L"CaffeineTray.log";
-            mLogger = std::wofstream(logPath);
+            const auto logPath = dir + CAFFEINE_LOG_FILENAME;
+            mLogger.Open(logPath);
         }
     }
     else
     {
-        mLogger = std::wofstream("CaffeineTray.log");
+        mLogger.Open(CAFFEINE_LOG_FILENAME);
     }
 
-    Log() << "---- Log started ----" << std::endl;
+    Log("---- Log started ----");
 }
 
 CaffeineTray::~CaffeineTray()
@@ -65,16 +65,16 @@ CaffeineTray::~CaffeineTray()
 
     UnregisterClassW(L"CaffeineTray_WndClass", mInstance);
 
-    Log() << "---- Log ended ----" << std::endl;
+    Log("---- Log ended ----");
 }
 
 auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
 {
-    Log() << "Initializing Caffeine..." << std::endl;
+    Log("Initializing Caffeine...");
 
     if (!hInstance)
     {
-        Log() << "hInstance can't be null" << std::endl;
+        Log("hInstance can't be null");
         return false;
     }
 
@@ -98,7 +98,7 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
 
         if (!RegisterClassExW(&wcex))
         {
-            Log() << "Failed to register class" << std::endl;
+            Log("Failed to register class");
             return false;
         }
     }
@@ -121,7 +121,7 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
 
         if (!mWndHandle)
         {
-            Log() << "Failed to create window";
+            Log("Failed to create window");
             return false;
         }
 
@@ -169,7 +169,7 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
         mReloadEvent = ::CreateEventW(NULL, FALSE, FALSE, L"CaffeineTray_ReloadEvent");
         if (mReloadEvent == NULL)
         {
-            Log() << "Failed to create reload event." << std::endl;
+            Log("Failed to create reload event.");
         }
         else
         {
@@ -177,13 +177,13 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
             mReloadThread = ::CreateThread(NULL, 0, ReloadThreadProc, this, 0, &dwThreadId);
             if (mReloadThread == NULL)
             {
-                Log() << "Failed to create reload thread." << std::endl;
+                Log("Failed to create reload thread.");
             }
         }
     }
 
     mInitialized = true;
-    Log() << "Initialization finished" << std::endl;
+    Log("Initialization finished");
 
     return true;
 }
@@ -214,7 +214,7 @@ auto CaffeineTray::EnableCaffeine() -> void
     auto result = mCaffeine.Enable(keepDisplayOn);
     if (result)
     {
-        Log() << "Caffeine Enabled. Preventing computer to sleep" << std::endl;
+        Log("Caffeine Enabled. Preventing computer to sleep");
     }
 }
 
@@ -223,7 +223,7 @@ auto CaffeineTray::DisableCaffeine() -> void
     auto result = mCaffeine.Disable();
     if (result)
     {
-        Log() << "Caffeine Disabled. Allowing computer to sleep" << std::endl;
+        Log("Caffeine Disabled. Allowing computer to sleep");
     }
 }
 
@@ -287,17 +287,17 @@ auto CaffeineTray::AddNotifyIcon() -> bool
 
     if (!Shell_NotifyIconW(NIM_ADD, &nid))
     {
-        Log() << "Failed to add notification icon" << std::endl;
+        Log("Failed to add notification icon");
         return false;
     }
 
     if (!Shell_NotifyIconW(NIM_SETVERSION, &nid))
     {
-        Log() << "Failed to set version of notification icon" << std::endl;
+        Log("Failed to set version of notification icon");
         return false;
     }
 
-    Log() << "Added notify icon" << std::endl;
+    Log("Added notify icon");
     return true;
 }
 
@@ -311,11 +311,11 @@ auto CaffeineTray::DeleteNotifyIcon() -> bool
 
     if (!Shell_NotifyIconW(NIM_DELETE, &nid))
     {
-        Log() << "Failed to delete notification icon" << std::endl;
+        Log("Failed to delete notification icon");
         return false;
     }
 
-    Log() << "Deleted notify icon" << std::endl;
+    Log("Deleted notify icon");
     return true;
 }
 
@@ -353,11 +353,11 @@ auto CaffeineTray::UpdateNotifyIcon() -> bool
 
     if (!Shell_NotifyIconW(NIM_MODIFY, &nid))
     {
-        Log() << "Failed to update notification icon" << std::endl;
+        Log("Failed to update notification icon");
         return false;
     }
 
-    Log() << "Updated notify icon" << std::endl;
+    Log("Updated notify icon");
     return true;
 }
 
@@ -439,12 +439,18 @@ auto CaffeineTray::ShowNotifyContexMenu(HWND hWnd, LONG x, LONG y) -> void
 
 auto CaffeineTray::LoadSettings() -> bool
 {
+    const auto utf8FileName = UTF16ToUTF8(mSettingsFile);
     // NOTE: Settings should be in UTF-8
     // Read settings file.
     auto file = std::ifstream(mSettingsFile);
     if (!file)
     {
-        Log() << "Can't open settings file '" << mSettingsFile.c_str() << "' for reading." << std::endl;
+        auto msg = std::string("Can't open settings file");
+        if (utf8FileName)
+        {
+            msg += " '" + utf8FileName.value() + "' for reading";
+        }
+        Log(msg);
         return false;
     }
 
@@ -456,7 +462,7 @@ auto CaffeineTray::LoadSettings() -> bool
     }
     catch (nlohmann::json::parse_error&)
     {
-        Log() << "Failed to deserialize json." << std::endl;
+        Log("Failed to deserialize json.");
         return false;
     }
     
@@ -506,18 +512,29 @@ auto CaffeineTray::LoadSettings() -> bool
     }
 
     //Log() << json.dump(4).c_str() << std::endl;
-    Log() << "Loaded settings '" << mSettingsFile.c_str() << "'" << std::endl;
+    auto msg = std::string("Loaded settings");
+    if (utf8FileName)
+    {
+        msg += " '" + utf8FileName.value() + "'";
+    }
+    Log(msg);
 
     return true;
 }
 
 auto CaffeineTray::SaveSettings() -> bool
 {
+    const auto utf8FileName = UTF16ToUTF8(mSettingsFile);
     // Open settings file.
     auto file = std::ofstream(mSettingsFile);
     if (!file)
     {
-        Log() << "Can't open settings file '" << mSettingsFile.c_str() << "' for writing." << std::endl;
+        auto msg = std::string("Can't open settings file");
+        if (utf8FileName)
+        {
+            msg += " '" + utf8FileName.value() + "' for writing";
+        }
+        Log(msg);
         return false;
     }
 
@@ -549,7 +566,12 @@ auto CaffeineTray::SaveSettings() -> bool
     // Serialize.
     file << std::setw(4) << json;
 
-    Log() << "Saved settings '" << mSettingsFile.c_str() << "'" << std::endl;
+    auto msg = std::string("Saved settings");
+    if (utf8FileName)
+    {
+        msg += " '" + utf8FileName.value() + "'";
+    }
+    Log(msg);
     return true;
 }
 
@@ -561,7 +583,7 @@ auto CaffeineTray::LaunchSettingsProgram() -> bool
 
 auto CaffeineTray::ReloadSettings() -> void
 {
-    Log() << "Settings reload triggered" << std::endl;
+    Log("Settings reload triggered");
     auto mode = Settings.mode;
     if (LoadSettings())
     {
@@ -656,7 +678,7 @@ auto CaffeineTray::ResetTimer() -> bool
         {
             KillTimer(mWndHandle, IDT_CAFFEINE);
             mIsTimerRunning = false;
-            Log() << "Killing timer" << std::endl;
+            Log("Killing timer");
         }
         break;
 
@@ -665,7 +687,7 @@ auto CaffeineTray::ResetTimer() -> bool
         {
             SetTimer(mWndHandle, IDT_CAFFEINE, Settings.Auto.scanInterval, nullptr);
             mIsTimerRunning = true;
-            Log() << "Starting timer" << std::endl;
+            Log("Starting timer");
         }
         break;
     }
@@ -681,7 +703,7 @@ auto CaffeineTray::TimerUpdateProc() -> void
         // Activate only if inactive.
         if (!mCaffeine.IsActive())
         {
-            Log() << "Found process/window. Activating caffeine." << std::endl;
+            Log("Found process/window. Activating caffeine.");
             EnableCaffeine();
             Update();
         }
@@ -691,7 +713,7 @@ auto CaffeineTray::TimerUpdateProc() -> void
         // Dectivate only if active.
         if (mCaffeine.IsActive())
         {
-            Log() << "Process/window no longer exists. Deactivating caffeine." << std::endl;
+            Log("Process/window no longer exists. Deactivating caffeine.");
             DisableCaffeine();
             Update();
         }
@@ -706,7 +728,7 @@ auto CaffeineTray::ScanProcesses() -> bool
     auto bytesReturned = static_cast<DWORD>(0);
     if (!EnumProcesses(processList.data(), static_cast<DWORD>(processList.size()), &bytesReturned))
     {
-        Log() << "EnumProcesses() failed" << std::endl;
+        Log("EnumProcesses() failed");
         return false;
     }
     auto numberOfProccesses = bytesReturned / sizeof(DWORD);
@@ -749,7 +771,7 @@ auto CaffeineTray::ScanWindows() -> bool
 
     if (!EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(this)))
     {
-        Log() << "EnumWindows() failed" << std::endl;
+        Log("EnumWindows() failed");
         return false;
     }
 
@@ -763,7 +785,7 @@ auto CaffeineTray::CheckProcess(const std::wstring_view processImageName) -> boo
     {
         if (processImageName.find(procName) != std::wstring::npos)
         {
-            //Log() << "Found running process: '" << procName << "'" << std::endl;
+            //Log("Found running process: '" << procName << "'");
             return true;
         }
     }
@@ -773,7 +795,7 @@ auto CaffeineTray::CheckProcess(const std::wstring_view processImageName) -> boo
     {
         if (processImageName == procPath)
         {
-            //Log() << "Found running process: '" << procPath << "'" << std::endl;
+            //Log("Found running process: '" << procPath << "'");
             return true;
         }
     }
@@ -787,7 +809,7 @@ auto CaffeineTray::CheckWindow(const std::wstring_view windowTitle) -> bool
     {
         if (windowTitle.find(title) != std::wstring::npos)
         {
-            //Log() << "Found window: '" << title << "'" << std::endl;
+            //Log("Found window: '" << title << "'");
             return true;
         }
     }
@@ -815,18 +837,9 @@ auto CaffeineTray::IsLightTheme() -> bool
     return false;
 }
 
-auto CaffeineTray::Log() -> std::wostream&
+auto CaffeineTray::Log(std::string message) -> void
 {
-    auto& stream = mLogger.good() ? mLogger : std::wcerr;
-
-    auto now = std::chrono::system_clock::now();
-    auto time = std::chrono::system_clock::to_time_t(now);
-    std::tm buf;
-    localtime_s(&buf, &time);
-
-    stream << "[" << std::put_time(&buf, L"%F %T") << "] ";
-
-    return stream;
+    mLogger.Log(std::move(message));
 }
 
 auto CaffeineTray::ModeToString(CaffeineMode mode) -> std::wstring_view

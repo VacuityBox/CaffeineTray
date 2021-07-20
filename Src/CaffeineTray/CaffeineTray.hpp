@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Caffeine.hpp"
+#include "Logger.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -15,6 +16,8 @@ class CaffeineTray
 {
     static constexpr auto WM_APP_NOTIFY = static_cast<UINT>(WM_APP + 1); // NotifyIcon messages.
     static constexpr auto IDT_CAFFEINE  = static_cast<UINT>(10001);      // Timer.
+
+    static constexpr auto CAFFEINE_LOG_FILENAME = TEXT("CaffeineTray.log");
 
     struct Settings
     {
@@ -58,8 +61,7 @@ class CaffeineTray
     bool         mInitialized;
     std::wstring mSettingsFile;
     Caffeine     mCaffeine;
-
-    std::wofstream mLogger;
+    Logger       mLogger;
 
     // Updates icons/strings/power settings/timer. Call after mode change.
     auto Update () -> void;
@@ -92,7 +94,7 @@ class CaffeineTray
 
     auto IsLightTheme () -> bool;
 
-    auto Log      () -> std::wostream&;
+    auto Log (std::string message) -> void;
     auto ModeToString (CaffeineMode mode) -> std::wstring_view;
 
     // Window/timer callbacks.
