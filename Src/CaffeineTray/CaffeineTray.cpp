@@ -592,82 +592,6 @@ auto CaffeineTray::ReloadSettings() -> void
     }
 }
 
-auto CaffeineTray::UTF8ToUTF16(const std::string_view str) -> std::optional<std::wstring>
-{
-    // Get size.
-    auto size = ::MultiByteToWideChar(
-        CP_UTF8,
-        0,
-        str.data(),
-        static_cast<int>(str.size()),
-        nullptr,
-        0
-    );
-
-    if (size <= 0)
-    {
-        return std::nullopt;
-    }
-
-    // Convert.
-    auto utf16 = std::wstring(size, L'\0');
-    auto ret = ::MultiByteToWideChar(
-        CP_UTF8,
-        0,
-        str.data(),
-        static_cast<int>(str.size()),
-        utf16.data(),
-        static_cast<int>(utf16.size())
-    );
-
-    if (ret == 0)
-    {
-        return std::nullopt;
-    }
-
-    return utf16;
-}
-
-auto CaffeineTray::UTF16ToUTF8(const std::wstring_view str) -> std::optional<std::string>
-{
-    // Get size.
-    auto size = ::WideCharToMultiByte(
-        CP_UTF8,
-        0,
-        str.data(),
-        static_cast<int>(str.size()),
-        nullptr,
-        0,
-        nullptr,
-        nullptr
-    );
-
-    if (size <= 0)
-    {
-        return std::nullopt;
-    }
-    
-    // Convert.
-    auto utf8 = std::string(size, '\0');
-    auto ret = ::WideCharToMultiByte(
-        CP_UTF8,
-        0,
-        str.data(),
-        static_cast<int>(str.size()),
-        utf8.data(),
-        static_cast<int>(utf8.size()),
-        nullptr,
-        nullptr
-    );
-
-    if (ret == 0)
-    {
-        return std::nullopt;
-    }
-
-    return utf8;
-}
-
 auto CaffeineTray::ResetTimer() -> bool
 {
     switch (Settings.mode)
@@ -813,26 +737,6 @@ auto CaffeineTray::CheckWindow(const std::wstring_view windowTitle) -> bool
             return true;
         }
     }
-
-    return false;
-}
-
-auto CaffeineTray::IsLightTheme() -> bool
-{
-    auto data = DWORD{ 0 };
-    auto dataSize = DWORD{ sizeof(data) };
-    auto status = ::RegGetValueW(
-        HKEY_CURRENT_USER,
-        L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-        L"SystemUsesLightTheme",
-        RRF_RT_DWORD,
-        NULL,
-        &data,
-        &dataSize
-    );
-
-    if (status == ERROR_SUCCESS)
-        return data;
 
     return false;
 }
@@ -1086,7 +990,7 @@ auto CALLBACK CaffeineTray::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
             auto sysparam = std::wstring_view(str);
             if (sysparam == L"ImmersiveColorSet")
             {
-                caffeinePtr->mLightTheme = caffeinePtr->IsLightTheme();
+                caffeinePtr->mLightTheme = IsLightTheme();
                 caffeinePtr->UpdateNotifyIcon();
             }
         }

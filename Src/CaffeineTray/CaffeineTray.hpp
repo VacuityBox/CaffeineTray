@@ -2,6 +2,7 @@
 
 #include "Caffeine.hpp"
 #include "Logger.hpp"
+#include "Utility.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -81,8 +82,6 @@ class CaffeineTray
     auto SaveSettings          () -> bool;
     auto LaunchSettingsProgram () -> bool;
     auto ReloadSettings        () -> void;
-    static auto UTF8ToUTF16    (const std::string_view str) -> std::optional<std::wstring>;
-    static auto UTF16ToUTF8    (const std::wstring_view str) -> std::optional<std::string>;
 
     // Timer related/used by functions.
     auto ResetTimer       () -> bool;
@@ -91,8 +90,6 @@ class CaffeineTray
     auto ScanWindows      () -> bool;
     auto CheckProcess (const std::wstring_view processImageName) -> bool;
     auto CheckWindow  (const std::wstring_view windowTitle) -> bool;
-
-    auto IsLightTheme () -> bool;
 
     auto Log (std::string message) -> void;
     auto ModeToString (CaffeineMode mode) -> std::wstring_view;
