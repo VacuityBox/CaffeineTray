@@ -35,9 +35,6 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CaffeineTray.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -48,6 +45,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utility.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Settings.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CaffeineTray.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

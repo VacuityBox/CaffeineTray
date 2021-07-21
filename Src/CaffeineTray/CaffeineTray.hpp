@@ -2,7 +2,7 @@
 
 #include "Caffeine.hpp"
 #include "Logger.hpp"
-#include "Utility.hpp"
+#include "Settings.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -10,6 +10,9 @@
 #include <string>
 #include <fstream>
 #include <optional>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 namespace Caffeine {
 
@@ -18,39 +21,8 @@ class CaffeineTray
     static constexpr auto WM_APP_NOTIFY = static_cast<UINT>(WM_APP + 1); // NotifyIcon messages.
     static constexpr auto IDT_CAFFEINE  = static_cast<UINT>(10001);      // Timer.
 
-    static constexpr auto CAFFEINE_LOG_FILENAME = TEXT("CaffeineTray.log");
-
-    struct Settings
-    {
-        CaffeineMode mode;
-        
-        struct
-        {
-            bool keepDisplayOn;
-        } Standard;
-
-        struct
-        {
-            int scanInterval;
-            bool keepDisplayOn;
-            std::vector<std::wstring> processNames;
-            std::vector<std::wstring> processPaths;
-            std::vector<std::wstring> windowTitles;
-        } Auto;
-
-        Settings()
-            : mode(CaffeineMode::Disabled)
-        {
-            Standard.keepDisplayOn = false;
-
-            Auto.keepDisplayOn = false;
-            Auto.scanInterval = 1000;
-
-            Auto.processNames.clear();
-            Auto.processPaths.clear();
-            Auto.windowTitles.clear();
-        }
-    } Settings;
+    static constexpr auto CAFFEINE_LOG_FILENAME      = TEXT("CaffeineTray.log");
+    static constexpr auto CAFFEINE_SETTINGS_FILENAME = TEXT("CaffeineTray.json");
 
     HWND         mWndHandle;
     HINSTANCE    mInstance;
@@ -60,9 +32,11 @@ class CaffeineTray
     bool         mIsTimerRunning;
     bool         mLightTheme;
     bool         mInitialized;
-    std::wstring mSettingsFile;
+    fs::path     mSettingsFilePath;
+    fs::path     mLoggerFilePath;
     Caffeine     mCaffeine;
     Logger       mLogger;
+    Settings     mSettings;
 
     // Updates icons/strings/power settings/timer. Call after mode change.
     auto Update () -> void;

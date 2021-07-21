@@ -1,5 +1,7 @@
 #include "CaffeineTray.hpp"
 
+#include "Utility.hpp"
+
 #include <shellapi.h>
 #include <Psapi.h>
 #include <commctrl.h>
@@ -9,6 +11,7 @@
 #include <fstream>
 #include <chrono>
 #include <iomanip>
+#include <filesystem>
 #include "resource.h"
 #include "json.hpp"
 
@@ -19,33 +22,19 @@ CaffeineTray::CaffeineTray()
     , mInstance(nullptr)
     , mEnumWindowsRetCode(false)
     , mIsTimerRunning(false)
-    , Settings()
+    , mSettings()
     , mLightTheme(false)
     , mInitialized(false)
     , mReloadEvent(NULL)
     , mReloadThread(NULL)
-    , mSettingsFile(L"Caffeine.json")
 {
-    // Use AppData for settings if can't open local file.
-    auto f = std::ofstream(mSettingsFile);
-    if (!f.good())
-    {
-        auto appDataPath = std::array<wchar_t, MAX_PATH>();
-        if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, appDataPath.data())))
-        {
-            const auto dir = std::wstring(appDataPath.data()) + L"\\Caffeine\\";
-            ::CreateDirectoryW(dir.c_str(), NULL);
-            mSettingsFile = dir + L"Caffeine.json";
+    auto appData = GetAppDataPath() / "CaffeineTray";
+    fs::create_directory(appData);
 
-            const auto logPath = dir + CAFFEINE_LOG_FILENAME;
-            mLogger.Open(logPath);
-        }
-    }
-    else
-    {
-        mLogger.Open(CAFFEINE_LOG_FILENAME);
-    }
+    mSettingsFilePath = appData / CAFFEINE_SETTINGS_FILENAME;
+    mLoggerFilePath = appData / CAFFEINE_LOG_FILENAME;
 
+    mLogger.Open(mLoggerFilePath);
     Log("---- Log started ----");
 }
 
@@ -58,10 +47,7 @@ CaffeineTray::~CaffeineTray()
         ::CloseHandle(mReloadEvent);
 
     if (mInitialized)
-    {
-        SaveSettings();
         DeleteNotifyIcon();
-    }
 
     UnregisterClassW(L"CaffeineTray_WndClass", mInstance);
 
@@ -79,6 +65,25 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
     }
 
     mInstance = hInstance;
+
+    // Load Settings.
+    {
+        // Create default settings file if not exists.
+        if (!fs::exists(mSettingsFilePath))
+        {
+            Log("Settings file not found, creating default one");            
+            SaveSettings();
+        }
+        else
+        {
+            if (!LoadSettings())
+            {
+                return false;
+            }
+        }
+
+        mLightTheme = IsLightTheme();
+    }
 
     // Init window class.
     {
@@ -146,19 +151,6 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
         }
     }
 
-    // Load settings.
-    {
-        // Create default settings file if not exists.
-        {
-            auto f = std::ifstream(mSettingsFile);
-            if (!f.good())
-                SaveSettings();
-        }
-
-        LoadSettings();
-        mLightTheme = IsLightTheme();
-    }
-
     // Update icons, timer, power settings.
     {
         Update();
@@ -196,18 +188,18 @@ auto CaffeineTray::Update() -> void
 
 auto CaffeineTray::EnableCaffeine() -> void
 {
-    bool keepDisplayOn = false;
-    switch (Settings.mode)
+    auto keepDisplayOn = false;
+    switch (mSettings.Mode)
     {
     case CaffeineMode::Disabled:
         break;
 
     case CaffeineMode::Enabled:
-        keepDisplayOn = Settings.Standard.keepDisplayOn;
+        keepDisplayOn = mSettings.Standard.KeepDisplayOn;
         break;
 
     case CaffeineMode::Auto:
-        keepDisplayOn = Settings.Auto.keepDisplayOn;
+        keepDisplayOn = mSettings.Auto.KeepDisplayOn;
         break;
     }
 
@@ -229,18 +221,18 @@ auto CaffeineTray::DisableCaffeine() -> void
 
 auto CaffeineTray::ToggleCaffeine() -> void
 {
-    switch (Settings.mode)
+    switch (mSettings.Mode)
     {
     case CaffeineMode::Disabled:
-        Settings.mode = CaffeineMode::Enabled;
+        mSettings.Mode = CaffeineMode::Enabled;
         EnableCaffeine();
         break;
     case CaffeineMode::Enabled:
-        Settings.mode = CaffeineMode::Auto;
+        mSettings.Mode = CaffeineMode::Auto;
         DisableCaffeine();
         break;
     case CaffeineMode::Auto:
-        Settings.mode = CaffeineMode::Disabled;
+        mSettings.Mode = CaffeineMode::Disabled;
         DisableCaffeine();
         break;
     }
@@ -250,13 +242,13 @@ auto CaffeineTray::ToggleCaffeine() -> void
 
 auto CaffeineTray::SetCaffeineMode(CaffeineMode mode) -> void
 {
-    if (mode == Settings.mode)
+    if (mode == mSettings.Mode)
     {
         return;
     }
-    Settings.mode = mode;
+    mSettings.Mode = mode;
 
-    switch (Settings.mode)
+    switch (mSettings.Mode)
     {
     case CaffeineMode::Disabled:
         DisableCaffeine();
@@ -327,7 +319,7 @@ auto CaffeineTray::UpdateNotifyIcon() -> bool
     nid.hWnd             = mWndHandle;
     nid.uCallbackMessage = WM_APP_NOTIFY;
 
-    switch (Settings.mode)
+    switch (mSettings.Mode)
     {
     case CaffeineMode::Disabled:
         nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_DISABLED);
@@ -397,7 +389,7 @@ auto CaffeineTray::LoadIconHelper(WORD icon) -> HICON
 auto CaffeineTray::ShowNotifyContexMenu(HWND hWnd, LONG x, LONG y) -> void
 {
     auto hMenu = static_cast<HMENU>(0);
-    switch (Settings.mode)
+    switch (mSettings.Mode)
     {
     case CaffeineMode::Disabled:
         hMenu = LoadMenuW(mInstance, MAKEINTRESOURCE(IDC_CAFFEINE_DISABLED_CONTEXTMENU));
@@ -439,139 +431,46 @@ auto CaffeineTray::ShowNotifyContexMenu(HWND hWnd, LONG x, LONG y) -> void
 
 auto CaffeineTray::LoadSettings() -> bool
 {
-    const auto utf8FileName = UTF16ToUTF8(mSettingsFile);
     // NOTE: Settings should be in UTF-8
-    // Read settings file.
-    auto file = std::ifstream(mSettingsFile);
+    // Read Settings file.
+    auto file = std::ifstream(mSettingsFilePath);
     if (!file)
     {
-        auto msg = std::string("Can't open settings file");
-        if (utf8FileName)
-        {
-            msg += " '" + utf8FileName.value() + "' for reading";
-        }
-        Log(msg);
+        Log("Can't open Settings file '" + mSettingsFilePath.string() + "' for reading");
         return false;
     }
 
     // Deserialize.
-    auto json = nlohmann::ordered_json();
-    try
-    {
-        file >> json;
-    }
-    catch (nlohmann::json::parse_error&)
+    auto json = nlohmann::json::parse(file, nullptr, false, true);
+    if (json.is_discarded())
     {
         Log("Failed to deserialize json.");
         return false;
     }
     
-    // Reset current settings.
-    Settings = Settings::Settings();
-
-    // Helper reading functions.
-    auto get_or_default = [](const nlohmann::json& json, const auto& key, auto def) {
-        auto val = json.find(key);
-        if (val == json.end())
-            return static_cast<decltype(def)>(def);
-
-        return static_cast<decltype(def)>(*val);
-    };
-
-    auto read_array = [](const nlohmann::json& json, const auto& key, auto& dest) {
-        auto val = json.find(key);
-        if (val == json.end() || !val->is_array())
-            return;
-
-        std::vector<std::string> arr = json[key];
-
-        for (const auto& str : arr)
-        {
-            // Convert UTF-8 to UTF-16.
-            if (auto utf16 = UTF8ToUTF16(str))
-                dest.push_back(utf16.value());
-        }
-    };
-
-    // Global settings.
-    Settings.mode = get_or_default(json, "mode", CaffeineMode::Disabled);
-
-    // Standard mode settings.
-    {
-        Settings.Standard.keepDisplayOn = get_or_default(json["Standard"], "keepDisplayOn", 0);
-    }
-
-    // Auto mode settings.
-    {
-        Settings.Auto.keepDisplayOn = get_or_default(json["Auto"], "keepDisplayOn", 0);
-        Settings.Auto.scanInterval = get_or_default(json["Auto"], "scanInterval", 1000);
-
-        read_array(json["Auto"], "processPaths", Settings.Auto.processPaths);
-        read_array(json["Auto"], "processNames", Settings.Auto.processNames);
-        read_array(json["Auto"], "windowTitles", Settings.Auto.windowTitles);
-    }
+    mSettings = json.get<Settings>();
 
     //Log() << json.dump(4).c_str() << std::endl;
-    auto msg = std::string("Loaded settings");
-    if (utf8FileName)
-    {
-        msg += " '" + utf8FileName.value() + "'";
-    }
-    Log(msg);
+    Log("Loaded Settings '" + mSettingsFilePath.string() + "'");
 
     return true;
 }
 
 auto CaffeineTray::SaveSettings() -> bool
 {
-    const auto utf8FileName = UTF16ToUTF8(mSettingsFile);
-    // Open settings file.
-    auto file = std::ofstream(mSettingsFile);
+    // Open Settings file.
+    auto file = std::ofstream(mSettingsFilePath);
     if (!file)
     {
-        auto msg = std::string("Can't open settings file");
-        if (utf8FileName)
-        {
-            msg += " '" + utf8FileName.value() + "' for writing";
-        }
-        Log(msg);
+        Log("Can't open Settings file '" + mSettingsFilePath.string() + "' for writing");
         return false;
     }
 
-    // Helper.
-    auto write_array = [](auto& json, const auto& key, const std::vector<std::wstring>& src) {
-        auto& dest = json[key] = nlohmann::json::array();
-        for (const auto& str : src)
-        {
-            // Convert UTF-16 to UTF-8.
-            if (auto utf8 = UTF16ToUTF8(str))
-                dest.push_back(utf8.value());
-        }
-    };
-
-    // Create json.
-    auto json = nlohmann::ordered_json();
-
-    auto mode = static_cast<int>(Settings.mode);
-    json["mode"] = mode;
-
-    json["Standard"]["keepDisplayOn"] = Settings.Standard.keepDisplayOn;
-
-    json["Auto"]["scanInterval"] = Settings.Auto.scanInterval;
-    json["Auto"]["keepDisplayOn"] = Settings.Auto.keepDisplayOn;
-    write_array(json["Auto"], "processNames", Settings.Auto.processNames);
-    write_array(json["Auto"], "processPaths", Settings.Auto.processPaths);
-    write_array(json["Auto"], "windowTitles", Settings.Auto.windowTitles);
-
     // Serialize.
+    auto json = nlohmann::json(mSettings);
     file << std::setw(4) << json;
 
-    auto msg = std::string("Saved settings");
-    if (utf8FileName)
-    {
-        msg += " '" + utf8FileName.value() + "'";
-    }
-    Log(msg);
+    Log("Saved Settings '" + mSettingsFilePath.string() + "'");
     return true;
 }
 
@@ -584,17 +483,17 @@ auto CaffeineTray::LaunchSettingsProgram() -> bool
 auto CaffeineTray::ReloadSettings() -> void
 {
     Log("Settings reload triggered");
-    auto mode = Settings.mode;
+    auto mode = mSettings.Mode;
     if (LoadSettings())
     {
-        Settings.mode = mode;
+        mSettings.Mode = mode;
         Update();
     }
 }
 
 auto CaffeineTray::ResetTimer() -> bool
 {
-    switch (Settings.mode)
+    switch (mSettings.Mode)
     {
     case CaffeineMode::Disabled:
     case CaffeineMode::Enabled:
@@ -609,7 +508,7 @@ auto CaffeineTray::ResetTimer() -> bool
     case CaffeineMode::Auto:
         if (!mIsTimerRunning)
         {
-            SetTimer(mWndHandle, IDT_CAFFEINE, Settings.Auto.scanInterval, nullptr);
+            SetTimer(mWndHandle, IDT_CAFFEINE, mSettings.Auto.ScanInterval, nullptr);
             mIsTimerRunning = true;
             Log("Starting timer");
         }
@@ -705,7 +604,7 @@ auto CaffeineTray::ScanWindows() -> bool
 auto CaffeineTray::CheckProcess(const std::wstring_view processImageName) -> bool
 {
     // Check if process is on process names list.
-    for (auto procName : Settings.Auto.processNames)
+    for (auto procName : mSettings.Auto.ProcessNames)
     {
         if (processImageName.find(procName) != std::wstring::npos)
         {
@@ -715,7 +614,7 @@ auto CaffeineTray::CheckProcess(const std::wstring_view processImageName) -> boo
     }
 
     // Check if process is on process paths list.
-    for (auto procPath : Settings.Auto.processPaths)
+    for (auto procPath : mSettings.Auto.ProcessPaths)
     {
         if (processImageName == procPath)
         {
@@ -729,7 +628,7 @@ auto CaffeineTray::CheckProcess(const std::wstring_view processImageName) -> boo
 
 auto CaffeineTray::CheckWindow(const std::wstring_view windowTitle) -> bool
 {
-    for (auto title : Settings.Auto.windowTitles)
+    for (auto title : mSettings.Auto.WindowTitles)
     {
         if (windowTitle.find(title) != std::wstring::npos)
         {
@@ -748,7 +647,7 @@ auto CaffeineTray::Log(std::string message) -> void
 
 auto CaffeineTray::ModeToString(CaffeineMode mode) -> std::wstring_view
 {
-    switch (Settings.mode)
+    switch (mSettings.Mode)
     {
     case CaffeineMode::Disabled:    return L"Disabled";
     case CaffeineMode::Enabled:     return L"Enabled";

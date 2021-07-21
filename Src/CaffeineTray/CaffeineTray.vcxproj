@@ -183,6 +183,7 @@
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Logger.hpp" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Settings.hpp" />
     <ClInclude Include="Utility.hpp" />
   </ItemGroup>
   <ItemGroup>
