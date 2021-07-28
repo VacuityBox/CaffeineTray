@@ -5,6 +5,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <Psapi.h>
 #include <ShlObj.h>
 
 namespace Caffeine {
@@ -113,6 +114,108 @@ auto IsLightTheme () -> bool
 
     if (status == ERROR_SUCCESS)
         return data;
+
+    return false;
+}
+
+auto ScanProccess (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool
+{
+    // Get the list of process identifiers (PID's).
+    const auto PROCESS_LIST_MAX_SIZE = 2048;
+
+    auto processList   = std::array<DWORD, PROCESS_LIST_MAX_SIZE>{ 0 };
+    auto bytesReturned = DWORD{ 0 };
+    if (!EnumProcesses(processList.data(), static_cast<DWORD>(processList.size()), &bytesReturned))
+    {
+        //Log("EnumProcesses() failed");
+        return false;
+    }
+    auto numberOfProccesses = bytesReturned / sizeof(DWORD);
+
+    // Loop through running processes.
+    for (auto i = unsigned long{ 0 }; i < numberOfProccesses; ++i)
+    {
+        auto pid = processList[i];
+        if (pid != 0)
+        {
+            auto processHandle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+            if (!processHandle)
+            {
+                continue;
+            }
+
+            // Read process executable path.
+            auto imageName = std::array<wchar_t, MAX_PATH>{ 0 };
+            auto size      = DWORD{ MAX_PATH };
+            if (QueryFullProcessImageNameW(processHandle, 0, imageName.data(), &size))
+            {
+                // Execute callback.
+                if (checkFn(processHandle, pid, imageName.data()))
+                {
+                    CloseHandle(processHandle);
+                    return true;
+                }
+            }
+            
+            CloseHandle(processHandle);
+        }
+    }
+
+    return false;
+}
+
+auto ScanWindows (std::function<bool (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible) -> bool
+{
+    #define ERROR_USER_CALLBACK_SUCCESS (1 << 29) // bit 29 for user errors
+
+    struct EnumWindowsProcData
+    {
+        decltype(onlyVisible) onlyVisible;
+        decltype(checkFn)     checkFn;
+    };
+
+    auto enumWindowsProcData = EnumWindowsProcData {onlyVisible, checkFn};
+    auto enumWindowsProc = [](HWND hWnd, LPARAM lParam) -> BOOL {
+        auto payload     = reinterpret_cast<EnumWindowsProcData*>(lParam);
+        auto onlyVisible = payload->onlyVisible;
+        auto callbackFn  = payload->checkFn;
+
+        if (onlyVisible && (!IsWindowVisible(hWnd) && !IsIconic(hWnd)))
+        {
+            return TRUE;
+        }
+
+        auto length = GetWindowTextLength(hWnd);
+        if (length > 0)
+        {
+            const auto size = static_cast<size_t>(length) + 1;
+
+            auto title = std::wstring(size, L'\0');
+            GetWindowTextW(hWnd, title.data(), size);
+
+            auto pid = DWORD{0};
+            GetWindowThreadProcessId(hWnd, &pid);
+
+            // Execute callback.            
+            if (callbackFn(hWnd, pid, title.data()))
+            {
+                SetLastError(ERROR_USER_CALLBACK_SUCCESS);
+                return FALSE;
+            }
+        }
+
+        return TRUE;
+    };
+
+    if (!EnumWindows(enumWindowsProc, reinterpret_cast<LPARAM>(&enumWindowsProcData)))
+    {
+        // Check if callback returned true.
+        const auto error = GetLastError();
+        if (error == ERROR_USER_CALLBACK_SUCCESS)
+        {
+            return true;
+        }
+    }
 
     return false;
 }
