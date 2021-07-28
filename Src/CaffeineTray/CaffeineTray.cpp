@@ -1,5 +1,6 @@
 #include "CaffeineTray.hpp"
 
+#include "Dialogs/CaffeineSettings.hpp"
 #include "Utility.hpp"
 
 #include <shellapi.h>
@@ -30,7 +31,7 @@ CaffeineTray::CaffeineTray()
 {
     auto appData = GetAppDataPath() / "CaffeineTray";
     fs::create_directory(appData);
-
+    
     mSettingsFilePath = appData / CAFFEINE_SETTINGS_FILENAME;
     mLoggerFilePath = appData / CAFFEINE_LOG_FILENAME;
 
@@ -476,8 +477,28 @@ auto CaffeineTray::SaveSettings() -> bool
 
 auto CaffeineTray::LaunchSettingsProgram() -> bool
 {
-    auto ret = ::ShellExecuteW(mWndHandle, L"open", L"CaffeineSettings.exe", nullptr, nullptr, SW_SHOWNORMAL);
-    return reinterpret_cast<intptr_t>(ret) > 32;
+    static auto isCreated = false;
+    if (isCreated)
+    {
+        return false;
+    }
+    isCreated = true;
+
+    auto caffeineSettings = CaffeineSettings(std::make_shared<Settings>(mSettings));
+    if (caffeineSettings.Show(mWndHandle))
+    {
+        const auto& newSettings = caffeineSettings.Result();
+
+        mSettings.Standard = newSettings.Standard;
+        mSettings.Auto     = newSettings.Auto;
+
+        // Update with new settings.
+        Update();
+    }
+
+    isCreated = false;
+
+    return true;
 }
 
 auto CaffeineTray::ReloadSettings() -> void
@@ -893,6 +914,8 @@ auto CALLBACK CaffeineTray::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
                 caffeinePtr->UpdateNotifyIcon();
             }
         }
+
+        return 0;
     }
     }
 

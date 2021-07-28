@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Dialogs">
+      <UniqueIdentifier>{9318f497-983a-4836-8231-e5b421a85575}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Dialogs">
+      <UniqueIdentifier>{2e340b9e-f384-471d-9a4a-143fc6f92cc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Dialogs\Helpers">
+      <UniqueIdentifier>{cbc3c2cc-9230-4a7c-b799-3db6fb55cf7b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -29,6 +38,12 @@
     </ClCompile>
     <ClCompile Include="Utility.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialogs\CaffeineSettings.cpp">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialogs\AddWizard.cpp">
+      <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -52,6 +67,42 @@
     </ClInclude>
     <ClInclude Include="CaffeineTray.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\CaffeineSettings.hpp">
+      <Filter>Header Files\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\Helpers\IconCache.hpp">
+      <Filter>Header Files\Dialogs\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\Helpers\DialogResult.hpp">
+      <Filter>Header Files\Dialogs\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\Helpers\ItemType.hpp">
+      <Filter>Header Files\Dialogs\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\Helpers\ItemList.hpp">
+      <Filter>Header Files\Dialogs\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\AddWizard.hpp">
+      <Filter>Header Files\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\Helpers\RunningProcess.hpp">
+      <Filter>Header Files\Dialogs\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\AddDialog.hpp">
+      <Filter>Header Files\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\EditDialog.hpp">
+      <Filter>Header Files\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\Helpers\AddEditDialog.hpp">
+      <Filter>Header Files\Dialogs\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\Dialog.hpp">
+      <Filter>Header Files\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\Helpers\ErrorMessages.hpp">
+      <Filter>Header Files\Dialogs\Helpers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

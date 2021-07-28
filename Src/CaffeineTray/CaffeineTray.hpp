@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Caffeine.hpp"
+#include "Dialogs/CaffeineSettings.hpp"
 #include "Logger.hpp"
 #include "Settings.hpp"
 
@@ -21,23 +22,23 @@ class CaffeineTray
     static constexpr auto WM_APP_NOTIFY = static_cast<UINT>(WM_APP + 1); // NotifyIcon messages.
     static constexpr auto IDT_CAFFEINE  = static_cast<UINT>(10001);      // Timer.
 
-    static constexpr auto CAFFEINE_LOG_FILENAME      = TEXT("CaffeineTray.log");
-    static constexpr auto CAFFEINE_SETTINGS_FILENAME = TEXT("CaffeineTray.json");
+    static constexpr auto CAFFEINE_LOG_FILENAME      = L"CaffeineTray.log";
+    static constexpr auto CAFFEINE_SETTINGS_FILENAME = L"CaffeineTray.json";
 
-    HWND         mWndHandle;
-    HINSTANCE    mInstance;
-    HANDLE       mReloadEvent;
-    HANDLE       mReloadThread;
-    bool         mEnumWindowsRetCode;
-    bool         mIsTimerRunning;
-    bool         mLightTheme;
-    bool         mInitialized;
-    fs::path     mSettingsFilePath;
-    fs::path     mLoggerFilePath;
-    Caffeine     mCaffeine;
-    Logger       mLogger;
-    Settings     mSettings;
-
+    HWND       mWndHandle;
+    HINSTANCE  mInstance;
+    HANDLE     mReloadEvent;
+    HANDLE     mReloadThread;
+    bool       mEnumWindowsRetCode;
+    bool       mIsTimerRunning;
+    bool       mLightTheme;
+    bool       mInitialized;
+    fs::path   mSettingsFilePath;
+    fs::path   mLoggerFilePath;
+    Caffeine   mCaffeine;
+    Logger     mLogger;
+    Settings   mSettings;
+    
     // Updates icons/strings/power settings/timer. Call after mode change.
     auto Update () -> void;
 

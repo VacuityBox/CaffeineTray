@@ -97,6 +97,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTray\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -117,6 +118,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTray\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -137,6 +139,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTray\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -157,6 +160,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTray\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -173,6 +177,8 @@
   <ItemGroup>
     <ClCompile Include="Caffeine.cpp" />
     <ClCompile Include="CaffeineTray.cpp" />
+    <ClCompile Include="Dialogs\AddWizard.cpp" />
+    <ClCompile Include="Dialogs\CaffeineSettings.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Utility.cpp" />
@@ -180,6 +186,18 @@
   <ItemGroup>
     <ClInclude Include="Caffeine.hpp" />
     <ClInclude Include="CaffeineTray.hpp" />
+    <ClInclude Include="Dialogs\AddDialog.hpp" />
+    <ClInclude Include="Dialogs\AddWizard.hpp" />
+    <ClInclude Include="Dialogs\Dialog.hpp" />
+    <ClInclude Include="Dialogs\EditDialog.hpp" />
+    <ClInclude Include="Dialogs\Helpers\AddEditDialog.hpp" />
+    <ClInclude Include="Dialogs\Helpers\DialogResult.hpp" />
+    <ClInclude Include="Dialogs\Helpers\ErrorMessages.hpp" />
+    <ClInclude Include="Dialogs\Helpers\IconCache.hpp" />
+    <ClInclude Include="Dialogs\Helpers\ItemList.hpp" />
+    <ClInclude Include="Dialogs\Helpers\ItemType.hpp" />
+    <ClInclude Include="Dialogs\Helpers\RunningProcess.hpp" />
+    <ClInclude Include="Dialogs\CaffeineSettings.hpp" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Logger.hpp" />
     <ClInclude Include="resource.h" />
