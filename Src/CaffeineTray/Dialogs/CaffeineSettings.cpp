@@ -72,6 +72,11 @@ auto CaffeineSettings::OnInit (HWND dlgHandle) -> bool
     EnableWindow(mButtonEdit, FALSE);
     EnableWindow(mButtonRemove, FALSE);
 
+    if (mItems->Count() == 0)
+    {
+        DisplayWarning();
+    }
+
     return true;
 }
 
@@ -186,6 +191,15 @@ auto CaffeineSettings::OnCommand (WPARAM wParam, LPARAM lParam) -> bool
     {
         EnableWindow(mButtonEdit, FALSE);
         EnableWindow(mButtonRemove, FALSE);
+    }
+
+    if (mItems->Count() == 0)
+    {
+        DisplayWarning();
+    }
+    else
+    {
+        HideWarning();
     }
 
     return true;
@@ -437,6 +451,33 @@ auto CaffeineSettings::SetSelectedItem (int index) -> bool
     SetFocus(mListViewItems);
 
     return true;
+}
+
+auto CaffeineSettings::DisplayWarning () -> void
+{
+    if (!mWarningShowed)
+    {
+        auto warningIcon = HICON{0};
+        const auto warningText = L"You need to add something to the list to make Auto mode work!";
+
+        LoadIconWithScaleDown(NULL, IDI_WARNING, 16, 16, &warningIcon);
+
+        Static_SetIcon(GetDlgItem(mDlgHandle, IDC_ICON_WARNING), warningIcon);
+        SetDlgItemText(mDlgHandle, IDC_TEXT_WARNING, warningText);
+
+        mWarningShowed = true;
+    }
+}
+
+auto CaffeineSettings::HideWarning () -> void
+{
+    if (mWarningShowed)
+    {
+        Static_SetIcon(GetDlgItem(mDlgHandle, IDC_ICON_WARNING), NULL);
+        SetDlgItemText(mDlgHandle, IDC_TEXT_WARNING, L"");
+    
+        mWarningShowed = false;
+    }
 }
 
 } // namespace Caffeine

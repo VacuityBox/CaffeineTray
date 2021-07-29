@@ -36,6 +36,8 @@ class CaffeineSettings final : public Dialog<Settings>
     HWND mButtonEdit;
     HWND mButtonRemove;
 
+    bool mWarningShowed;
+
     virtual auto OnInit    (HWND dlgHandle)               -> bool override;
     virtual auto OnOk      ()                             -> bool override;
     virtual auto OnCancel  ()                             -> bool override;
@@ -53,6 +55,9 @@ class CaffeineSettings final : public Dialog<Settings>
     auto GetSelectedIndex (bool deselectAfter = false) -> int;
     auto SetSelectedItem  (int index) -> bool;
 
+    auto DisplayWarning () -> void;
+    auto HideWarning    () -> void;
+
     CaffeineSettings            (const CaffeineSettings&) = delete;
     CaffeineSettings& operator= (const CaffeineSettings&) = delete;
 
@@ -68,6 +73,7 @@ public:
         , mButtonWizard     (NULL)
         , mButtonEdit       (NULL)
         , mButtonRemove     (NULL)
+        , mWarningShowed    (false)
     {
     }
 };

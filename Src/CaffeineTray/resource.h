@@ -21,23 +21,22 @@
 #define IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE_DARK         115
 
 // Notify Area Strings.
-#define IDS_CAFFEINE_DISABLED                        116
-#define IDS_CAFFEINE_ENABLED                         117
-#define IDS_CAFFEINE_AUTO_INACTIVE                   118
-#define IDS_CAFFEINE_AUTO_ACTIVE                     119
+#define IDS_CAFFEINE_DISABLED                        201
+#define IDS_CAFFEINE_ENABLED                         202
+#define IDS_CAFFEINE_AUTO_INACTIVE                   203
+#define IDS_CAFFEINE_AUTO_ACTIVE                     204
 
-#define IDC_CAFFEINE_DISABLED_CONTEXTMENU            120
-#define IDC_CAFFEINE_ENABLED_CONTEXTMENU             121
-#define IDC_CAFFEINE_AUTO_CONTEXTMENU                122
-#define IDC_CAFFEINE_LOGO                            124
-#define IDC_HOMEPAGE                                 125
+// Notyfy Area ContextMenu Text.
+#define IDC_CAFFEINE_DISABLED_CONTEXTMENU            301
+#define IDC_CAFFEINE_ENABLED_CONTEXTMENU             302
+#define IDC_CAFFEINE_AUTO_CONTEXTMENU                303
 
 // Dialogs.
-#define IDD_ABOUT                                    123
-#define IDC_LICENSE                                  126
-#define IDD_SETTINGS                                 127
-#define IDD_ADD_EDIT                                 129
-#define IDD_ADD_WIZARD                               131
+#define IDD_ABOUT                                    901
+#define IDC_LICENSE                                  902
+#define IDD_SETTINGS                                 903
+#define IDD_ADD_EDIT                                 904
+#define IDD_ADD_WIZARD                               905
 
 // Settings Dialog.
 #define IDC_GROUPBOX_STANDARD                        1001
@@ -51,22 +50,28 @@
 #define IDC_BUTTON_AUTO_ADD_WIZARD                   1009
 #define IDC_BUTTON_AUTO_EDIT                         1010
 #define IDC_BUTTON_AUTO_REMOVE                       1011
+#define IDC_TEXT_WARNING                             1024
+#define IDC_ICON_WARNING                             1025
 
 // Add/Edit Dialog.
-#define IDC_EDITBOX_ADD_EDIT                         1012
-#define IDC_RADIO_PROCESS_NAME                       1013
-#define IDC_RADIO_PROCESS_PATH                       1014
-#define IDC_RADIO_WINDOW_TITLE                       1015
+#define IDC_EDITBOX_ADD_EDIT                         1101
+#define IDC_RADIO_PROCESS_NAME                       1102
+#define IDC_RADIO_PROCESS_PATH                       1103
+#define IDC_RADIO_WINDOW_TITLE                       1104
 
 // Wizard Dialog.
-#define IDC_LISTVIEW_WIZARD_PROCESSES_AND_WINDOWS    1016
-#define IDC_EDITBOX_WIZARD_PROCESS_NAME              1017
-#define IDC_EDITBOX_WIZARD_PROCESS_PATH              1018
-#define IDC_EDITBOX_WIZARD_WINDOW_TITLE              1019
-#define IDC_BUTTON_WIZARD_REFRESH                    1020
-#define IDC_BUTTON_WIZARD_ADD_NAME                   1021
-#define IDC_BUTTON_WIZARD_ADD_PATH                   1022
-#define IDC_BUTTON_WIZARD_ADD_WINDOW                 1023
+#define IDC_LISTVIEW_WIZARD_PROCESSES_AND_WINDOWS    1201
+#define IDC_EDITBOX_WIZARD_PROCESS_NAME              1202
+#define IDC_EDITBOX_WIZARD_PROCESS_PATH              1203
+#define IDC_EDITBOX_WIZARD_WINDOW_TITLE              1204
+#define IDC_BUTTON_WIZARD_REFRESH                    1205
+#define IDC_BUTTON_WIZARD_ADD_NAME                   1206
+#define IDC_BUTTON_WIZARD_ADD_PATH                   1207
+#define IDC_BUTTON_WIZARD_ADD_WINDOW                 1208
+
+// About Dialog
+#define IDC_CAFFEINE_LOGO                            1301
+#define IDC_HOMEPAGE                                 1302
 
 // Notify Area ContextMenu Commands.
 #define IDM_TOGGLE_CAFFEINE                          40001
