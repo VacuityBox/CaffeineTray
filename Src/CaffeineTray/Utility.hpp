@@ -17,7 +17,7 @@ auto UTF16ToUTF8 (const std::wstring_view str) -> std::optional<std::string>;
 auto GetAppDataPath () -> std::filesystem::path;
 auto IsLightTheme   () -> bool;
 
-auto ScanProccess (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool;
-auto ScanWindows  (std::function<bool (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible = true) -> bool;
+auto ScanProcesses (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool;
+auto ScanWindows   (std::function<bool (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible = true) -> bool;
 
 } // namespace Caffeine

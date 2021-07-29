@@ -13,21 +13,23 @@
 #include <chrono>
 #include <iomanip>
 #include <filesystem>
-#include "resource.h"
+#include "Resource.h"
 #include "json.hpp"
 
 namespace Caffeine {
 
 CaffeineTray::CaffeineTray()
-    : mWndHandle(0)
-    , mInstance(nullptr)
-    , mEnumWindowsRetCode(false)
-    , mIsTimerRunning(false)
-    , mSettings()
-    , mLightTheme(false)
-    , mInitialized(false)
-    , mReloadEvent(NULL)
-    , mReloadThread(NULL)
+    : mSettings           (std::make_shared<Settings>())
+    , mWndHandle          (nullptr)
+    , mInstance           (nullptr)
+    , mEnumWindowsRetCode (false)
+    , mIsTimerRunning     (false)
+    , mLightTheme         (false)
+    , mInitialized        (false)
+    , mReloadEvent        (NULL)
+    , mReloadThread       (NULL)
+    , mProcessScanner     (mSettings)
+    , mWindowScanner      (mSettings)
 {
     auto appData = GetAppDataPath() / "CaffeineTray";
     fs::create_directory(appData);
@@ -131,7 +133,7 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
             return false;
         }
 
-        // Store a pointer to Caffeine object, so we can use it in WinProc.
+        // Store a pointer to ExecutionState object, so we can use it in WinProc.
         SetWindowLongPtrW(mWndHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
         //ShowWindow(mHandle, SW_SHOW);
@@ -190,21 +192,21 @@ auto CaffeineTray::Update() -> void
 auto CaffeineTray::EnableCaffeine() -> void
 {
     auto keepDisplayOn = false;
-    switch (mSettings.Mode)
+    switch (mSettings->Mode)
     {
     case CaffeineMode::Disabled:
         break;
 
     case CaffeineMode::Enabled:
-        keepDisplayOn = mSettings.Standard.KeepDisplayOn;
+        keepDisplayOn = mSettings->Standard.KeepDisplayOn;
         break;
 
     case CaffeineMode::Auto:
-        keepDisplayOn = mSettings.Auto.KeepDisplayOn;
+        keepDisplayOn = mSettings->Auto.KeepDisplayOn;
         break;
     }
 
-    auto result = mCaffeine.Enable(keepDisplayOn);
+    auto result = mCaffeine.PreventSleep(keepDisplayOn);
     if (result)
     {
         Log("Caffeine Enabled. Preventing computer to sleep");
@@ -213,7 +215,7 @@ auto CaffeineTray::EnableCaffeine() -> void
 
 auto CaffeineTray::DisableCaffeine() -> void
 {
-    auto result = mCaffeine.Disable();
+    auto result = mCaffeine.AllowSleep();
     if (result)
     {
         Log("Caffeine Disabled. Allowing computer to sleep");
@@ -222,18 +224,18 @@ auto CaffeineTray::DisableCaffeine() -> void
 
 auto CaffeineTray::ToggleCaffeine() -> void
 {
-    switch (mSettings.Mode)
+    switch (mSettings->Mode)
     {
     case CaffeineMode::Disabled:
-        mSettings.Mode = CaffeineMode::Enabled;
+        mSettings->Mode = CaffeineMode::Enabled;
         EnableCaffeine();
         break;
     case CaffeineMode::Enabled:
-        mSettings.Mode = CaffeineMode::Auto;
+        mSettings->Mode = CaffeineMode::Auto;
         DisableCaffeine();
         break;
     case CaffeineMode::Auto:
-        mSettings.Mode = CaffeineMode::Disabled;
+        mSettings->Mode = CaffeineMode::Disabled;
         DisableCaffeine();
         break;
     }
@@ -243,13 +245,13 @@ auto CaffeineTray::ToggleCaffeine() -> void
 
 auto CaffeineTray::SetCaffeineMode(CaffeineMode mode) -> void
 {
-    if (mode == mSettings.Mode)
+    if (mode == mSettings->Mode)
     {
         return;
     }
-    mSettings.Mode = mode;
+    mSettings->Mode = mode;
 
-    switch (mSettings.Mode)
+    switch (mSettings->Mode)
     {
     case CaffeineMode::Disabled:
         DisableCaffeine();
@@ -320,7 +322,7 @@ auto CaffeineTray::UpdateNotifyIcon() -> bool
     nid.hWnd             = mWndHandle;
     nid.uCallbackMessage = WM_APP_NOTIFY;
 
-    switch (mSettings.Mode)
+    switch (mSettings->Mode)
     {
     case CaffeineMode::Disabled:
         nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_DISABLED);
@@ -381,7 +383,7 @@ auto CaffeineTray::LoadIconHelper(WORD icon) -> HICON
         case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE_LIGHT;   break;
         }
     }
-
+    
     return static_cast<HICON>(
         LoadImageW(mInstance, MAKEINTRESOURCEW(id), IMAGE_ICON, 0, 0, flags)
         );
@@ -390,7 +392,7 @@ auto CaffeineTray::LoadIconHelper(WORD icon) -> HICON
 auto CaffeineTray::ShowNotifyContexMenu(HWND hWnd, LONG x, LONG y) -> void
 {
     auto hMenu = static_cast<HMENU>(0);
-    switch (mSettings.Mode)
+    switch (mSettings->Mode)
     {
     case CaffeineMode::Disabled:
         hMenu = LoadMenuW(mInstance, MAKEINTRESOURCE(IDC_CAFFEINE_DISABLED_CONTEXTMENU));
@@ -445,11 +447,11 @@ auto CaffeineTray::LoadSettings() -> bool
     auto json = nlohmann::json::parse(file, nullptr, false, true);
     if (json.is_discarded())
     {
-        Log("Failed to deserialize json.");
+        Log("Failed to deserialize json");
         return false;
     }
     
-    mSettings = json.get<Settings>();
+    *mSettings = json.get<Settings>();
 
     //Log() << json.dump(4).c_str() << std::endl;
     Log("Loaded Settings '" + mSettingsFilePath.string() + "'");
@@ -468,7 +470,7 @@ auto CaffeineTray::SaveSettings() -> bool
     }
 
     // Serialize.
-    auto json = nlohmann::json(mSettings);
+    auto json = nlohmann::ordered_json(*mSettings);
     file << std::setw(4) << json;
 
     Log("Saved Settings '" + mSettingsFilePath.string() + "'");
@@ -484,13 +486,13 @@ auto CaffeineTray::LaunchSettingsProgram() -> bool
     }
     isCreated = true;
 
-    auto caffeineSettings = CaffeineSettings(std::make_shared<Settings>(mSettings));
+    auto caffeineSettings = CaffeineSettings(mSettings);
     if (caffeineSettings.Show(mWndHandle))
     {
         const auto& newSettings = caffeineSettings.Result();
 
-        mSettings.Standard = newSettings.Standard;
-        mSettings.Auto     = newSettings.Auto;
+        mSettings->Standard = newSettings.Standard;
+        mSettings->Auto     = newSettings.Auto;
 
         // Update with new settings.
         Update();
@@ -504,17 +506,17 @@ auto CaffeineTray::LaunchSettingsProgram() -> bool
 auto CaffeineTray::ReloadSettings() -> void
 {
     Log("Settings reload triggered");
-    auto mode = mSettings.Mode;
+    auto mode = mSettings->Mode;
     if (LoadSettings())
     {
-        mSettings.Mode = mode;
+        mSettings->Mode = mode;
         Update();
     }
 }
 
 auto CaffeineTray::ResetTimer() -> bool
 {
-    switch (mSettings.Mode)
+    switch (mSettings->Mode)
     {
     case CaffeineMode::Disabled:
     case CaffeineMode::Enabled:
@@ -529,7 +531,7 @@ auto CaffeineTray::ResetTimer() -> bool
     case CaffeineMode::Auto:
         if (!mIsTimerRunning)
         {
-            SetTimer(mWndHandle, IDT_CAFFEINE, mSettings.Auto.ScanInterval, nullptr);
+            SetTimer(mWndHandle, IDT_CAFFEINE, mSettings->Auto.ScanInterval, nullptr);
             mIsTimerRunning = true;
             Log("Starting timer");
         }
@@ -541,13 +543,39 @@ auto CaffeineTray::ResetTimer() -> bool
 
 auto CaffeineTray::TimerUpdateProc() -> void
 {
+    // Scan processes and windows if no process found.
+    auto foundProcess = mProcessScanner.Run();
+    auto foundWindow  = false;
+    if (!foundProcess)
+    {
+        foundWindow = mWindowScanner.Run();
+    }
+
     // Activate auto mode if process/window is found. Deactivate otherwise.
-    if (ScanProcesses() || ScanWindows())
+    if (foundProcess || foundWindow)
     {
         // Activate only if inactive.
         if (!mCaffeine.IsActive())
         {
-            Log("Found process/window. Activating caffeine.");
+            if (foundProcess)
+            {
+                auto utf8Name = UTF16ToUTF8(mProcessScanner.GetLastFound());
+                if (utf8Name)
+                    Log("Found process '" + utf8Name.value() + "'");
+                else
+                    Log("Found process");
+            }
+            else
+            {
+                auto utf8Name = UTF16ToUTF8(mWindowScanner.GetLastFound());
+                if (utf8Name)
+                    Log("Found window '" + utf8Name.value() + "'");
+                else
+                    Log("Found window");
+            }
+
+            
+            Log("Activating Caffeine");
             EnableCaffeine();
             Update();
         }
@@ -564,118 +592,9 @@ auto CaffeineTray::TimerUpdateProc() -> void
     }
 }
 
-auto CaffeineTray::ScanProcesses() -> bool
-{
-    // Get the list of process identifiers (PID's).
-    const auto PROCESS_BUFFER_SIZE = 1024;
-    auto processList = std::array<DWORD, PROCESS_BUFFER_SIZE>{ 0 };
-    auto bytesReturned = static_cast<DWORD>(0);
-    if (!EnumProcesses(processList.data(), static_cast<DWORD>(processList.size()), &bytesReturned))
-    {
-        Log("EnumProcesses() failed");
-        return false;
-    }
-    auto numberOfProccesses = bytesReturned / sizeof(DWORD);
-
-    // Loop through running processes.
-    for (auto i = unsigned long{ 0 }; i < numberOfProccesses; ++i)
-    {
-        auto pid = processList[i];
-        if (pid != 0)
-        {
-            auto processHandle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-            if (!processHandle)
-            {
-                continue;
-            }
-
-            // Read process executable path.
-            auto imageName = std::array<wchar_t, MAX_PATH>{ 0 };
-            auto size = static_cast<DWORD>(MAX_PATH);
-            if (QueryFullProcessImageNameW(processHandle, 0, imageName.data(), &size))
-            {
-                // Check if process is running.
-                if (CheckProcess(imageName.data()))
-                {
-                    CloseHandle(processHandle);
-                    return true;
-                }
-            }
-            
-            CloseHandle(processHandle);
-        }
-    }
-
-    return false;
-}
-
-auto CaffeineTray::ScanWindows() -> bool
-{
-    mEnumWindowsRetCode = false;
-
-    if (!EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(this)))
-    {
-        Log("EnumWindows() failed");
-        return false;
-    }
-
-    return mEnumWindowsRetCode;
-}
-
-auto CaffeineTray::CheckProcess(const std::wstring_view processImageName) -> bool
-{
-    // Check if process is on process names list.
-    for (auto procName : mSettings.Auto.ProcessNames)
-    {
-        if (processImageName.find(procName) != std::wstring::npos)
-        {
-            //Log("Found running process: '" << procName << "'");
-            return true;
-        }
-    }
-
-    // Check if process is on process paths list.
-    for (auto procPath : mSettings.Auto.ProcessPaths)
-    {
-        if (processImageName == procPath)
-        {
-            //Log("Found running process: '" << procPath << "'");
-            return true;
-        }
-    }
-
-    return false;
-}
-
-auto CaffeineTray::CheckWindow(const std::wstring_view windowTitle) -> bool
-{
-    for (auto title : mSettings.Auto.WindowTitles)
-    {
-        if (windowTitle.find(title) != std::wstring::npos)
-        {
-            //Log("Found window: '" << title << "'");
-            return true;
-        }
-    }
-
-    return false;
-}
-
 auto CaffeineTray::Log(std::string message) -> void
 {
     mLogger.Log(std::move(message));
-}
-
-auto CaffeineTray::ModeToString(CaffeineMode mode) -> std::wstring_view
-{
-    switch (mSettings.Mode)
-    {
-    case CaffeineMode::Disabled:    return L"Disabled";
-    case CaffeineMode::Enabled:     return L"Enabled";
-    case CaffeineMode::Auto:        return L"Auto";
-    }
-
-    return L"Unknown mode";
 }
 
 auto CaffeineTray::AboutDlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> INT_PTR
@@ -774,39 +693,6 @@ auto CaffeineTray::ReloadThreadProc(LPVOID lParam) -> DWORD
     return 0;
 }
 
-auto CaffeineTray::EnumWindowsProc(HWND hWnd, LPARAM lParam) -> BOOL
-{
-    auto caffeinePtr = reinterpret_cast<CaffeineTray*>(lParam);
-    if (!caffeinePtr)
-    {
-        return TRUE;
-    }
-
-    // NOTE: EnumWindowsProc could return 0 when window is found to stop iterating,
-    //       but then EnumWindows would also return 0, so instead: check the flag,
-    //       skip the rest and if EnumWindows actually fail it will return 0.
-    if (caffeinePtr->mEnumWindowsRetCode)
-    {
-        return TRUE;
-    }
-
-    auto length = GetWindowTextLengthW(hWnd);
-    if (length > 0)
-    {
-        const auto size = length + 1;
-        auto title = std::vector(static_cast<size_t>(size) + 1, L'\0');
-        GetWindowTextW(hWnd, title.data(), size);
-        std::wstring_view sv = title.data();
-        if (caffeinePtr->CheckWindow(title.data()))
-        {
-            caffeinePtr->mEnumWindowsRetCode = true;
-            return TRUE;
-        }
-    }
-
-    return TRUE;
-}
-
 auto CALLBACK CaffeineTray::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT
 {
     auto caffeinePtr = reinterpret_cast<CaffeineTray*>(GetWindowLongPtrW(hWnd, GWLP_USERDATA));
@@ -821,7 +707,7 @@ auto CALLBACK CaffeineTray::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
     {
         auto id = LOWORD(wParam);
 
-        switch (id)
+        switch (LOWORD(wParam))
         {
         case IDM_TOGGLE_CAFFEINE:
             caffeinePtr->ToggleCaffeine();
@@ -854,15 +740,6 @@ auto CALLBACK CaffeineTray::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 
         return 0;
     }
-    
-    case WM_PAINT:
-    {
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hWnd, &ps);
-        EndPaint(hWnd, &ps);
-
-        return 0;
-    }
 
     case WM_DESTROY:
     {
@@ -871,6 +748,9 @@ auto CALLBACK CaffeineTray::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
             KillTimer(hWnd, IDT_CAFFEINE);
             caffeinePtr->mIsTimerRunning = false;
         }
+
+        caffeinePtr->SaveSettings();
+
         PostQuitMessage(0);
         return 0;
     }

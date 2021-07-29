@@ -1,11 +1,11 @@
-#include "Caffeine.hpp"
+#include "ExecutionState.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
 namespace Caffeine {
 
-auto Caffeine::Enable (bool keepDisplayOn) -> bool
+auto ExecutionState::PreventSleep (bool keepDisplayOn) -> bool
 {
     // Check if not active and request is different.
     if (mIsActive && keepDisplayOn == mKeepDisplayOn)
@@ -30,7 +30,7 @@ auto Caffeine::Enable (bool keepDisplayOn) -> bool
     return true;
 }
 
-auto Caffeine::Disable () -> bool
+auto ExecutionState::AllowSleep () -> bool
 {
     if (mIsActive)
     {

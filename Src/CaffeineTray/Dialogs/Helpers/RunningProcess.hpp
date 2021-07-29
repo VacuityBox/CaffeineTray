@@ -46,7 +46,7 @@ public:
         mRunningProcesses.clear();
 
         // Load list of running processes.
-        ScanProccess(
+        ScanProcesses(
             [&](HANDLE handle, DWORD pid, fs::path path)
             {
                 auto icon = mIconCache->Insert(path);

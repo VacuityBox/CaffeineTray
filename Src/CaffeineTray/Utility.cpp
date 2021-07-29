@@ -118,7 +118,7 @@ auto IsLightTheme () -> bool
     return false;
 }
 
-auto ScanProccess (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool
+auto ScanProcesses (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool
 {
     // Get the list of process identifiers (PID's).
     const auto PROCESS_LIST_MAX_SIZE = 2048;
