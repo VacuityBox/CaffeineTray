@@ -142,13 +142,13 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "VacuityBox"
-            VALUE "FileDescription", "Caffeine - Don't let your computer to sleep"
-            VALUE "FileVersion", "1.0.2.0"
+            VALUE "FileDescription", "CaffeineTray"
+            VALUE "FileVersion", "1.9.9.0-alpha"
             VALUE "InternalName", "CaffeineTray.exe"
             VALUE "LegalCopyright", "GPL-3.0-or-later"
             VALUE "OriginalFilename", "CaffeineTray.exe"
             VALUE "ProductName", "CaffeineTray"
-            VALUE "ProductVersion", "1.0.2.0"
+            VALUE "ProductVersion", "1.9.9.0-alpha"
         END
     END
     BLOCK "VarFileInfo"
@@ -163,17 +163,19 @@ END
 // Dialog
 //
 
-IDD_ABOUT DIALOGEX 0, 0, 250, 160
+IDD_ABOUT DIALOGEX 0, 0, 250, 177
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "About"
 FONT 9, "Segoe UI", 400, 0, 0xEE
 BEGIN
-    ICON            "Caffeine",IDC_CAFFEINE_LOGO,10,10,18,17
-    LTEXT           "Caffeine",IDC_STATIC,48,10,189,12
-    LTEXT           "by VacuityBox",IDC_STATIC,48,22,191,12
-    CONTROL         "Homepage",IDC_HOMEPAGE,"SysLink",WS_TABSTOP,48,34,205,12
-    CONTROL         "License",IDC_LICENSE,"SysLink",WS_TABSTOP,10,46,240,115
+    ICON            "Caffeine",IDC_ABOUT_CAFFEINE_LOGO,10,10,20,20
+    CONTROL         "Name",IDC_ABOUT_PROGRAM_NAME,"Static",SS_LEFT,48,10,189,12
+    CONTROL         "Author",IDC_ABOUT_AUTHOR,"Static",SS_LEFT,48,22,191,12
+    CONTROL         "Homepage",IDC_ABOUT_HOMEPAGE,"SysLink",WS_TABSTOP,48,34,191,12
+    CONTROL         "License",IDC_ABOUT_LICENSE,"SysLink",WS_TABSTOP,7,49,236,107
+    DEFPUSHBUTTON   "Close",IDCANCEL,193,156,50,14
+    PUSHBUTTON      "3rd Party License",IDC_ABOUT_BUTTON_3RDPARTY,7,156,60,14
 END
 
 IDD_SETTINGS DIALOGEX 0, 0, 487, 251
@@ -282,8 +284,10 @@ GUIDELINES DESIGNINFO
 BEGIN
     IDD_ABOUT, DIALOG
     BEGIN
-        LEFTMARGIN, 10
-        TOPMARGIN, 10
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 243
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 170
     END
 
     IDD_SETTINGS, DIALOG

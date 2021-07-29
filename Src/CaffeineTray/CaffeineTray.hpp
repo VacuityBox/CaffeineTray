@@ -25,9 +25,6 @@ class CaffeineTray
     static constexpr auto WM_APP_NOTIFY = static_cast<UINT>(WM_APP + 1); // NotifyIcon messages.
     static constexpr auto IDT_CAFFEINE  = static_cast<UINT>(10001);      // Timer.
 
-    static constexpr auto CAFFEINE_LOG_FILENAME      = L"CaffeineTray.log";
-    static constexpr auto CAFFEINE_SETTINGS_FILENAME = L"CaffeineTray.json";
-
     std::shared_ptr<Settings> mSettings;
 
     HWND            mWndHandle;
@@ -61,7 +58,6 @@ class CaffeineTray
 
     auto LoadSettings          () -> bool;
     auto SaveSettings          () -> bool;
-    auto LaunchSettingsProgram () -> bool;
     auto ReloadSettings        () -> void;
 
     // Timer related/used by functions.
@@ -69,9 +65,11 @@ class CaffeineTray
     auto TimerUpdateProc  () -> void;
 
     auto Log (std::string message) -> void;
+
+    auto ShowCaffeineSettings ();
+    auto ShowAboutDialog      ();
     
     // Window/timer callbacks.
-    static auto CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) -> INT_PTR;
     static auto CALLBACK ReloadThreadProc(LPVOID lParam) -> DWORD;
     static auto CALLBACK WndProc         (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT;
 

@@ -33,10 +33,9 @@
 
 // Dialogs.
 #define IDD_ABOUT                                    901
-#define IDC_LICENSE                                  902
-#define IDD_SETTINGS                                 903
-#define IDD_ADD_EDIT                                 904
-#define IDD_ADD_WIZARD                               905
+#define IDD_SETTINGS                                 902
+#define IDD_ADD_EDIT                                 903
+#define IDD_ADD_WIZARD                               904
 
 // Settings Dialog.
 #define IDC_GROUPBOX_STANDARD                        1001
@@ -70,8 +69,12 @@
 #define IDC_BUTTON_WIZARD_ADD_WINDOW                 1208
 
 // About Dialog
-#define IDC_CAFFEINE_LOGO                            1301
-#define IDC_HOMEPAGE                                 1302
+#define IDC_ABOUT_CAFFEINE_LOGO                      1301
+#define IDC_ABOUT_PROGRAM_NAME                       1302
+#define IDC_ABOUT_AUTHOR                             1303
+#define IDC_ABOUT_HOMEPAGE                           1304
+#define IDC_ABOUT_LICENSE                            1305
+#define IDC_ABOUT_BUTTON_3RDPARTY                    1306
 
 // Notify Area ContextMenu Commands.
 #define IDM_TOGGLE_CAFFEINE                          40001

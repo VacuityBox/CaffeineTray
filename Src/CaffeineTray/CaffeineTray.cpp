@@ -1,7 +1,9 @@
 #include "CaffeineTray.hpp"
 
+#include "Dialogs/AboutDialog.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
 #include "Utility.hpp"
+#include "Version.hpp"
 
 #include <shellapi.h>
 #include <Psapi.h>
@@ -477,32 +479,6 @@ auto CaffeineTray::SaveSettings() -> bool
     return true;
 }
 
-auto CaffeineTray::LaunchSettingsProgram() -> bool
-{
-    static auto isCreated = false;
-    if (isCreated)
-    {
-        return false;
-    }
-    isCreated = true;
-
-    auto caffeineSettings = CaffeineSettings(mSettings);
-    if (caffeineSettings.Show(mWndHandle))
-    {
-        const auto& newSettings = caffeineSettings.Result();
-
-        mSettings->Standard = newSettings.Standard;
-        mSettings->Auto     = newSettings.Auto;
-
-        // Update with new settings.
-        Update();
-    }
-
-    isCreated = false;
-
-    return true;
-}
-
 auto CaffeineTray::ReloadSettings() -> void
 {
     Log("Settings reload triggered");
@@ -597,78 +573,47 @@ auto CaffeineTray::Log(std::string message) -> void
     mLogger.Log(std::move(message));
 }
 
-auto CaffeineTray::AboutDlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> INT_PTR
+auto CaffeineTray::ShowCaffeineSettings ()
 {
-    const auto caffeineIcon = LoadImageW(
-        GetModuleHandleW(NULL),
-        MAKEINTRESOURCEW(IDI_CAFFEINE_APP),
-        IMAGE_ICON,
-        48,
-        48,
-        LR_DEFAULTCOLOR | LR_SHARED
-    );
-
-    const auto license = 
-        L"This program is free software: you can redistribute it and/or modify\r\n"
-        L"it under the terms of the GNU General Public License as published by\r\n"
-        L"the Free Software Foundation, either version 3 of the License, or\r\n"
-        L"(at your option) any later version.\r\n"
-        L"\r\n"
-        L"This program is distributed in the hope that it will be useful,\r\n"
-        L"but WITHOUT ANY WARRANTY; without even the implied warranty of\r\n"
-        L"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\r\n"
-        L"GNU General Public License for more details.\r\n"
-        L"\r\n"
-        L"You should have received a copy of the GNU General Public License\r\n"
-        L"along with this program.  If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a>\r\n"
-    ;
-
-    const auto homepage = L"<a href=\"https://github.com/VacuityBox/Caffeine\">https://github.com/VacuityBox/Caffeine</a>";
-
-    switch (message)
+    static auto isCreated = false;
+    if (isCreated)
     {
-    case WM_INITDIALOG:
-        SendDlgItemMessageW(hWnd, IDC_CAFFEINE_LOGO, STM_SETIMAGE, IMAGE_ICON, reinterpret_cast<LPARAM>(caffeineIcon));
-        SetDlgItemTextW(hWnd, IDC_LICENSE, license);
-        SetDlgItemTextW(hWnd, IDC_HOMEPAGE, homepage);
+        return false;
+    }
+    isCreated = true;
 
-        return TRUE;
+    auto caffeineSettings = CaffeineSettings(mSettings);
+    if (caffeineSettings.Show(mWndHandle))
+    {
+        const auto& newSettings = caffeineSettings.Result();
 
-    case WM_COMMAND:
-        switch (LOWORD(wParam))
-        {
-        case IDOK:
-            EndDialog(hWnd, IDOK);
-            break;
+        mSettings->Standard = newSettings.Standard;
+        mSettings->Auto     = newSettings.Auto;
 
-        case IDCANCEL:
-            EndDialog(hWnd, IDOK);
-            break;
-        }
-        
-        return TRUE;
-
-    case WM_NOTIFY:
-        switch ((reinterpret_cast<LPNMHDR>(lParam))->code)
-        {
-        case NM_CLICK:
-        case NM_RETURN:
-        {
-            auto link = reinterpret_cast<PNMLINK>(lParam);
-            auto item = link->item;
-            ShellExecuteW(NULL, L"open", item.szUrl, NULL, NULL, SW_SHOW);
-            EndDialog(hWnd, IDOK);
-            break;
-        }
-        }
-        return TRUE;
-
-    case WM_CLOSE:
-        EndDialog(hWnd, IDOK);
-        return TRUE;
+        // Update with new settings.
+        Update();
     }
 
-    return FALSE;
+    isCreated = false;
+
+    return true;
+}
+
+auto CaffeineTray::ShowAboutDialog ()
+{
+    static auto isCreated = false;
+    if (isCreated)
+    {
+        return false;
+    }
+    isCreated = true;
+
+    auto aboutDlg = AboutDialog();
+    aboutDlg.Show(mWndHandle);
+
+    isCreated = false;
+
+    return true;
 }
 
 auto CaffeineTray::ReloadThreadProc(LPVOID lParam) -> DWORD
@@ -726,11 +671,11 @@ auto CALLBACK CaffeineTray::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
             break;
 
         case IDM_SETTINGS:
-            caffeinePtr->LaunchSettingsProgram();
+            caffeinePtr->ShowCaffeineSettings();
             break;
 
         case IDM_ABOUT:
-            DialogBoxW(caffeinePtr->mInstance, MAKEINTRESOURCE(IDD_ABOUT), hWnd, AboutDlgProc);
+            caffeinePtr->ShowAboutDialog();
             break;
 
         case IDM_EXIT:
