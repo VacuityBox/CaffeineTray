@@ -7,6 +7,8 @@
 #include <Windows.h>
 #include <Psapi.h>
 #include <ShlObj.h>
+#include <VersionHelpers.h>
+#include <wtsapi32.h>
 
 namespace Caffeine {
 
@@ -118,12 +120,49 @@ auto IsLightTheme () -> bool
     return false;
 }
 
+auto IsSessionLocked () -> bool
+{
+    auto wtsinfo  = std::make_unique<WTSINFOEXW*>();
+    auto retBytes = DWORD{ 0 };
+
+    auto retCode = WTSQuerySessionInformationW(
+        WTS_CURRENT_SERVER_HANDLE,
+        WTS_CURRENT_SESSION,
+        WTSSessionInfoEx,
+        reinterpret_cast<LPWSTR*>(wtsinfo.get()),
+        &retBytes
+    );
+
+    if (!retCode)
+        return false;
+
+    auto isLocked = false;
+    auto rawPtr   = *wtsinfo.get();
+    if (rawPtr)
+    {
+        // WTS_SESSIONSTATE_LOCK and WTS_SESSIONSTATE_UNLOCK are reversed on Win7.
+        // On newer versions it's fixed.
+        if (IsWindows8OrGreater())
+        {
+            isLocked = rawPtr->Data.WTSInfoExLevel1.SessionFlags == WTS_SESSIONSTATE_LOCK;
+        }
+        else
+        {
+            isLocked = rawPtr->Data.WTSInfoExLevel1.SessionFlags == WTS_SESSIONSTATE_UNLOCK;
+        }
+    }
+
+    WTSFreeMemory(*wtsinfo);
+
+    return isLocked;
+}
+
 auto ScanProcesses (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool
 {
     // Get the list of process identifiers (PID's).
     const auto PROCESS_LIST_MAX_SIZE = 2048;
 
-    auto processList   = std::array<DWORD, PROCESS_LIST_MAX_SIZE>{ 0 };
+    auto processList   = std::vector<DWORD>(PROCESS_LIST_MAX_SIZE);
     auto bytesReturned = DWORD{ 0 };
     if (!EnumProcesses(processList.data(), static_cast<DWORD>(processList.size()), &bytesReturned))
     {
@@ -218,6 +257,42 @@ auto ScanWindows (std::function<bool (HWND, DWORD, const std::wstring_view)> che
     }
 
     return false;
+}
+
+auto ToString (std::string str) -> std::string
+{
+    return str;
+}
+
+auto ToString (std::wstring str) -> std::string
+{
+    return ToString(str.c_str());
+}
+
+auto ToString (const char* str) -> std::string
+{
+    return std::string(str);
+}
+
+auto ToString (std::string_view str)  -> std::string
+{
+    return std::string(str);
+}
+
+auto ToString (std::wstring_view str) -> std::string
+{
+    return ToString(str.data());
+}
+
+auto ToString (const wchar_t* str) -> std::string
+{
+    auto utf8 = UTF16ToUTF8(str);
+    if (utf8)
+    {
+        return utf8.value();
+    }
+
+    return "";
 }
 
 } // namespace Caffeine

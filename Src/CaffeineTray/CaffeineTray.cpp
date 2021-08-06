@@ -2,81 +2,67 @@
 
 #include "Dialogs/AboutDialog.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
+#include "json.hpp"
+#include "Resource.h"
 #include "Utility.hpp"
 #include "Version.hpp"
 
-#include <shellapi.h>
-#include <Psapi.h>
-#include <commctrl.h>
-#include <ShlObj.h>
-#include <array>
-#include <iostream>
-#include <fstream>
-#include <chrono>
-#include <iomanip>
 #include <filesystem>
-#include "Resource.h"
-#include "json.hpp"
+#include <fstream>
+#include <commctrl.h>
+#include <Psapi.h>
+#include <shellapi.h>
+#include <ShlObj.h>
+#include <WtsApi32.h>
+
+using namespace std;
 
 namespace Caffeine {
 
-CaffeineTray::CaffeineTray()
-    : mSettings           (std::make_shared<Settings>())
-    , mWndHandle          (nullptr)
-    , mInstance           (nullptr)
-    , mEnumWindowsRetCode (false)
-    , mIsTimerRunning     (false)
+CaffeineTray::CaffeineTray(HINSTANCE hInstance)
+    : NotifyIcon          (hInstance)
+    , mSettings           (std::make_shared<Settings>())
+    , mLogger             (std::make_shared<Logger>())
     , mLightTheme         (false)
     , mInitialized        (false)
-    , mReloadEvent        (NULL)
-    , mReloadThread       (NULL)
+    , mSettingsChanged    (false)
+    , mSessionLocked      (false)
     , mProcessScanner     (mSettings)
     , mWindowScanner      (mSettings)
+    , mScannerTimer       (std::bind(&CaffeineTray::TimerUpdate, this))
 {
-    auto appData = GetAppDataPath() / "CaffeineTray";
+    auto appData = GetAppDataPath() / CAFFEINE_PROGRAM_NAME;
     fs::create_directory(appData);
     
     mSettingsFilePath = appData / CAFFEINE_SETTINGS_FILENAME;
     mLoggerFilePath = appData / CAFFEINE_LOG_FILENAME;
 
-    mLogger.Open(mLoggerFilePath);
+    mLogger->Open(mLoggerFilePath);
     Log("---- Log started ----");
 }
 
 CaffeineTray::~CaffeineTray()
 {
-    if (mReloadThread)
-        ::TerminateThread(mReloadThread, 0);
+    if (mSettingsChanged)
+    {
+        SaveSettings();
+    }
 
-    if (mReloadEvent)
-        ::CloseHandle(mReloadEvent);
-
-    if (mInitialized)
-        DeleteNotifyIcon();
-
-    UnregisterClassW(L"CaffeineTray_WndClass", mInstance);
+    DisableCaffeine();
 
     Log("---- Log ended ----");
 }
 
-auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
+auto CaffeineTray::Init() -> bool
 {
-    Log("Initializing Caffeine...");
-
-    if (!hInstance)
-    {
-        Log("hInstance can't be null");
-        return false;
-    }
-
-    mInstance = hInstance;
+    Log("Initializing CaffeineTray...");
 
     // Load Settings.
     {
         // Create default settings file if not exists.
         if (!fs::exists(mSettingsFilePath))
         {
-            Log("Settings file not found, creating default one");            
+            Log("Settings file not found, creating default one");
             SaveSettings();
         }
         else
@@ -87,96 +73,35 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
             }
         }
 
-        mLightTheme = IsLightTheme();
+        mLightTheme    = IsLightTheme();
+        mSessionLocked = IsSessionLocked();
+
+        Log("System theme " + ToString((mLightTheme ? "(light)" : "(dark)")));
+        Log("Session is " + ToString((mSessionLocked ? "locked" : "unlocked")));
     }
 
-    // Init window class.
+    // For hyperlinks in About dialog.
     {
-        WNDCLASSEXW wcex   = { 0 };
-        wcex.cbSize        = sizeof(wcex);
-        wcex.style         = CS_HREDRAW | CS_VREDRAW;
-        wcex.lpfnWndProc   = WndProc;
-        wcex.cbClsExtra    = 0;
-        wcex.cbWndExtra    = 0;
-        wcex.hInstance     = mInstance;
-        wcex.hIcon         = 0; // LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CAFFEINE));
-        wcex.hIconSm       = 0; // LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-        wcex.hCursor       = 0; // LoadCursor(nullptr, IDC_ARROW);
-        wcex.hbrBackground = 0; // (HBRUSH)(COLOR_WINDOW + 1);
-        wcex.lpszMenuName  = 0;
-        wcex.lpszClassName = L"CaffeineTray_WndClass";
-
-        if (!RegisterClassExW(&wcex))
-        {
-            Log("Failed to register class");
-            return false;
-        }
-    }
-
-    // Create window.
-    {
-        mWndHandle = CreateWindowW(
-            L"CaffeineTray_WndClass",
-            L"CaffeineTray",
-            WS_OVERLAPPEDWINDOW,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            nullptr,
-            nullptr,
-            mInstance,
-            nullptr
-        );
-
-        if (!mWndHandle)
-        {
-            Log("Failed to create window");
-            return false;
-        }
-
-        // Store a pointer to ExecutionState object, so we can use it in WinProc.
-        SetWindowLongPtrW(mWndHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-
-        //ShowWindow(mHandle, SW_SHOW);
-        UpdateWindow(mWndHandle);
-
-        // For hyperlinks in About dialog.
-        auto ccs = INITCOMMONCONTROLSEX{ 0 };
+        auto ccs   = INITCOMMONCONTROLSEX{ 0 };
         ccs.dwSize = sizeof(ccs);
-        ccs.dwICC = ICC_LINK_CLASS;
+        ccs.dwICC  = ICC_LINK_CLASS;
         InitCommonControlsEx(&ccs);
     }
 
-    // Create notification icon.
+    // Create NotifyIcon.
     {
-        if (!AddNotifyIcon())
+        if (CreateNotifyIcon() != 0)
         {
+            Log("Failed to create NotifyIcon");
             return false;
         }
+
+        Log("Created NotifyIcon");
     }
 
     // Update icons, timer, power settings.
     {
-        Update();
-    }
-
-    // Create reload event and thread.
-    {
-        mReloadEvent = ::CreateEventW(NULL, FALSE, FALSE, L"CaffeineTray_ReloadEvent");
-        if (mReloadEvent == NULL)
-        {
-            Log("Failed to create reload event.");
-        }
-        else
-        {
-            auto dwThreadId = DWORD{ 0 };
-            mReloadThread = ::CreateThread(NULL, 0, ReloadThreadProc, this, 0, &dwThreadId);
-            if (mReloadThread == NULL)
-            {
-                Log("Failed to create reload thread.");
-            }
-        }
+        SetCaffeineMode(mSettings->Mode);
     }
 
     mInitialized = true;
@@ -185,184 +110,312 @@ auto CaffeineTray::Init(HINSTANCE hInstance) -> bool
     return true;
 }
 
-auto CaffeineTray::Update() -> void
+auto CaffeineTray::OnCreate() -> bool
 {
-    ResetTimer();
-    UpdateNotifyIcon();
+    // Add session lock notification event.
+    if (!WTSRegisterSessionNotification(mWindowHandle, NOTIFY_FOR_THIS_SESSION))
+    {
+        Log("Failed to register session notification event");
+        Log("DisableOnLockScreen functionality will not work");
+    }
+
+    return true;
 }
 
-auto CaffeineTray::EnableCaffeine() -> void
+auto CaffeineTray::OnDestroy() -> void
 {
-    auto keepDisplayOn = false;
+    Log("Shutting down application");
+    WTSUnRegisterSessionNotification(mWindowHandle);
+}
+
+auto CaffeineTray::OnCommand(WPARAM wParam, LPARAM lParam) -> bool
+{
+    switch (LOWORD(wParam))
+    {
+    case IDM_TOGGLE_CAFFEINE:
+        ToggleCaffeineMode();
+        return true;
+
+    case IDM_DISABLE_CAFFEINE:
+        SetCaffeineMode(CaffeineMode::Disabled);
+        return true;
+
+    case IDM_ENABLE_CAFFEINE:
+        SetCaffeineMode(CaffeineMode::Enabled);
+        return true;
+
+    case IDM_ENABLE_AUTO:
+        SetCaffeineMode(CaffeineMode::Auto);
+        return true;
+
+    case IDM_SETTINGS:
+        ShowCaffeineSettings();
+        return true;
+
+    case IDM_ABOUT:
+        ShowAboutDialog();
+        return true;
+
+    case IDM_EXIT:
+        DestroyWindow(mWindowHandle);
+        return true;
+    }
+
+    return false;
+}
+
+auto CaffeineTray::OnClick(WPARAM wParam, LPARAM lParam) -> bool
+{
+    Log("NotifyIcon Click");
+    ToggleCaffeineMode();
+    return true;
+}
+
+auto CaffeineTray::OnContextMenu(WPARAM wParam, LPARAM lParam) -> bool
+{
+    auto hMenu = HMENU{ 0 };
     switch (mSettings->Mode)
     {
     case CaffeineMode::Disabled:
+        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_DISABLED_CONTEXTMENU));
         break;
+    case CaffeineMode::Enabled:
+        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_ENABLED_CONTEXTMENU));
+        break;
+    case CaffeineMode::Auto:
+        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_AUTO_CONTEXTMENU));
+        break;
+    }
+
+    if (hMenu)
+    {
+        HMENU hSubMenu = GetSubMenu(hMenu, 0);
+        if (hSubMenu)
+        {
+            // our window must be foreground before calling TrackPopupMenu
+            // or the menu will not disappear when the user clicks away
+            SetForegroundWindow(mWindowHandle);
+
+            // respect menu drop alignment
+            UINT uFlags = TPM_RIGHTBUTTON;
+            if (GetSystemMetrics(SM_MENUDROPALIGNMENT) != 0)
+            {
+                uFlags |= TPM_RIGHTALIGN;
+            }
+            else
+            {
+                uFlags |= TPM_LEFTALIGN;
+            }
+
+            TrackPopupMenuEx(hSubMenu, uFlags, LOWORD(wParam), HIWORD(wParam), mWindowHandle, NULL);
+        }
+
+        DestroyMenu(hMenu);
+    }
+    return true;
+}
+
+auto CaffeineTray::CustomDispatch(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT
+{
+    switch (message)
+    {
+
+    case WM_WININICHANGE:
+    {
+        if (lParam)
+        {
+            auto str = reinterpret_cast<const wchar_t*>(lParam);
+            auto sysparam = std::wstring_view(str);
+            if (sysparam == L"ImmersiveColorSet")
+            {
+                mLightTheme = IsLightTheme();
+                Log("System theme changed, new theme " + ToString((mLightTheme ? "(light)" : "(dark)")));
+                UpdateIcon();
+            }
+        }
+
+        return 0;
+    }
+
+    case WM_WTSSESSION_CHANGE:
+    {
+        switch (wParam)
+        {
+        case WTS_SESSION_LOCK:
+            Log("Session locked");
+            mSessionLocked = true;
+            UpdateExecutionState();
+            return 0;
+        case WTS_SESSION_UNLOCK:
+            Log("Session unlocked");
+            mSessionLocked = false;
+            UpdateExecutionState();
+            return 0;
+        }
+
+        break;
+    }
+
+    }
+
+    return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+auto CaffeineTray::EnableCaffeine () -> bool
+{
+    auto keepDisplayOn = false;
+    auto disableOnLock = false;
+
+    switch (mSettings->Mode)
+    {
+    case CaffeineMode::Disabled:
+        return false;
 
     case CaffeineMode::Enabled:
         keepDisplayOn = mSettings->Standard.KeepDisplayOn;
+        disableOnLock = mSettings->Standard.DisableOnLockScreen;
         break;
 
     case CaffeineMode::Auto:
         keepDisplayOn = mSettings->Auto.KeepDisplayOn;
+        disableOnLock = mSettings->Auto.DisableOnLockScreen;
         break;
+    }
+
+    if (mSessionLocked && keepDisplayOn)
+    {
+        keepDisplayOn = !disableOnLock;
     }
 
     auto result = mCaffeine.PreventSleep(keepDisplayOn);
     if (result)
     {
-        Log("Caffeine Enabled. Preventing computer to sleep");
+        Log("Caffeine Enabled");
+        return true;
     }
+
+    return false;
 }
 
-auto CaffeineTray::DisableCaffeine() -> void
+auto CaffeineTray::DisableCaffeine () -> bool
 {
-    auto result = mCaffeine.AllowSleep();
-    if (result)
+    if (mCaffeine.AllowSleep())
     {
-        Log("Caffeine Disabled. Allowing computer to sleep");
+        Log("Caffeine Disabled");
+        return true;
     }
+
+    return false;
 }
 
-auto CaffeineTray::ToggleCaffeine() -> void
+auto CaffeineTray::UpdateExecutionState(bool activate) -> void
+{
+    // NOTE: Auto mode deactivate caffeine by default.
+    Log("Updating ExecutionState");
+
+    switch (mSettings->Mode)
+    {
+    case CaffeineMode::Disabled:
+        DisableCaffeine();
+        break;
+
+    case CaffeineMode::Enabled:
+        EnableCaffeine();
+        break;
+
+    case CaffeineMode::Auto:
+        if (activate)
+        {
+            EnableCaffeine();
+        }
+        else
+        {
+            DisableCaffeine();
+        }
+        break;
+    }
+
+    UpdateIcon();
+}
+
+auto CaffeineTray::ToggleCaffeineMode() -> void
 {
     switch (mSettings->Mode)
     {
     case CaffeineMode::Disabled:
         mSettings->Mode = CaffeineMode::Enabled;
-        EnableCaffeine();
         break;
     case CaffeineMode::Enabled:
         mSettings->Mode = CaffeineMode::Auto;
-        DisableCaffeine();
         break;
     case CaffeineMode::Auto:
         mSettings->Mode = CaffeineMode::Disabled;
-        DisableCaffeine();
         break;
     }
 
-    Update();
+    Log("Setting CaffeineMode to " + ToString(CaffeineModeToString(mSettings->Mode)));
+
+    ResetTimer();
+    UpdateExecutionState();
+
+    mSettingsChanged = true;
 }
 
 auto CaffeineTray::SetCaffeineMode(CaffeineMode mode) -> void
 {
-    if (mode == mSettings->Mode)
-    {
-        return;
-    }
     mSettings->Mode = mode;
+    Log("Setting CaffeineMode to " + ToString(CaffeineModeToString(mSettings->Mode)));
+
+    ResetTimer();
+    UpdateExecutionState();
+
+    mSettingsChanged = true;
+}
+
+auto CaffeineTray::UpdateIcon() -> bool
+{
+    auto icon = HICON{0};
+    auto tip  = UINT{0};
 
     switch (mSettings->Mode)
     {
     case CaffeineMode::Disabled:
-        DisableCaffeine();
+        icon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_DISABLED);
+        tip = IDS_CAFFEINE_DISABLED;
         break;
     case CaffeineMode::Enabled:
-        EnableCaffeine();
-        break;
-    case CaffeineMode::Auto:
-        DisableCaffeine();
-        break;
-    }
-
-    Update();
-}
-
-auto CaffeineTray::AddNotifyIcon() -> bool
-{
-    auto nid             = NOTIFYICONDATA{ 0 };
-    nid.cbSize           = sizeof(nid);
-    nid.hWnd             = mWndHandle;
-    nid.uFlags           = NIF_ICON | NIF_MESSAGE | NIF_TIP | NIF_SHOWTIP;
-    nid.hIcon            = LoadIconHelper(IDI_NOTIFY_CAFFEINE_DISABLED);
-    nid.hWnd             = mWndHandle;
-    nid.uCallbackMessage = WM_APP_NOTIFY;
-    nid.uVersion         = NOTIFYICON_VERSION_4;
-
-    LoadStringW(mInstance, IDS_CAFFEINE_DISABLED, nid.szTip, ARRAYSIZE(nid.szTip));
-
-    if (!Shell_NotifyIconW(NIM_ADD, &nid))
-    {
-        Log("Failed to add notification icon");
-        return false;
-    }
-
-    if (!Shell_NotifyIconW(NIM_SETVERSION, &nid))
-    {
-        Log("Failed to set version of notification icon");
-        return false;
-    }
-
-    Log("Added notify icon");
-    return true;
-}
-
-auto CaffeineTray::DeleteNotifyIcon() -> bool
-{
-    auto nid             = NOTIFYICONDATA{ 0 };
-    nid.cbSize           = sizeof(nid);
-    nid.uFlags           = NIF_MESSAGE;
-    nid.hWnd             = mWndHandle;
-    nid.uCallbackMessage = WM_APP_NOTIFY;
-
-    if (!Shell_NotifyIconW(NIM_DELETE, &nid))
-    {
-        Log("Failed to delete notification icon");
-        return false;
-    }
-
-    Log("Deleted notify icon");
-    return true;
-}
-
-auto CaffeineTray::UpdateNotifyIcon() -> bool
-{
-    auto nid             = NOTIFYICONDATA{ 0 };
-    nid.cbSize           = sizeof(nid);
-    nid.uFlags           = NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_SHOWTIP;
-    nid.hWnd             = mWndHandle;
-    nid.uCallbackMessage = WM_APP_NOTIFY;
-
-    switch (mSettings->Mode)
-    {
-    case CaffeineMode::Disabled:
-        nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_DISABLED);
-        LoadStringW(mInstance, IDS_CAFFEINE_DISABLED, nid.szTip, ARRAYSIZE(nid.szTip));
-        break;
-    case CaffeineMode::Enabled:
-        nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_ENABLED);
-        LoadStringW(mInstance, IDS_CAFFEINE_ENABLED, nid.szTip, ARRAYSIZE(nid.szTip));
+        icon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_ENABLED);
+        tip = IDS_CAFFEINE_ENABLED;
         break;
     case CaffeineMode::Auto:
         if (!mCaffeine.IsActive())
         {
-            nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE);
-            LoadStringW(mInstance, IDS_CAFFEINE_AUTO_INACTIVE, nid.szTip, ARRAYSIZE(nid.szTip));
+            icon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE);
+            tip = IDS_CAFFEINE_AUTO_INACTIVE;
         }
         else
         {
-            nid.hIcon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE);
-            LoadStringW(mInstance, IDS_CAFFEINE_AUTO_ACTIVE, nid.szTip, ARRAYSIZE(nid.szTip));
+            icon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE);
+            tip = IDS_CAFFEINE_AUTO_ACTIVE;
         }
         break;
     }
 
-    if (!Shell_NotifyIconW(NIM_MODIFY, &nid))
+    if (!UpdateNotifyIcon(icon, tip))
     {
         Log("Failed to update notification icon");
         return false;
     }
 
-    Log("Updated notify icon");
+    Log("Updated notification icon");
     return true;
 }
 
-auto CaffeineTray::LoadIconHelper(WORD icon) -> HICON
+auto CaffeineTray::LoadIconHelper(UINT icon) -> HICON
 {
     const auto flags = UINT{ LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED };
 
-    auto id = WORD{ 32512 };
+    auto id = UINT{ 32512 };
     if (mLightTheme)
     {
         switch (icon)
@@ -387,51 +440,8 @@ auto CaffeineTray::LoadIconHelper(WORD icon) -> HICON
     }
     
     return static_cast<HICON>(
-        LoadImageW(mInstance, MAKEINTRESOURCEW(id), IMAGE_ICON, 0, 0, flags)
+        LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(id), IMAGE_ICON, 0, 0, flags)
         );
-}
-
-auto CaffeineTray::ShowNotifyContexMenu(HWND hWnd, LONG x, LONG y) -> void
-{
-    auto hMenu = static_cast<HMENU>(0);
-    switch (mSettings->Mode)
-    {
-    case CaffeineMode::Disabled:
-        hMenu = LoadMenuW(mInstance, MAKEINTRESOURCE(IDC_CAFFEINE_DISABLED_CONTEXTMENU));
-        break;
-    case CaffeineMode::Enabled:
-        hMenu = LoadMenuW(mInstance, MAKEINTRESOURCE(IDC_CAFFEINE_ENABLED_CONTEXTMENU));
-        break;
-    case CaffeineMode::Auto:
-        hMenu = LoadMenuW(mInstance, MAKEINTRESOURCE(IDC_CAFFEINE_AUTO_CONTEXTMENU));
-        break;
-    }
-
-    if (hMenu)
-    {
-        HMENU hSubMenu = GetSubMenu(hMenu, 0);
-        if (hSubMenu)
-        {
-            // our window must be foreground before calling TrackPopupMenu
-            // or the menu will not disappear when the user clicks away
-            SetForegroundWindow(hWnd);
-
-            // respect menu drop alignment
-            UINT uFlags = TPM_RIGHTBUTTON;
-            if (GetSystemMetrics(SM_MENUDROPALIGNMENT) != 0)
-            {
-                uFlags |= TPM_RIGHTALIGN;
-            }
-            else
-            {
-                uFlags |= TPM_LEFTALIGN;
-            }
-
-            TrackPopupMenuEx(hSubMenu, uFlags, x, y, hWnd, NULL);
-        }
-
-        DestroyMenu(hMenu);
-    }
 }
 
 auto CaffeineTray::LoadSettings() -> bool
@@ -479,37 +489,26 @@ auto CaffeineTray::SaveSettings() -> bool
     return true;
 }
 
-auto CaffeineTray::ReloadSettings() -> void
-{
-    Log("Settings reload triggered");
-    auto mode = mSettings->Mode;
-    if (LoadSettings())
-    {
-        mSettings->Mode = mode;
-        Update();
-    }
-}
-
 auto CaffeineTray::ResetTimer() -> bool
 {
+    mScannerTimer.Interval(std::chrono::milliseconds(mSettings->Auto.ScanInterval));
+
     switch (mSettings->Mode)
     {
     case CaffeineMode::Disabled:
     case CaffeineMode::Enabled:
-        if (mIsTimerRunning)
+        if (mScannerTimer.IsRunning())
         {
-            KillTimer(mWndHandle, IDT_CAFFEINE);
-            mIsTimerRunning = false;
             Log("Killing timer");
+            mScannerTimer.Pause();
         }
         break;
 
     case CaffeineMode::Auto:
-        if (!mIsTimerRunning)
+        if (mScannerTimer.IsPaused() || mScannerTimer.IsStopped())
         {
-            SetTimer(mWndHandle, IDT_CAFFEINE, mSettings->Auto.ScanInterval, nullptr);
-            mIsTimerRunning = true;
             Log("Starting timer");
+            mScannerTimer.Start();
         }
         break;
     }
@@ -517,7 +516,7 @@ auto CaffeineTray::ResetTimer() -> bool
     return true;
 }
 
-auto CaffeineTray::TimerUpdateProc() -> void
+auto CaffeineTray::TimerUpdate() -> void
 {
     // Scan processes and windows if no process found.
     auto foundProcess = mProcessScanner.Run();
@@ -535,25 +534,14 @@ auto CaffeineTray::TimerUpdateProc() -> void
         {
             if (foundProcess)
             {
-                auto utf8Name = UTF16ToUTF8(mProcessScanner.GetLastFound());
-                if (utf8Name)
-                    Log("Found process '" + utf8Name.value() + "'");
-                else
-                    Log("Found process");
+                Log("Found process '" + ToString(mProcessScanner.GetLastFound()) + "'");
             }
             else
             {
-                auto utf8Name = UTF16ToUTF8(mWindowScanner.GetLastFound());
-                if (utf8Name)
-                    Log("Found window '" + utf8Name.value() + "'");
-                else
-                    Log("Found window");
+                Log("Found window '" + ToString(mWindowScanner.GetLastFound()) + "'");
             }
 
-            
-            Log("Activating Caffeine");
-            EnableCaffeine();
-            Update();
+            UpdateExecutionState(true);
         }
     }
     else
@@ -561,29 +549,24 @@ auto CaffeineTray::TimerUpdateProc() -> void
         // Dectivate only if active.
         if (mCaffeine.IsActive())
         {
-            Log("Process/window no longer exists. Deactivating caffeine.");
-            DisableCaffeine();
-            Update();
+            Log("Process/window no longer exists");
+            
+            UpdateExecutionState(false);
         }
     }
 }
 
 auto CaffeineTray::Log(std::string message) -> void
 {
-    mLogger.Log(std::move(message));
+    mLogger->Log(std::move(message));
 }
 
-auto CaffeineTray::ShowCaffeineSettings ()
+auto CaffeineTray::ShowCaffeineSettings () -> bool
 {
-    static auto isCreated = false;
-    if (isCreated)
-    {
-        return false;
-    }
-    isCreated = true;
-
+    SINGLE_INSTANCE_GUARD();
+    
     auto caffeineSettings = CaffeineSettings(mSettings);
-    if (caffeineSettings.Show(mWndHandle))
+    if (caffeineSettings.Show(mWindowHandle))
     {
         const auto& newSettings = caffeineSettings.Result();
 
@@ -591,160 +574,23 @@ auto CaffeineTray::ShowCaffeineSettings ()
         mSettings->Auto     = newSettings.Auto;
 
         // Update with new settings.
-        Update();
-    }
+        ResetTimer();
+        UpdateExecutionState();
 
-    isCreated = false;
+        mSettingsChanged = true;
+    }
 
     return true;
 }
 
-auto CaffeineTray::ShowAboutDialog ()
+auto CaffeineTray::ShowAboutDialog () -> bool
 {
-    static auto isCreated = false;
-    if (isCreated)
-    {
-        return false;
-    }
-    isCreated = true;
-
+    SINGLE_INSTANCE_GUARD();
+    
     auto aboutDlg = AboutDialog();
-    aboutDlg.Show(mWndHandle);
-
-    isCreated = false;
+    aboutDlg.Show(mWindowHandle);
 
     return true;
-}
-
-auto CaffeineTray::ReloadThreadProc(LPVOID lParam) -> DWORD
-{
-    while (true)
-    {
-        auto caffeinePtr = reinterpret_cast<CaffeineTray*>(lParam);
-        if (!caffeinePtr)
-        {
-            return 1;
-        }
-
-        auto waitRet = ::WaitForSingleObject(caffeinePtr->mReloadEvent, INFINITE);
-        switch (waitRet)
-        {
-        case WAIT_OBJECT_0:
-            caffeinePtr->ReloadSettings();
-            break;
-        }
-    }
-
-    return 0;
-}
-
-auto CALLBACK CaffeineTray::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT
-{
-    auto caffeinePtr = reinterpret_cast<CaffeineTray*>(GetWindowLongPtrW(hWnd, GWLP_USERDATA));
-    if (!caffeinePtr)
-    {
-        return DefWindowProcW(hWnd, message, wParam, lParam);
-    }
-
-    switch (message)
-    {
-    case WM_COMMAND:
-    {
-        auto id = LOWORD(wParam);
-
-        switch (LOWORD(wParam))
-        {
-        case IDM_TOGGLE_CAFFEINE:
-            caffeinePtr->ToggleCaffeine();
-            break;
-
-        case IDM_DISABLE_CAFFEINE:
-            caffeinePtr->SetCaffeineMode(CaffeineMode::Disabled);
-            break;
-
-        case IDM_ENABLE_CAFFEINE:
-            caffeinePtr->SetCaffeineMode(CaffeineMode::Enabled);
-            break;
-
-        case IDM_ENABLE_AUTO:
-            caffeinePtr->SetCaffeineMode(CaffeineMode::Auto);
-            break;
-
-        case IDM_SETTINGS:
-            caffeinePtr->ShowCaffeineSettings();
-            break;
-
-        case IDM_ABOUT:
-            caffeinePtr->ShowAboutDialog();
-            break;
-
-        case IDM_EXIT:
-            DestroyWindow(hWnd);
-            break;
-        }
-
-        return 0;
-    }
-
-    case WM_DESTROY:
-    {
-        if (caffeinePtr->mIsTimerRunning)
-        {
-            KillTimer(hWnd, IDT_CAFFEINE);
-            caffeinePtr->mIsTimerRunning = false;
-        }
-
-        caffeinePtr->SaveSettings();
-
-        PostQuitMessage(0);
-        return 0;
-    }
-
-    case WM_APP_NOTIFY:
-    {
-        switch (LOWORD(lParam))
-        {
-        case NIN_SELECT:
-            caffeinePtr->ToggleCaffeine();
-            break;
-
-        case WM_CONTEXTMENU:
-            caffeinePtr->ShowNotifyContexMenu(hWnd, LOWORD(wParam), HIWORD(wParam));
-            break;
-        }
-
-        return 0;
-    }
-
-    case WM_TIMER:
-    {
-        switch (wParam)
-        {
-        case IDT_CAFFEINE:
-            caffeinePtr->TimerUpdateProc();
-            break;
-        }
-        return 0;
-    }
-
-    case WM_WININICHANGE:
-    {
-        if (lParam)
-        {
-            auto str = reinterpret_cast<const wchar_t*>(lParam);
-            auto sysparam = std::wstring_view(str);
-            if (sysparam == L"ImmersiveColorSet")
-            {
-                caffeinePtr->mLightTheme = IsLightTheme();
-                caffeinePtr->UpdateNotifyIcon();
-            }
-        }
-
-        return 0;
-    }
-    }
-
-    return DefWindowProcW(hWnd, message, wParam, lParam);
 }
 
 } // namespace Caffeine
