@@ -30,6 +30,7 @@ CaffeineTray::CaffeineTray(HINSTANCE hInstance)
     , mProcessScanner     (mSettings)
     , mWindowScanner      (mSettings)
     , mScannerTimer       (std::bind(&CaffeineTray::TimerUpdate, this))
+    , mCaffeine           (mLogger)
 {
     auto appData = GetAppDataPath() / CAFFEINE_PROGRAM_NAME;
     fs::create_directory(appData);
@@ -287,7 +288,7 @@ auto CaffeineTray::EnableCaffeine () -> bool
         keepDisplayOn = !disableOnLock;
     }
 
-    auto result = mCaffeine.PreventSleep(keepDisplayOn);
+    auto result = mCaffeine.SystemRequired(keepDisplayOn);
     if (result)
     {
         Log("Caffeine Enabled");
@@ -299,7 +300,7 @@ auto CaffeineTray::EnableCaffeine () -> bool
 
 auto CaffeineTray::DisableCaffeine () -> bool
 {
-    if (mCaffeine.AllowSleep())
+    if (mCaffeine.Continuous())
     {
         Log("Caffeine Disabled");
         return true;
@@ -310,6 +311,8 @@ auto CaffeineTray::DisableCaffeine () -> bool
 
 auto CaffeineTray::UpdateExecutionState(bool activate) -> void
 {
+    auto guard = std::lock_guard(mCaffeineMutex);
+
     // NOTE: Auto mode deactivate caffeine by default.
     Log("Updating ExecutionState");
 
@@ -388,7 +391,7 @@ auto CaffeineTray::UpdateIcon() -> bool
         tip = IDS_CAFFEINE_ENABLED;
         break;
     case CaffeineMode::Auto:
-        if (!mCaffeine.IsActive())
+        if (!mCaffeine.IsSystemRequired())
         {
             icon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE);
             tip = IDS_CAFFEINE_AUTO_INACTIVE;
@@ -530,7 +533,7 @@ auto CaffeineTray::TimerUpdate() -> void
     if (foundProcess || foundWindow)
     {
         // Activate only if inactive.
-        if (!mCaffeine.IsActive())
+        if (!mCaffeine.IsSystemRequired())
         {
             if (foundProcess)
             {
@@ -547,7 +550,7 @@ auto CaffeineTray::TimerUpdate() -> void
     else
     {
         // Dectivate only if active.
-        if (mCaffeine.IsActive())
+        if (mCaffeine.IsSystemRequired())
         {
             Log("Process/window no longer exists");
             

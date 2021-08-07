@@ -9,6 +9,7 @@
 #include "Timer.hpp"
 
 #include <filesystem>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -34,6 +35,7 @@ class CaffeineTray : public NotifyIcon
     fs::path        mSettingsFilePath;
     fs::path        mLoggerFilePath;
     ExecutionState  mCaffeine;
+    std::mutex      mCaffeineMutex;
     ProcessScanner  mProcessScanner;
     WindowScanner   mWindowScanner;
     Timer           mScannerTimer;

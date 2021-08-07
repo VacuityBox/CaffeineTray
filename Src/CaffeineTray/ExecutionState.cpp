@@ -5,42 +5,85 @@
 
 namespace Caffeine {
 
-auto ExecutionState::PreventSleep (bool keepDisplayOn) -> bool
+ExecutionState::ExecutionState (std::shared_ptr<Logger> logger)
+    : mSystemRequired (false)
+    , mKeepDisplayOn  (false)
+    , mWorkerThread   (&ExecutionState::Worker, this)
+    , mIsDone         (false)
+    , mLogger         (logger)
 {
-    // Check if not active and request is different.
-    if (mIsActive && keepDisplayOn == mKeepDisplayOn)
-    {
-        return false;
-    }
-    mKeepDisplayOn = keepDisplayOn;
+}
 
-    auto flags = ES_CONTINUOUS | ES_SYSTEM_REQUIRED;
-    if (mKeepDisplayOn)
+ExecutionState::~ExecutionState ()
+{
+    mIsDone = true;
+    mWorkerConditionVar.notify_one(); // notify in case thread is waiting on condition
+    mWorkerThread.join();
+}
+
+auto ExecutionState::SendRequest (bool systemRequired, bool keepDisplayOn) -> void
+{
+    mRequestMutex.lock();
+    
+    mRequest.systemRequired = systemRequired;
+    mRequest.keepDisplayOn  = keepDisplayOn;
+    mRequest.waiting        = true;
+
+    mRequestMutex.unlock();
+    mWorkerConditionVar.notify_one();
+}
+
+auto ExecutionState::ProcessRequest () -> void
+{
+    auto flags = ES_CONTINUOUS;
+    if (mRequest.systemRequired)
+    {
+        flags |= ES_SYSTEM_REQUIRED;
+    }
+    if (mRequest.keepDisplayOn)
     {
         flags |= ES_DISPLAY_REQUIRED;
     }
 
-    // Disable previous request before enabling new.
-    SetThreadExecutionState(ES_CONTINUOUS);
-
-    // Activate new.
     SetThreadExecutionState(flags);
-    mIsActive = true;
+
+    mSystemRequired = mRequest.systemRequired;
+    mKeepDisplayOn  = mRequest.keepDisplayOn;
+
+    mRequest.waiting = false;
+}
+
+auto ExecutionState::Worker () -> void
+{
+    while (!mIsDone)
+    {
+        auto queueLock = std::unique_lock<std::mutex>(mRequestMutex); // this locks
+        mWorkerConditionVar.wait(queueLock, 
+            [&]
+            {
+                return mRequest.waiting || mIsDone; // return false to continue wait
+            }
+        );
+
+        if (mRequest.waiting)
+        {
+            ProcessRequest();
+        }
+    }
+}
+
+auto ExecutionState::SystemRequired (bool keepDisplayOn) -> bool
+{
+    SendRequest(true, keepDisplayOn);
 
     return true;
 }
 
-auto ExecutionState::AllowSleep () -> bool
+auto ExecutionState::Continuous () -> bool
 {
-    if (mIsActive)
-    {
-        SetThreadExecutionState(ES_CONTINUOUS);
-        mIsActive = false;
-
-        return true;
-    }
-
-    return false;
+    SendRequest(false, false);
+    
+    return true;
 }
 
 } // namespace Caffeine
