@@ -22,6 +22,15 @@
     <Filter Include="Header Files\Dialogs\Helpers">
       <UniqueIdentifier>{cbc3c2cc-9230-4a7c-b799-3db6fb55cf7b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Icons">
+      <UniqueIdentifier>{5980a02c-4629-4a30-9e0b-bb5c9e858d07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Icons\Original">
+      <UniqueIdentifier>{89a10429-df21-4839-a859-a19d544d9f54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Icons\Square">
+      <UniqueIdentifier>{600d2695-c80e-4583-9734-4f65ba2058fb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -131,6 +140,9 @@
     <ClInclude Include="InstanceGuard.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IconPack.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
@@ -139,37 +151,61 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Resources\Icons\CaffeineApp.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="..\..\Resources\Icons\CaffeineAppDark.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
     </Image>
     <Image Include="..\..\Resources\Icons\CaffeineAppLight.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Icons</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineAutoActiveDark.ico">
-      <Filter>Resource Files</Filter>
+    <Image Include="..\..\Resources\Icons\Original\CaffeineAutoActiveDark.ico">
+      <Filter>Resource Files\Icons\Original</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineAutoActiveLight.ico">
-      <Filter>Resource Files</Filter>
+    <Image Include="..\..\Resources\Icons\Original\CaffeineAutoActiveLight.ico">
+      <Filter>Resource Files\Icons\Original</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineAutoInactiveDark.ico">
-      <Filter>Resource Files</Filter>
+    <Image Include="..\..\Resources\Icons\Original\CaffeineAutoInactiveDark.ico">
+      <Filter>Resource Files\Icons\Original</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineAutoInactiveLight.ico">
-      <Filter>Resource Files</Filter>
+    <Image Include="..\..\Resources\Icons\Original\CaffeineAutoInactiveLight.ico">
+      <Filter>Resource Files\Icons\Original</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineDisabledDark.ico">
-      <Filter>Resource Files</Filter>
+    <Image Include="..\..\Resources\Icons\Original\CaffeineDisabledDark.ico">
+      <Filter>Resource Files\Icons\Original</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineDisabledLight.ico">
-      <Filter>Resource Files</Filter>
+    <Image Include="..\..\Resources\Icons\Original\CaffeineDisabledLight.ico">
+      <Filter>Resource Files\Icons\Original</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineEnabledDark.ico">
-      <Filter>Resource Files</Filter>
+    <Image Include="..\..\Resources\Icons\Original\CaffeineEnabledDark.ico">
+      <Filter>Resource Files\Icons\Original</Filter>
     </Image>
-    <Image Include="..\..\Resources\Icons\CaffeineEnabledLight.ico">
-      <Filter>Resource Files</Filter>
+    <Image Include="..\..\Resources\Icons\Original\CaffeineEnabledLight.ico">
+      <Filter>Resource Files\Icons\Original</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineAutoActiveDark.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineAutoActiveLight.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineAutoInactiveDark.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineAutoInactiveLight.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineDisabledDark.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineDisabledLight.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineEnabledDark.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineEnabledLight.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
     </Image>
   </ItemGroup>
 </Project>

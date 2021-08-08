@@ -36,7 +36,8 @@ CaffeineTray::CaffeineTray(HINSTANCE hInstance)
     fs::create_directory(appData);
     
     mSettingsFilePath = appData / CAFFEINE_SETTINGS_FILENAME;
-    mLoggerFilePath = appData / CAFFEINE_LOG_FILENAME;
+    mLoggerFilePath   = appData / CAFFEINE_LOG_FILENAME;
+    mCustomIconsPath  = appData / "Icons" / "";
 
     mLogger->Open(mLoggerFilePath);
     Log("---- Log started ----");
@@ -100,9 +101,15 @@ auto CaffeineTray::Init() -> bool
         Log("Created NotifyIcon");
     }
 
+    // Load custom icons.
+    {
+        LoadCustomIcon(0);
+    }
+
     // Update icons, timer, power settings.
     {
         SetCaffeineMode(mSettings->Mode);
+        UpdateAppIcon();
     }
 
     mInitialized = true;
@@ -232,6 +239,7 @@ auto CaffeineTray::CustomDispatch(HWND hWnd, UINT message, WPARAM wParam, LPARAM
                 mLightTheme = IsLightTheme();
                 Log("System theme changed, new theme " + ToString((mLightTheme ? "(light)" : "(dark)")));
                 UpdateIcon();
+                UpdateAppIcon();
             }
         }
 
@@ -254,6 +262,13 @@ auto CaffeineTray::CustomDispatch(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             return 0;
         }
 
+        break;
+    }
+
+    case WM_DPICHANGED:
+    {
+        Log("Dpi changed");
+        UpdateIcon();
         break;
     }
 
@@ -414,37 +429,152 @@ auto CaffeineTray::UpdateIcon() -> bool
     return true;
 }
 
+auto CaffeineTray::UpdateAppIcon() -> void
+{
+    auto icon = LoadIconHelper(IDI_CAFFEINE_APP);
+    SendMessage(mWindowHandle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
+    SendMessage(mWindowHandle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
+}
+
 auto CaffeineTray::LoadIconHelper(UINT icon) -> HICON
 {
     const auto flags = UINT{ LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED };
 
+    // Use user icon.
+    auto userIcon = LoadCustomIcon(icon);
+    if (userIcon)
+    {
+        return userIcon;
+    }
+
+    if (mSettings->UseNewIcons)
+    {
+        return LoadSquaredIcon(icon);
+    }
+
+    // Use default icons.
     auto id = UINT{ 32512 };
     if (mLightTheme)
     {
         switch (icon)
         {
-        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_DARK;                  break;
-        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_CAFFEINE_DISABLED_DARK;      break;
-        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_CAFFEINE_ENABLED_DARK;       break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE_DARK; break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE_DARK;   break;
+        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_DARK;                           break;
+        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_ORIGINAL_CAFFEINE_DISABLED_DARK;      break;
+        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_ORIGINAL_CAFFEINE_ENABLED_DARK;       break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_DARK; break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_DARK;   break;
         }
     }
     else
     {
         switch (icon)
         {
-        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_LIGHT;                  break;
-        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_CAFFEINE_DISABLED_LIGHT;      break;
-        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_CAFFEINE_ENABLED_LIGHT;       break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE_LIGHT; break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE_LIGHT;   break;
+        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_LIGHT;                           break;
+        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_ORIGINAL_CAFFEINE_DISABLED_LIGHT;      break;
+        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_ORIGINAL_CAFFEINE_ENABLED_LIGHT;       break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_LIGHT; break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_LIGHT;   break;
         }
     }
     
     return static_cast<HICON>(
         LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(id), IMAGE_ICON, 0, 0, flags)
         );
+}
+
+auto CaffeineTray::LoadSquaredIcon(UINT icon) -> HICON
+{
+    const auto flags = UINT{ LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED };
+
+    // Use default icons.
+    auto id = UINT{ 32512 };
+    if (mLightTheme)
+    {
+        switch (icon)
+        {
+        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_DARK;                         break;
+        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_DARK;      break;
+        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_DARK;       break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_DARK; break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_DARK;   break;
+        }
+    }
+    else
+    {
+        switch (icon)
+        {
+        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_LIGHT;                         break;
+        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_LIGHT;      break;
+        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_LIGHT;       break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_LIGHT; break;
+        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_LIGHT;   break;
+        }
+    }
+    
+    return static_cast<HICON>(
+        LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(id), IMAGE_ICON, 0, 0, flags)
+        );
+}
+
+auto CaffeineTray::LoadCustomIcon(UINT icon) -> HICON
+{
+    // Reload from file.
+    if (icon == 0)
+    {
+        const auto flags = UINT{ LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED | LR_LOADFROMFILE };
+
+        auto loadIco = [&](std::string fileName) -> HICON
+        {
+            auto path = mCustomIconsPath / fileName;
+            if (fs::exists(path))
+            {
+                auto wpath = path.wstring();
+                return static_cast<HICON>(LoadImageW(NULL, wpath.c_str(), IMAGE_ICON, 0, 0, flags));
+            }
+
+            return NULL;
+        };
+
+        mIconPack.caffeineDisabledDark  = loadIco("CaffeineDisabledDark.ico");
+        mIconPack.caffeineDisabledLight = loadIco("CaffeineDisabledLight.ico");
+        
+        mIconPack.caffeineEnabledDark  = loadIco("CaffeineEnabledDark.ico");
+        mIconPack.caffeineEnabledLight = loadIco("CaffeineEnabledLight.ico");
+        
+        mIconPack.caffeineAutoInactiveDark  = loadIco("CaffeineAutoInactiveDark.ico");
+        mIconPack.caffeineAutoInactiveLight = loadIco("CaffeineAutoInactiveLight.ico");
+        
+        mIconPack.caffeineAutoActiveDark  = loadIco("CaffeineAutoActiveDark.ico");
+        mIconPack.caffeineAutoActiveLight = loadIco("CaffeineAutoActiveLight.ico");
+    }
+    else
+    {
+        auto customIcon = HICON{NULL};
+        if (mLightTheme)
+        {
+            switch (icon)
+            {
+            case IDI_NOTIFY_CAFFEINE_DISABLED:      customIcon = mIconPack.caffeineDisabledDark;     break;
+            case IDI_NOTIFY_CAFFEINE_ENABLED:       customIcon = mIconPack.caffeineEnabledDark;      break;
+            case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: customIcon = mIconPack.caffeineAutoInactiveDark; break;
+            case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   customIcon = mIconPack.caffeineAutoActiveDark;   break;
+            }
+        }
+        else
+        {
+            switch (icon)
+            {
+            case IDI_NOTIFY_CAFFEINE_DISABLED:      customIcon = mIconPack.caffeineDisabledLight;     break;
+            case IDI_NOTIFY_CAFFEINE_ENABLED:       customIcon = mIconPack.caffeineEnabledLight;      break;
+            case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: customIcon = mIconPack.caffeineAutoInactiveLight; break;
+            case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   customIcon = mIconPack.caffeineAutoActiveLight;   break;
+            }
+        }
+
+        return customIcon;
+    }
+
+    return NULL;
 }
 
 auto CaffeineTray::LoadSettings() -> bool

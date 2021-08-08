@@ -2,6 +2,7 @@
 
 #include "ExecutionState.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
+#include "IconPack.hpp"
 #include "Logger.hpp"
 #include "NotifyIcon.hpp"
 #include "Scanner.hpp"
@@ -39,6 +40,8 @@ class CaffeineTray : public NotifyIcon
     ProcessScanner  mProcessScanner;
     WindowScanner   mWindowScanner;
     Timer           mScannerTimer;
+    fs::path        mCustomIconsPath;
+    IconPack        mIconPack;
 
     virtual auto OnCreate      () -> bool override;
     virtual auto OnDestroy     () -> void override;
@@ -54,8 +57,11 @@ class CaffeineTray : public NotifyIcon
     auto ToggleCaffeineMode    () -> void;
     auto SetCaffeineMode       (CaffeineMode mode) -> void;
 
-    auto UpdateIcon () -> bool;
-    auto LoadIconHelper (UINT icon) -> HICON;
+    auto UpdateIcon      ()          -> bool;
+    auto UpdateAppIcon   ()          -> void;
+    auto LoadIconHelper  (UINT icon) -> HICON;
+    auto LoadSquaredIcon (UINT icon) -> HICON;
+    auto LoadCustomIcon  (UINT icon) -> HICON;
 
     auto LoadSettings () -> bool;
     auto SaveSettings () -> bool;

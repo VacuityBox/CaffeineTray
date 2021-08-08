@@ -36,6 +36,7 @@ class Settings final
 {
 public:
     CaffeineMode Mode;
+    bool         UseNewIcons;
     
     struct Standard
     {
@@ -80,11 +81,12 @@ public:
     } Auto;
 
     Settings ()
-        : Mode(CaffeineMode::Disabled)
+        : Mode        (CaffeineMode::Disabled)
+        , UseNewIcons (true)
     {
     }
 
-     NLOHMANN_DEFINE_TYPE_INTRUSIVE_X(Settings, Mode, Standard, Auto)
+     NLOHMANN_DEFINE_TYPE_INTRUSIVE_X(Settings, Mode, UseNewIcons, Standard, Auto)
 };
 
 } // namespace Caffeine
