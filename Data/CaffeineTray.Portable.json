@@ -1,0 +1,16 @@
+{
+    "Mode": 0,
+    "UseNewIcons": true,
+    "Standard": {
+        "KeepDisplayOn": true,
+        "DisableOnLockScreen": true
+    },
+    "Auto": {
+        "ScanInterval": 2000,
+        "KeepDisplayOn": true,
+        "DisableOnLockScreen": true,
+        "ProcessNames": [],
+        "ProcessPaths": [],
+        "WindowTitles": []
+    }
+}
