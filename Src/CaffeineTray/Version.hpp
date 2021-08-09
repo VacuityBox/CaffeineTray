@@ -32,7 +32,7 @@ constexpr auto CAFFEINE_LICENSE = std::wstring_view(
 );
 
 constexpr auto CAFFEINE_HOMEPAGE = std::wstring_view(
-    L"<a href=\"https://github.com/VacuityBox/Caffeine\">https://github.com/VacuityBox/Caffeine</a>"
+    L"<a href=\"https://github.com/VacuityBox/CaffeineTray\">https://github.com/VacuityBox/CaffeineTray/</a>"
 );
 
 constexpr auto THIRDPARTY_LICENSES = std::wstring_view(

@@ -44,7 +44,7 @@ public:
         bool DisableOnLockScreen;
 
         Standard ()
-            : KeepDisplayOn       (false)
+            : KeepDisplayOn       (true)
             , DisableOnLockScreen (true)
         {
         }
@@ -64,7 +64,7 @@ public:
 
         Auto ()
             : ScanInterval        (2000)
-            , KeepDisplayOn       (false)
+            , KeepDisplayOn       (true)
             , DisableOnLockScreen (true)
         {
         }
