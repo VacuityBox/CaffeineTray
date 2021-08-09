@@ -1,6 +1,7 @@
 
 # Output directories
 /Bin
+/Artifacts
 
 # Intermediate directories
 /Obj
