@@ -32,12 +32,22 @@ CaffeineTray::CaffeineTray(HINSTANCE hInstance)
     , mScannerTimer       (std::bind(&CaffeineTray::TimerUpdate, this))
     , mCaffeine           (mLogger)
 {
-    auto appData = GetAppDataPath() / CAFFEINE_PROGRAM_NAME;
-    fs::create_directory(appData);
+    // Portable mode.
+    if (fs::exists(CAFFEINE_PORTABLE_SETTINGS_FILENAME))
+    {
+        mSettingsFilePath = CAFFEINE_PORTABLE_SETTINGS_FILENAME;
+        mLoggerFilePath   = CAFFEINE_LOG_FILENAME;
+        mCustomIconsPath  = "Icons/";
+    }
+    else
+    {
+        auto appData = GetAppDataPath() / CAFFEINE_PROGRAM_NAME;
+        fs::create_directory(appData);
     
-    mSettingsFilePath = appData / CAFFEINE_SETTINGS_FILENAME;
-    mLoggerFilePath   = appData / CAFFEINE_LOG_FILENAME;
-    mCustomIconsPath  = appData / "Icons" / "";
+        mSettingsFilePath = appData / CAFFEINE_SETTINGS_FILENAME;
+        mLoggerFilePath   = appData / CAFFEINE_LOG_FILENAME;
+        mCustomIconsPath  = appData / "Icons" / "";
+    }
 
     mLogger->Open(mLoggerFilePath);
     Log("---- Log started ----");
