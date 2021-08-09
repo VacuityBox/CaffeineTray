@@ -54,9 +54,6 @@
     <ClCompile Include="Dialogs\AddWizard.cpp">
       <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="Dialogs\AboutDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="NotifyIcon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

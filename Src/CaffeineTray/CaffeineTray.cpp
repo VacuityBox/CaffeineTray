@@ -730,7 +730,8 @@ auto CaffeineTray::ShowCaffeineSettings () -> bool
         ResetTimer();
         UpdateExecutionState();
 
-        mSettingsChanged = true;
+        SaveSettings();
+        mSettingsChanged = false;
     }
 
     return true;

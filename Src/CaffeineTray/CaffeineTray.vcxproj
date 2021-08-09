@@ -175,7 +175,6 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Dialogs\AboutDialog.cpp" />
     <ClCompile Include="ExecutionState.cpp" />
     <ClCompile Include="CaffeineTray.cpp" />
     <ClCompile Include="Dialogs\AddWizard.cpp" />
