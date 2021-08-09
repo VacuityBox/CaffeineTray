@@ -606,7 +606,17 @@ auto CaffeineTray::LoadSettings() -> bool
         return false;
     }
     
-    *mSettings = json.get<Settings>();
+    try
+    {
+        *mSettings = json.get<Settings>();
+    }
+    catch (nlohmann::json::exception&)
+    {
+        Log("Failed to deserialize settings");
+        Log("Using default values");
+        *mSettings = Settings();
+        return true;
+    }
 
     //Log() << json.dump(4).c_str() << std::endl;
     Log("Loaded Settings '" + mSettingsFilePath.string() + "'");
