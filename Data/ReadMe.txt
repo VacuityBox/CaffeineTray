@@ -46,7 +46,7 @@
             Settings and logs are stored in %AppData%/CaffeineTray/ folder.
 
         Current User
-            Program is installed in %AppData%/Local/CaffeineTray folder.
+            Program is installed in %AppData%/Local/Programs/CaffeineTray folder.
             Settings and logs are stored in %AppData%/CaffeineTray/ folder.
 
     Portable installation

@@ -35,7 +35,7 @@ private:
 
     auto Dispatch (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT;
 
-    static auto CALLBACK DlgProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT;
+    static auto CALLBACK DlgProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> INT_PTR;
 
     auto Reset () -> void
     {
@@ -143,7 +143,7 @@ auto Dialog<T>::Dispatch (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 template <typename T>
-auto Dialog<T>::DlgProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT
+auto Dialog<T>::DlgProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> INT_PTR
 {
     if (message == WM_INITDIALOG)
     {
