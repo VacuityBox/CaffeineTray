@@ -57,7 +57,7 @@ class CaffeineTray : public NotifyIcon
     auto ToggleCaffeineMode    () -> void;
     auto SetCaffeineMode       (CaffeineMode mode) -> void;
 
-    auto UpdateIcon      ()          -> bool;
+    auto UpdateIcon      (bool autoActive = false) -> bool;
     auto UpdateAppIcon   ()          -> void;
     auto LoadIconHelper  (UINT icon) -> HICON;
     auto LoadSquaredIcon (UINT icon) -> HICON;

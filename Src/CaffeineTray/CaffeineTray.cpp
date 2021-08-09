@@ -363,7 +363,7 @@ auto CaffeineTray::UpdateExecutionState(bool activate) -> void
         break;
     }
 
-    UpdateIcon();
+    UpdateIcon(activate);
 }
 
 auto CaffeineTray::ToggleCaffeineMode() -> void
@@ -400,7 +400,7 @@ auto CaffeineTray::SetCaffeineMode(CaffeineMode mode) -> void
     mSettingsChanged = true;
 }
 
-auto CaffeineTray::UpdateIcon() -> bool
+auto CaffeineTray::UpdateIcon(bool autoActive) -> bool
 {
     auto icon = HICON{0};
     auto tip  = UINT{0};
@@ -416,7 +416,8 @@ auto CaffeineTray::UpdateIcon() -> bool
         tip = IDS_CAFFEINE_ENABLED;
         break;
     case CaffeineMode::Auto:
-        if (!mCaffeine.IsSystemRequired())
+        //if (!mCaffeine.IsSystemRequired())
+        if (!autoActive)
         {
             icon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE);
             tip = IDS_CAFFEINE_AUTO_INACTIVE;
