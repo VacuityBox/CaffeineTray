@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "CaffeineTray"
-#define MyAppVersion "1.9.9-alpha"
+#define MyAppVersion "2.0.0"
 #define MyAppPublisher "VacuityBox"
 #define MyAppURL "https://github.com/VacuityBox/CaffeineTray/"
 #define MyAppExeName "CaffeineTray.exe"
@@ -39,7 +39,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "startmenufolder"; Description: "Start Menu Programs folder"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "startupicon"; Description: "Auto-start with Windows"; GroupDescription: "Other"
-Name: "portablemode"; Description: "Portable mode"; GroupDescription: "Other"; Flags: unchecked
+Name: "portablemode"; Description: "Portable mode"; GroupDescription: "Other"; Flags: unchecked; Check: not IsAdminInstallMode
 
 [Files]
 ; 64-bit
