@@ -18,8 +18,9 @@ auto GetAppDataPath  () -> std::filesystem::path;
 auto IsLightTheme    () -> bool;
 auto IsSessionLocked () -> bool;
 
-auto ScanProcesses (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool;
-auto ScanWindows   (std::function<bool (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible = true) -> bool;
+auto ScanProcesses  (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool;
+auto ScanWindows    (std::function<bool (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible = true) -> bool;
+auto GetProcessPath (DWORD pid) -> std::filesystem::path;
 
 auto ToString (std::string str)       -> std::string;
 auto ToString (std::wstring str)      -> std::string;

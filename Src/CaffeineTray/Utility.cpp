@@ -259,6 +259,26 @@ auto ScanWindows (std::function<bool (HWND, DWORD, const std::wstring_view)> che
     return false;
 }
 
+auto GetProcessPath (DWORD pid) -> std::filesystem::path
+{
+    auto processHandle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (processHandle)
+    {
+        // Read process executable path.
+        auto imageName = std::array<wchar_t, MAX_PATH>{ 0 };
+        auto size      = DWORD{ MAX_PATH };
+        if (QueryFullProcessImageNameW(processHandle, 0, imageName.data(), &size))
+        {
+            CloseHandle(processHandle);
+            return std::filesystem::path(imageName.data());
+        }
+            
+        CloseHandle(processHandle);
+    }
+
+    return std::filesystem::path();
+}
+
 auto ToString (std::string str) -> std::string
 {
     return str;

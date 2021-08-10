@@ -25,17 +25,54 @@ public:
 class ProcessScanner : public Scanner
 {
     std::shared_ptr<Settings> mSettingsPtr;
-    std::wstring              mLastFound;
+    std::wstring              mLastProcessName;
+    std::wstring              mLastProcessPath;
+    DWORD                     mLastPid;
+
+    auto CheckLast () -> bool
+    {
+        auto path = GetProcessPath(mLastPid);
+        if (!path.empty())
+        {
+            if (mLastProcessPath.empty())
+            {
+                return path.filename() == mLastProcessName;
+            }
+            else
+            {
+                return path == mLastProcessPath;
+            }
+        }
+
+        return false;
+    }
 
 public:
     ProcessScanner (std::shared_ptr<Settings> settings)
         : mSettingsPtr (settings)
+        , mLastPid     (0)
     {
     }
 
     auto Run () -> bool override
     {
-        mLastFound = L"";
+        if (mSettingsPtr->Auto.ProcessNames.empty() && mSettingsPtr->Auto.ProcessPaths.empty())
+        {
+            return false;
+        }
+
+        // Only check last.
+        if (mLastPid != 0)
+        {
+            if (CheckLast())
+            {
+                return true;
+            }
+        }
+
+        mLastProcessName.clear();
+        mLastProcessPath.clear();
+        mLastPid = 0;
         return ScanProcesses(
             [&](HANDLE handle, DWORD pid, fs::path path)
             {
@@ -44,7 +81,8 @@ public:
                 {
                     if (procName == path.filename())
                     {
-                        mLastFound = procName;
+                        mLastProcessName = procName;
+                        mLastPid         = pid;
                         return true;
                     }
                 }
@@ -54,7 +92,8 @@ public:
                 {
                     if (procPath == path)
                     {
-                        mLastFound = procPath;
+                        mLastProcessPath = procPath;
+                        mLastPid         = pid;
                         return true;
                     }
                 }
@@ -64,7 +103,10 @@ public:
         );
     }
 
-    const auto& GetLastFound() { return mLastFound; }
+    const auto& GetLastFound()
+    {
+        return mLastProcessPath.empty() ? mLastProcessName : mLastProcessPath;
+    }
 };
 
 class WindowScanner : public Scanner
