@@ -242,7 +242,7 @@ auto CaffeineTray::CustomDispatch(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             {
                 mLightTheme = IsLightTheme();
                 Log("System theme changed, new theme " + ToString((mLightTheme ? "(light)" : "(dark)")));
-                UpdateIcon();
+                UpdateIcon(mCaffeine.IsSystemRequired());
                 UpdateAppIcon();
             }
         }
@@ -272,7 +272,7 @@ auto CaffeineTray::CustomDispatch(HWND hWnd, UINT message, WPARAM wParam, LPARAM
     case WM_DPICHANGED:
     {
         Log("Dpi changed");
-        UpdateIcon();
+        UpdateIcon(mCaffeine.IsSystemRequired());
         break;
     }
 
