@@ -17,14 +17,18 @@ constexpr auto ITEM_TYPE_WINDOW_STRING  = L"Window Title";
 auto CaffeineSettings::OnInit (HWND dlgHandle) -> bool
 {
     mListViewItems = GetDlgItem(dlgHandle, IDC_LISTVIEW_PROCESSES_AND_WINDOWS);
-    mButtonAdd    = GetDlgItem(dlgHandle, IDC_BUTTON_AUTO_ADD);
-    mButtonWizard = GetDlgItem(dlgHandle, IDC_BUTTON_AUTO_ADD_WIZARD);
-    mButtonEdit   = GetDlgItem(dlgHandle, IDC_BUTTON_AUTO_EDIT);
-    mButtonRemove = GetDlgItem(dlgHandle, IDC_BUTTON_AUTO_REMOVE);
+    mButtonAdd     = GetDlgItem(dlgHandle, IDC_BUTTON_AUTO_ADD);
+    mButtonWizard  = GetDlgItem(dlgHandle, IDC_BUTTON_AUTO_ADD_WIZARD);
+    mButtonEdit    = GetDlgItem(dlgHandle, IDC_BUTTON_AUTO_EDIT);
+    mButtonRemove  = GetDlgItem(dlgHandle, IDC_BUTTON_AUTO_REMOVE);
 
     // ListView need LVS_OWNERDATA and LVS_SHAREIMAGELISTS.
     // Create columns.
     auto listView = GetDlgItem(dlgHandle, IDC_LISTVIEW_PROCESSES_AND_WINDOWS);
+
+    auto rect = RECT{0};
+    GetWindowRect(listView, &rect);
+    auto w = rect.right - rect.left;
 
     ListView_SetExtendedListViewStyle(listView, LVS_EX_FULLROWSELECT);
 
@@ -32,12 +36,12 @@ auto CaffeineSettings::OnInit (HWND dlgHandle) -> bool
     lvc.mask = LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 
     lvc.iSubItem = 0;
-    lvc.cx       = 660;
+    lvc.cx       = static_cast<int>(w * 0.8);
     lvc.pszText  = const_cast<LPWSTR>(COLUMN_VALUE_TEXT);
     ListView_InsertColumn(listView, 0, &lvc);
         
     lvc.iSubItem = 1;
-    lvc.cx       = 100;
+    lvc.cx       = static_cast<int>(w * 0.19);
     lvc.pszText  = const_cast<LPWSTR>(COLUMN_TYPE_TEXT);
     ListView_InsertColumn(listView, 1, &lvc);
     
