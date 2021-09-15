@@ -25,7 +25,6 @@ CaffeineTray::CaffeineTray(HINSTANCE hInstance)
     , mLogger             (std::make_shared<Logger>())
     , mLightTheme         (false)
     , mInitialized        (false)
-    , mSettingsChanged    (false)
     , mSessionLocked      (false)
     , mProcessScanner     (mSettings)
     , mWindowScanner      (mSettings)
@@ -55,11 +54,6 @@ CaffeineTray::CaffeineTray(HINSTANCE hInstance)
 
 CaffeineTray::~CaffeineTray()
 {
-    if (mSettingsChanged)
-    {
-        SaveSettings();
-    }
-
     DisableCaffeine();
 
     Log("---- Log ended ----");
@@ -386,7 +380,7 @@ auto CaffeineTray::ToggleCaffeineMode() -> void
     ResetTimer();
     UpdateExecutionState();
 
-    mSettingsChanged = true;
+    SaveSettings();
 }
 
 auto CaffeineTray::SetCaffeineMode(CaffeineMode mode) -> void
@@ -397,7 +391,7 @@ auto CaffeineTray::SetCaffeineMode(CaffeineMode mode) -> void
     ResetTimer();
     UpdateExecutionState();
 
-    mSettingsChanged = true;
+    SaveSettings();
 }
 
 auto CaffeineTray::UpdateIcon(bool autoActive) -> bool
@@ -732,7 +726,6 @@ auto CaffeineTray::ShowCaffeineSettings () -> bool
         UpdateExecutionState();
 
         SaveSettings();
-        mSettingsChanged = false;
     }
 
     return true;

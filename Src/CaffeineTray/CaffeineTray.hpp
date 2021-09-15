@@ -30,8 +30,7 @@ class CaffeineTray : public NotifyIcon
     std::shared_ptr<Logger>   mLogger;
 
     bool            mLightTheme;
-    bool            mInitialized;
-    bool            mSettingsChanged;
+    bool            mInitialized;    
     bool            mSessionLocked;
     fs::path        mSettingsFilePath;
     fs::path        mLoggerFilePath;
