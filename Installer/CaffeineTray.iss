@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "CaffeineTray"
-#define MyAppVersion "2.0.0"
+#define MyAppVersion "2.0.1"
 #define MyAppPublisher "VacuityBox"
 #define MyAppURL "https://github.com/VacuityBox/CaffeineTray/"
 #define MyAppExeName "CaffeineTray.exe"

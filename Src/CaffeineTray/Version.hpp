@@ -10,7 +10,7 @@ namespace {
 namespace Caffeine {
 
 constexpr auto CAFFEINE_PROGRAM_NAME               = L"CaffeineTray"sv;
-constexpr auto CAFFEINE_VERSION_STRING             = L"2.0.0"sv;
+constexpr auto CAFFEINE_VERSION_STRING             = L"2.0.1"sv;
 constexpr auto CAFFEINE_LOG_FILENAME               = L"CaffeineTray.log"sv;
 constexpr auto CAFFEINE_SETTINGS_FILENAME          = L"CaffeineTray.json"sv;
 constexpr auto CAFFEINE_PORTABLE_SETTINGS_FILENAME = L"CaffeineTray.Portable.json"sv;

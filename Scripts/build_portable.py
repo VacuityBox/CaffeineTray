@@ -21,7 +21,7 @@ X64_FILES = [
     pathlib.Path("./Bin/x64/Release/CaffeineTray.exe")
 ]
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 X32_ARTIFACT_NAME = f"CaffeineTray-{VERSION}-Portable-32bit"
 X64_ARTIFACT_NAME = f"CaffeineTray-{VERSION}-Portable-64bit"
 

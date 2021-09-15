@@ -124,8 +124,8 @@ IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_DARK       ICON                    "..\\.
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,0,0
- PRODUCTVERSION 2,0,0,0
+ FILEVERSION 2,0,1,0
+ PRODUCTVERSION 2,0,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -141,13 +141,13 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "CaffeineTray"
-            VALUE "FileVersion", "2.0.0"
+            VALUE "FileVersion", "2.0.1"
             VALUE "InternalName", "CaffeineTray.exe"
             VALUE "LegalCopyright", "(c) 2020-2021 VacuityBox"
             VALUE "LegalTrademarks", "GPL-3.0-or-later"
             VALUE "OriginalFilename", "CaffeineTray.exe"
             VALUE "ProductName", "CaffeineTray"
-            VALUE "ProductVersion", "2.0.0"
+            VALUE "ProductVersion", "2.0.1"
         END
     END
     BLOCK "VarFileInfo"
