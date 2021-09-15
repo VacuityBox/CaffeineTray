@@ -3,6 +3,8 @@
 
 CaffeineTray is a program to prevent your computer from going into sleep mode.
 
+<img src="Gallery/CaffeineTrayDarkTheme.png"><img src="Gallery/CaffeineTrayLightTheme.png">
+
 Installation
 ------------
 
