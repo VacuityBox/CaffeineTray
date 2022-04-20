@@ -2,10 +2,11 @@
 
 #include "Dialogs/AboutDialog.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
-#include "json.hpp"
 #include "Resource.h"
 #include "Utility.hpp"
 #include "Version.hpp"
+
+#include <nlohmann/json.hpp>
 
 #include <filesystem>
 #include <fstream>
@@ -630,7 +631,7 @@ auto CaffeineTray::SaveSettings() -> bool
     }
 
     // Serialize.
-    auto json = nlohmann::ordered_json(*mSettings);
+    auto json = nlohmann::json(*mSettings);
     file << std::setw(4) << json;
 
     Log("Saved Settings '" + mSettingsFilePath.string() + "'");
