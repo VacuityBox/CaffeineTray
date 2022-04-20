@@ -2,3 +2,7 @@
 	path = Deps/nlohmann_json
 	url = https://github.com/nlohmann/json.git
 	branch = release/3.10.5
+[submodule "Deps/spdlog"]
+	path = Deps/spdlog
+	url = https://github.com/gabime/spdlog.git
+	branch = v1.x
