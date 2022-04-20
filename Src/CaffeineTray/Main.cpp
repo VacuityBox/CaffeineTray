@@ -1,17 +1,16 @@
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
+#include "AppInitInfo.hpp"
 #include "CaffeineTray.hpp"
 #include "InstanceGuard.hpp"
 #include "Logger.hpp"
+
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(pCmdLine);
     UNREFERENCED_PARAMETER(nCmdShow);
-
-    Caffeine::InitLogger();
 
     // Check if application is not running already.
     auto guard = Caffeine::InstanceGuard();
@@ -31,7 +30,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         return 1;
     }
 
-    auto caffeineTray = Caffeine::CaffeineTray(hInstance);
+    const auto info = Caffeine::GetAppInitInfo(hInstance);
+
+    Caffeine::InitLogger(info.LogFilePath);
+
+    auto caffeineTray = Caffeine::CaffeineTray(info);
     if (!caffeineTray.Init())
     {
         MessageBoxW(

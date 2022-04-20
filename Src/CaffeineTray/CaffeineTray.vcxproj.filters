@@ -57,6 +57,9 @@
     <ClCompile Include="NotifyIcon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AppInitInfo.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -138,6 +141,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IconPack.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AppInitInfo.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

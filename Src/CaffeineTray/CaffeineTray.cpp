@@ -21,8 +21,8 @@ using namespace std;
 
 namespace Caffeine {
 
-CaffeineTray::CaffeineTray(HINSTANCE hInstance)
-    : NotifyIcon          (hInstance)
+CaffeineTray::CaffeineTray(const AppInitInfo& info)
+    : NotifyIcon          (info.InstanceHandle)
     , mSettings           (std::make_shared<Settings>())
     , mLightTheme         (false)
     , mInitialized        (false)
@@ -32,22 +32,8 @@ CaffeineTray::CaffeineTray(HINSTANCE hInstance)
     , mScannerTimer       (std::bind(&CaffeineTray::TimerUpdate, this))
     , mCaffeine           ()
 {
-    // Portable mode.
-    if (fs::exists(CAFFEINE_PORTABLE_SETTINGS_FILENAME))
-    {
-        mSettingsFilePath = CAFFEINE_PORTABLE_SETTINGS_FILENAME;
-        mLoggerFilePath   = CAFFEINE_LOG_FILENAME;
-        mCustomIconsPath  = "Icons/";
-    }
-    else
-    {
-        auto appData = GetAppDataPath() / CAFFEINE_PROGRAM_NAME;
-        fs::create_directory(appData);
-    
-        mSettingsFilePath = appData / CAFFEINE_SETTINGS_FILENAME;
-        mLoggerFilePath   = appData / CAFFEINE_LOG_FILENAME;
-        mCustomIconsPath  = appData / "Icons" / "";
-    }
+    mSettingsFilePath = info.SettingsPath;
+    mCustomIconsPath  = info.DataDirectory / "Icons" / "";
 
     Log("---- Log started ----");
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AppInitInfo.hpp"
 #include "ExecutionState.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
 #include "IconPack.hpp"
@@ -31,7 +32,6 @@ class CaffeineTray : public NotifyIcon
     bool            mInitialized;    
     bool            mSessionLocked;
     fs::path        mSettingsFilePath;
-    fs::path        mLoggerFilePath;
     ExecutionState  mCaffeine;
     std::mutex      mCaffeineMutex;
     ProcessScanner  mProcessScanner;
@@ -77,7 +77,7 @@ class CaffeineTray : public NotifyIcon
     CaffeineTray& operator = (CaffeineTray&&)      = delete;
 
 public:
-    CaffeineTray  (HINSTANCE hInstance);
+    CaffeineTray  (const AppInitInfo& info);
     ~CaffeineTray ();
 
     auto Init () -> bool;

@@ -9,9 +9,9 @@
 
 namespace Caffeine {
 
-auto InitLogger () -> bool
+auto InitLogger (const fs::path& logFilePath) -> bool
 {
-    auto logger = spdlog::basic_logger_mt("file_logger", "CaffeineTray.log", true);
+    auto logger = spdlog::basic_logger_mt("file_logger", logFilePath.string(), true);
     logger->set_pattern("[%Y-%m-%d %T.%e][%8l]{%5t} %v");
 
     spdlog::flush_on(spdlog::level::info);

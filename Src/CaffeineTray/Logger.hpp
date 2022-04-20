@@ -1,9 +1,13 @@
 #pragma once
 
-#include <spdlog/spdlog.h>
+#include <filesystem>
+
+namespace {
+    namespace fs = std::filesystem;
+}
 
 namespace Caffeine {
 
-auto InitLogger () -> bool;
+auto InitLogger (const fs::path& logFilePath) -> bool;
 
 } // namespace Caffeine
