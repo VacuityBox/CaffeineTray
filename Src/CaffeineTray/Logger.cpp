@@ -1,84 +1,34 @@
 #include "Logger.hpp"
 
-#include <array>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/msvc_sink.h>
+
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 
 namespace Caffeine {
 
-auto Logger::Worker () -> void
+auto InitLogger () -> bool
 {
-    const auto format  = "%F %T";
-    const auto maxSize = 32;
+    auto logger = spdlog::basic_logger_mt("file_logger", "CaffeineTray.log", true);
+    logger->set_pattern("[%Y-%m-%d %T.%e][%8l]{%5t} %v");
 
-    auto buffer    = std::array<char, maxSize>{ 0 };
-    auto queueLock = std::unique_lock<std::mutex>(mQueueMutex); // this locks
-        
-    while (!mIsDone || !mMessageQueue.empty())
-    {
-        // Wait until something appear on queue or when thread need to end.
-        mWorkerConditionVar.wait(queueLock, 
-            [&]
-            {
-                return !mMessageQueue.empty() || mIsDone;
-            }
-        );
+    spdlog::flush_on(spdlog::level::info);
+    spdlog::set_level(spdlog::level::level_enum::info);
 
-        // If queue is empty this means mIsDone was set to true. We can just return.
-        if (mMessageQueue.empty())
-        {
-            continue;
-        }
+#if defined(_DEBUG) && defined(_WIN32)
+    auto vsdbgsink = std::make_shared<spdlog::sinks::windebug_sink_mt>();
+    vsdbgsink->set_pattern("[%8l]{%5t} %v");
+    logger->sinks().push_back(vsdbgsink);
 
-        std::swap(mMessageQueue, mWorkerQueue);
-            
-        // We can unlock queue mutex for file write.
-        queueLock.unlock();
+    spdlog::flush_on(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::level_enum::debug);
+#endif
 
-        // Write messages to file.
-        while (!mWorkerQueue.empty())
-        {
-            const auto [logTime, message] = mWorkerQueue.front();
-            mWorkerQueue.pop();
+    spdlog::set_default_logger(logger);
 
-            const auto time = std::chrono::system_clock::to_time_t(logTime);
-            auto tm = std::tm();
-            const auto err = localtime_s(&tm, &time);
-
-            buffer.fill('\0');
-            const auto size = std::strftime(buffer.data(), buffer.size() - 1, format, &tm);
-
-            mFile << "[" << buffer.data() << "] " << message.data() << "\n";
-        }
-            
-        mFile.flush();
-
-        // Lock mutex before loop check.
-        queueLock.lock();
-    }
-}
-
-auto Logger::Log (std::string message) -> void
-{
-    if (!mFile)
-    {
-        return;
-    }
-
-    // Get message log time.
-    auto now = std::chrono::system_clock::now();
-
-    // Push message to queue.
-    mQueueMutex.lock();
-        
-    const auto wasEmpty = mMessageQueue.empty();
-    mMessageQueue.emplace(std::make_pair(std::move(now), std::move(message)));
-        
-    mQueueMutex.unlock();
-        
-    // Notify the worker to do condition check on wait().
-    if (wasEmpty)
-    {
-        mWorkerConditionVar.notify_one();
-    }
+    return true;
 }
 
 } // namespace Caffeine

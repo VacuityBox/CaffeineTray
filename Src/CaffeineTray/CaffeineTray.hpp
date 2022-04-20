@@ -3,7 +3,6 @@
 #include "ExecutionState.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
 #include "IconPack.hpp"
-#include "Logger.hpp"
 #include "NotifyIcon.hpp"
 #include "Scanner.hpp"
 #include "Settings.hpp"
@@ -27,8 +26,7 @@ namespace Caffeine {
 class CaffeineTray : public NotifyIcon
 {
     std::shared_ptr<Settings> mSettings;
-    std::shared_ptr<Logger>   mLogger;
-
+    
     bool            mLightTheme;
     bool            mInitialized;    
     bool            mSessionLocked;

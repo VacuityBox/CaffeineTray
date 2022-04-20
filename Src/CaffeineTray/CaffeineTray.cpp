@@ -7,6 +7,7 @@
 #include "Version.hpp"
 
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 
 #include <filesystem>
 #include <fstream>
@@ -23,14 +24,13 @@ namespace Caffeine {
 CaffeineTray::CaffeineTray(HINSTANCE hInstance)
     : NotifyIcon          (hInstance)
     , mSettings           (std::make_shared<Settings>())
-    , mLogger             (std::make_shared<Logger>())
     , mLightTheme         (false)
     , mInitialized        (false)
     , mSessionLocked      (false)
     , mProcessScanner     (mSettings)
     , mWindowScanner      (mSettings)
     , mScannerTimer       (std::bind(&CaffeineTray::TimerUpdate, this))
-    , mCaffeine           (mLogger)
+    , mCaffeine           ()
 {
     // Portable mode.
     if (fs::exists(CAFFEINE_PORTABLE_SETTINGS_FILENAME))
@@ -49,7 +49,6 @@ CaffeineTray::CaffeineTray(HINSTANCE hInstance)
         mCustomIconsPath  = appData / "Icons" / "";
     }
 
-    mLogger->Open(mLoggerFilePath);
     Log("---- Log started ----");
 }
 
@@ -707,7 +706,7 @@ auto CaffeineTray::TimerUpdate() -> void
 
 auto CaffeineTray::Log(std::string message) -> void
 {
-    mLogger->Log(std::move(message));
+    spdlog::info(message);
 }
 
 auto CaffeineTray::ShowCaffeineSettings () -> bool

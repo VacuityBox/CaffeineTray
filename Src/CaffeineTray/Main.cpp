@@ -3,12 +3,15 @@
 
 #include "CaffeineTray.hpp"
 #include "InstanceGuard.hpp"
+#include "Logger.hpp"
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(pCmdLine);
     UNREFERENCED_PARAMETER(nCmdShow);
+
+    Caffeine::InitLogger();
 
     // Check if application is not running already.
     auto guard = Caffeine::InstanceGuard();

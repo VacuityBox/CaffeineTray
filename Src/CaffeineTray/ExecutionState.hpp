@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Logger.hpp"
-
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -24,8 +22,6 @@ class ExecutionState final
         }
     };
 
-    std::shared_ptr<Logger> mLogger;
-
     bool    mSystemRequired;
     bool    mKeepDisplayOn;
     Request mRequest;
@@ -44,7 +40,7 @@ class ExecutionState final
     ExecutionState& operator= (const ExecutionState&) = delete;
 
 public:
-    ExecutionState  (std::shared_ptr<Logger> logger);
+    ExecutionState  ();
     ~ExecutionState ();
 
     auto SystemRequired (bool keepDisplayOn) -> bool;

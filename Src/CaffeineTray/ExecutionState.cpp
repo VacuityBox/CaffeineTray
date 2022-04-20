@@ -5,12 +5,11 @@
 
 namespace Caffeine {
 
-ExecutionState::ExecutionState (std::shared_ptr<Logger> logger)
+ExecutionState::ExecutionState ()
     : mSystemRequired (false)
     , mKeepDisplayOn  (false)
     , mWorkerThread   (&ExecutionState::Worker, this)
     , mIsDone         (false)
-    , mLogger         (logger)
 {
 }
 
