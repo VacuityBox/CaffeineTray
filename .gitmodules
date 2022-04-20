@@ -6,3 +6,7 @@
 	path = Deps/spdlog
 	url = https://github.com/gabime/spdlog.git
 	branch = v1.x
+[submodule "Deps/ModernNotifyIcon"]
+	path = Deps/ModernNotifyIcon
+	url = https://github.com/serverfailure71/ModernNotifyIcon.git
+	branch = v1
