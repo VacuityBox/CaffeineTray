@@ -205,7 +205,6 @@
     <ClInclude Include="Dialogs\CaffeineSettings.hpp" />
     <ClInclude Include="IconPack.hpp" />
     <ClInclude Include="InstanceGuard.hpp" />
-    <ClInclude Include="json.hpp" />
     <ClInclude Include="Logger.hpp" />
     <ClInclude Include="NotifyIcon.hpp" />
     <ClInclude Include="Resource.h" />

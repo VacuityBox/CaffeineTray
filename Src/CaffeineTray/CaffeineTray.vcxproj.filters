@@ -65,9 +65,6 @@
     <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="json.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ExecutionState.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
