@@ -9,6 +9,8 @@
 #include "Settings.hpp"
 #include "Timer.hpp"
 
+#include <mni/NotifyIcon.hpp>
+
 #include <filesystem>
 #include <mutex>
 #include <string>
@@ -24,10 +26,12 @@ namespace {
 
 namespace Caffeine {
 
-class CaffeineTray : public NotifyIcon
+class CaffeineTray
 {
     std::shared_ptr<Settings> mSettings;
-    
+
+    mni::NotifyIcon mNotifyIcon;
+    HINSTANCE       mInstanceHandle;
     bool            mLightTheme;
     bool            mInitialized;    
     bool            mSessionLocked;
@@ -40,13 +44,13 @@ class CaffeineTray : public NotifyIcon
     fs::path        mCustomIconsPath;
     IconPack        mIconPack;
 
-    virtual auto OnCreate      () -> bool override;
-    virtual auto OnDestroy     () -> void override;
-    virtual auto OnCommand     (WPARAM, LPARAM) -> bool override;
-    virtual auto OnClick       (WPARAM, LPARAM) -> bool override;
-    virtual auto OnContextMenu (WPARAM, LPARAM) -> bool override;
-
-    virtual auto CustomDispatch (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT override;
+    auto OnCreate      () -> void;
+    auto OnDestroy     () -> void;
+    auto OnCommand     (int selectedItem) -> void;
+    auto OnClick       (int x, int y) -> void;
+    auto OnContextMenu () -> void;
+   
+    auto CustomDispatch (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT;
     
     auto EnableCaffeine        () -> bool;
     auto DisableCaffeine       () -> bool;
@@ -81,6 +85,12 @@ public:
     ~CaffeineTray ();
 
     auto Init () -> bool;
+
+    // TODO move to cpp
+    auto MainLoop () -> int
+    {
+        return mNotifyIcon.MainLoop();
+    }
 };
 
 } // namespace Caffeine

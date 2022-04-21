@@ -22,8 +22,8 @@ using namespace std;
 namespace Caffeine {
 
 CaffeineTray::CaffeineTray(const AppInitInfo& info)
-    : NotifyIcon          (info.InstanceHandle)
-    , mSettings           (std::make_shared<Settings>())
+    : mSettings           (std::make_shared<Settings>())
+    , mInstanceHandle     (info.InstanceHandle)
     , mLightTheme         (false)
     , mInitialized        (false)
     , mSessionLocked      (false)
@@ -82,13 +82,21 @@ auto CaffeineTray::Init() -> bool
 
     // Create NotifyIcon.
     {
-        if (CreateNotifyIcon() != 0)
+        if (FAILED(mNotifyIcon.Init()))
         {
             Log("Failed to create NotifyIcon");
             return false;
         }
 
         Log("Created NotifyIcon");
+
+        mNotifyIcon.OnCreate = std::bind(&CaffeineTray::OnCreate, this);
+        mNotifyIcon.OnDestroy = std::bind(&CaffeineTray::OnDestroy, this);
+        mNotifyIcon.OnLmbClick = std::bind(&CaffeineTray::OnClick, this, std::placeholders::_1, std::placeholders::_2);
+        mNotifyIcon.OnContextMenuOpen = std::bind(&CaffeineTray::OnContextMenu, this);
+        mNotifyIcon.OnContextMenuSelect = std::bind(&CaffeineTray::OnCommand, this, std::placeholders::_1);
+
+        mNotifyIcon.Show();
     }
 
     // Load custom icons.
@@ -108,68 +116,64 @@ auto CaffeineTray::Init() -> bool
     return true;
 }
 
-auto CaffeineTray::OnCreate() -> bool
+auto CaffeineTray::OnCreate() -> void
 {
+    // TODO uncomment
     // Add session lock notification event.
-    if (!WTSRegisterSessionNotification(mWindowHandle, NOTIFY_FOR_THIS_SESSION))
-    {
-        Log("Failed to register session notification event");
-        Log("DisableOnLockScreen functionality will not work");
-    }
-
-    return true;
+    //if (!WTSRegisterSessionNotification(mWindowHandle, NOTIFY_FOR_THIS_SESSION))
+    //{
+    //    Log("Failed to register session notification event");
+    //    Log("DisableOnLockScreen functionality will not work");
+    //}
 }
 
 auto CaffeineTray::OnDestroy() -> void
 {
     Log("Shutting down application");
-    WTSUnRegisterSessionNotification(mWindowHandle);
+    //WTSUnRegisterSessionNotification(mWindowHandle);
 }
 
-auto CaffeineTray::OnCommand(WPARAM wParam, LPARAM lParam) -> bool
+auto CaffeineTray::OnCommand(int selectedItem) -> void
 {
-    switch (LOWORD(wParam))
+    switch (selectedItem)
     {
     case IDM_TOGGLE_CAFFEINE:
         ToggleCaffeineMode();
-        return true;
+        return;
 
     case IDM_DISABLE_CAFFEINE:
         SetCaffeineMode(CaffeineMode::Disabled);
-        return true;
+        return;
 
     case IDM_ENABLE_CAFFEINE:
         SetCaffeineMode(CaffeineMode::Enabled);
-        return true;
+        return;
 
     case IDM_ENABLE_AUTO:
         SetCaffeineMode(CaffeineMode::Auto);
-        return true;
+        return;
 
     case IDM_SETTINGS:
         ShowCaffeineSettings();
-        return true;
+        return;
 
     case IDM_ABOUT:
         ShowAboutDialog();
-        return true;
+        return;
 
     case IDM_EXIT:
-        DestroyWindow(mWindowHandle);
-        return true;
+        mNotifyIcon.Quit();
+        return;
     }
-
-    return false;
 }
 
-auto CaffeineTray::OnClick(WPARAM wParam, LPARAM lParam) -> bool
+auto CaffeineTray::OnClick(int x, int y) -> void
 {
     Log("NotifyIcon Click");
     ToggleCaffeineMode();
-    return true;
 }
 
-auto CaffeineTray::OnContextMenu(WPARAM wParam, LPARAM lParam) -> bool
+auto CaffeineTray::OnContextMenu() -> void
 {
     auto hMenu = HMENU{ 0 };
     switch (mSettings->Mode)
@@ -185,32 +189,7 @@ auto CaffeineTray::OnContextMenu(WPARAM wParam, LPARAM lParam) -> bool
         break;
     }
 
-    if (hMenu)
-    {
-        HMENU hSubMenu = GetSubMenu(hMenu, 0);
-        if (hSubMenu)
-        {
-            // our window must be foreground before calling TrackPopupMenu
-            // or the menu will not disappear when the user clicks away
-            SetForegroundWindow(mWindowHandle);
-
-            // respect menu drop alignment
-            UINT uFlags = TPM_RIGHTBUTTON;
-            if (GetSystemMetrics(SM_MENUDROPALIGNMENT) != 0)
-            {
-                uFlags |= TPM_RIGHTALIGN;
-            }
-            else
-            {
-                uFlags |= TPM_LEFTALIGN;
-            }
-
-            TrackPopupMenuEx(hSubMenu, uFlags, LOWORD(wParam), HIWORD(wParam), mWindowHandle, NULL);
-        }
-
-        DestroyMenu(hMenu);
-    }
-    return true;
+    mNotifyIcon.SetMenu(hMenu);
 }
 
 auto CaffeineTray::CustomDispatch(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT
@@ -410,7 +389,16 @@ auto CaffeineTray::UpdateIcon(bool autoActive) -> bool
         break;
     }
 
-    if (!UpdateNotifyIcon(icon, tip))
+    if (FAILED(mNotifyIcon.SetIcon(icon)))
+    {
+        Log("Failed to update notification icon");
+        return false;
+    }
+
+    WCHAR buffer[128];
+    LoadStringW(mInstanceHandle, tip, buffer, ARRAYSIZE(buffer));
+
+    if (FAILED(mNotifyIcon.SetTip(buffer)))
     {
         Log("Failed to update notification icon");
         return false;
@@ -422,9 +410,10 @@ auto CaffeineTray::UpdateIcon(bool autoActive) -> bool
 
 auto CaffeineTray::UpdateAppIcon() -> void
 {
-    auto icon = LoadIconHelper(IDI_CAFFEINE_APP);
-    SendMessage(mWindowHandle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
-    SendMessage(mWindowHandle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
+    // TODO fix here
+    //auto icon = LoadIconHelper(IDI_CAFFEINE_APP);
+    //SendMessage(mWindowHandle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
+    //SendMessage(mWindowHandle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
 }
 
 auto CaffeineTray::LoadIconHelper(UINT icon) -> HICON
@@ -700,7 +689,9 @@ auto CaffeineTray::ShowCaffeineSettings () -> bool
     SINGLE_INSTANCE_GUARD();
     
     auto caffeineSettings = CaffeineSettings(mSettings);
-    if (caffeineSettings.Show(mWindowHandle))
+    // HACK
+    //if (caffeineSettings.Show(mWindowHandle))
+    if (caffeineSettings.Show(NULL))
     {
         const auto& newSettings = caffeineSettings.Result();
 
@@ -722,7 +713,9 @@ auto CaffeineTray::ShowAboutDialog () -> bool
     SINGLE_INSTANCE_GUARD();
     
     auto aboutDlg = AboutDialog();
-    aboutDlg.Show(mWindowHandle);
+    // HACK
+    //aboutDlg.Show(mWindowHandle);
+    aboutDlg.Show(NULL);
 
     return true;
 }
