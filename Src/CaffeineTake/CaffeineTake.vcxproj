@@ -108,7 +108,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\Deps\ModernNotifyIcon\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
-      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+      <EnableDpiAwareness>false</EnableDpiAwareness>
+      <AdditionalManifestFiles>$(SolutionDir)Src\CaffeineTake\CaffeineTake.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -132,7 +133,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\Deps\ModernNotifyIcon\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
-      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+      <EnableDpiAwareness>false</EnableDpiAwareness>
+      <AdditionalManifestFiles>$(SolutionDir)Src\CaffeineTake\CaffeineTake.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -152,7 +154,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\Deps\ModernNotifyIcon\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
-      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+      <EnableDpiAwareness>false</EnableDpiAwareness>
+      <AdditionalManifestFiles>$(SolutionDir)Src\CaffeineTake\CaffeineTake.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -176,7 +179,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\Deps\ModernNotifyIcon\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
-      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+      <EnableDpiAwareness>false</EnableDpiAwareness>
+      <AdditionalManifestFiles>$(SolutionDir)Src\CaffeineTake\CaffeineTake.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
