@@ -31,6 +31,12 @@ CaffeineTray::CaffeineTray(const AppInitInfo& info)
     , mWindowScanner      (mSettings)
     , mScannerTimer       (std::bind(&CaffeineTray::TimerUpdate, this))
     , mCaffeine           ()
+    , mNotifyIcon         (mni::NotifyIcon::Desc{
+            .instance    = info.InstanceHandle,
+            .windowTitle = L"CaffeineTray_InvisibleWindow",
+            .className   = L"CaffeineTray_WndClass"
+        }
+    )
 {
     mSettingsFilePath = info.SettingsPath;
     mCustomIconsPath  = info.DataDirectory / "Icons" / "";
@@ -90,11 +96,14 @@ auto CaffeineTray::Init() -> bool
 
         Log("Created NotifyIcon");
 
-        mNotifyIcon.OnCreate = std::bind(&CaffeineTray::OnCreate, this);
-        mNotifyIcon.OnDestroy = std::bind(&CaffeineTray::OnDestroy, this);
-        mNotifyIcon.OnLmbClick = std::bind(&CaffeineTray::OnClick, this, std::placeholders::_1, std::placeholders::_2);
-        mNotifyIcon.OnContextMenuOpen = std::bind(&CaffeineTray::OnContextMenu, this);
-        mNotifyIcon.OnContextMenuSelect = std::bind(&CaffeineTray::OnCommand, this, std::placeholders::_1);
+        mNotifyIcon.OnCreate            = std::bind(&CaffeineTray::OnCreate, this);
+        mNotifyIcon.OnDestroy           = std::bind(&CaffeineTray::OnDestroy, this);
+        mNotifyIcon.OnLmbClick          = std::bind(&CaffeineTray::OnClick, this, std::placeholders::_1, std::placeholders::_2);
+        mNotifyIcon.OnContextMenuOpen   = std::bind(&CaffeineTray::OnContextMenuOpen, this);
+        mNotifyIcon.OnContextMenuSelect = std::bind(&CaffeineTray::OnContextMenuSelect, this, std::placeholders::_1);
+        mNotifyIcon.OnThemeChange       = std::bind(&CaffeineTray::OnThemeChange, this, std::placeholders::_1);
+        mNotifyIcon.OnDpiChange         = std::bind(&CaffeineTray::OnDpiChange, this, std::placeholders::_1);
+        mNotifyIcon.OnSystemMessage     = std::bind(&CaffeineTray::OnSystemMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
         mNotifyIcon.Show();
     }
@@ -116,27 +125,58 @@ auto CaffeineTray::Init() -> bool
     return true;
 }
 
+auto CaffeineTray::MainLoop () -> int
+{
+    return mNotifyIcon.MainLoop();
+}
+
 auto CaffeineTray::OnCreate() -> void
 {
-    // TODO uncomment
     // Add session lock notification event.
-    //if (!WTSRegisterSessionNotification(mWindowHandle, NOTIFY_FOR_THIS_SESSION))
-    //{
-    //    Log("Failed to register session notification event");
-    //    Log("DisableOnLockScreen functionality will not work");
-    //}
+    if (!WTSRegisterSessionNotification(mNotifyIcon.Handle(), NOTIFY_FOR_THIS_SESSION))
+    {
+        Log("Failed to register session notification event");
+        Log("DisableOnLockScreen functionality will not work");
+    }
 }
 
 auto CaffeineTray::OnDestroy() -> void
 {
     Log("Shutting down application");
-    //WTSUnRegisterSessionNotification(mWindowHandle);
+    WTSUnRegisterSessionNotification(mNotifyIcon.Handle());
 }
 
-auto CaffeineTray::OnCommand(int selectedItem) -> void
+
+auto CaffeineTray::OnClick(int x, int y) -> void
+{
+    Log("NotifyIcon Click");
+    ToggleCaffeineMode();
+}
+
+auto CaffeineTray::OnContextMenuOpen() -> void
+{
+    auto hMenu = HMENU{0};
+    switch (mSettings->Mode)
+    {
+    case CaffeineMode::Disabled:
+        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_DISABLED_CONTEXTMENU));
+        break;
+    case CaffeineMode::Enabled:
+        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_ENABLED_CONTEXTMENU));
+        break;
+    case CaffeineMode::Auto:
+        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_AUTO_CONTEXTMENU));
+        break;
+    }
+
+    mNotifyIcon.SetMenu(hMenu);
+}
+
+auto CaffeineTray::OnContextMenuSelect(int selectedItem) -> void
 {
     switch (selectedItem)
     {
+    // TODO is this used?
     case IDM_TOGGLE_CAFFEINE:
         ToggleCaffeineMode();
         return;
@@ -167,83 +207,43 @@ auto CaffeineTray::OnCommand(int selectedItem) -> void
     }
 }
 
-auto CaffeineTray::OnClick(int x, int y) -> void
+auto CaffeineTray::OnThemeChange(mni::ThemeInfo ti) -> void
 {
-    Log("NotifyIcon Click");
-    ToggleCaffeineMode();
+    mLightTheme = ti.IsLight();
+    Log("System theme changed, new theme " + ToString((mLightTheme ? "(light)" : "(dark)")));
+    UpdateIcon(mCaffeine.IsSystemRequired());
+    UpdateAppIcon();
 }
 
-auto CaffeineTray::OnContextMenu() -> void
+auto CaffeineTray::OnDpiChange(int dpi) -> void
 {
-    auto hMenu = HMENU{ 0 };
-    switch (mSettings->Mode)
-    {
-    case CaffeineMode::Disabled:
-        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_DISABLED_CONTEXTMENU));
-        break;
-    case CaffeineMode::Enabled:
-        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_ENABLED_CONTEXTMENU));
-        break;
-    case CaffeineMode::Auto:
-        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_AUTO_CONTEXTMENU));
-        break;
-    }
-
-    mNotifyIcon.SetMenu(hMenu);
+    UpdateIcon(mCaffeine.IsSystemRequired());
 }
 
-auto CaffeineTray::CustomDispatch(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT
+auto CaffeineTray::OnSystemMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) -> bool
 {
-    switch (message)
+    switch (uMsg)
     {
-
-    case WM_WININICHANGE:
-    {
-        if (lParam)
-        {
-            auto str = reinterpret_cast<const wchar_t*>(lParam);
-            auto sysparam = std::wstring_view(str);
-            if (sysparam == L"ImmersiveColorSet")
-            {
-                mLightTheme = IsLightTheme();
-                Log("System theme changed, new theme " + ToString((mLightTheme ? "(light)" : "(dark)")));
-                UpdateIcon(mCaffeine.IsSystemRequired());
-                UpdateAppIcon();
-            }
-        }
-
-        return 0;
-    }
-
     case WM_WTSSESSION_CHANGE:
-    {
         switch (wParam)
         {
         case WTS_SESSION_LOCK:
             Log("Session locked");
             mSessionLocked = true;
             UpdateExecutionState();
-            return 0;
+            return true;
+
         case WTS_SESSION_UNLOCK:
             Log("Session unlocked");
             mSessionLocked = false;
             UpdateExecutionState();
-            return 0;
+            return true;
         }
 
         break;
     }
 
-    case WM_DPICHANGED:
-    {
-        Log("Dpi changed");
-        UpdateIcon(mCaffeine.IsSystemRequired());
-        break;
-    }
-
-    }
-
-    return DefWindowProc(hWnd, message, wParam, lParam);
+    return false;
 }
 
 auto CaffeineTray::EnableCaffeine () -> bool
@@ -410,10 +410,9 @@ auto CaffeineTray::UpdateIcon(bool autoActive) -> bool
 
 auto CaffeineTray::UpdateAppIcon() -> void
 {
-    // TODO fix here
-    //auto icon = LoadIconHelper(IDI_CAFFEINE_APP);
-    //SendMessage(mWindowHandle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
-    //SendMessage(mWindowHandle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
+    auto icon = LoadIconHelper(IDI_CAFFEINE_APP);
+    SendMessage(mNotifyIcon.Handle(), WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
+    SendMessage(mNotifyIcon.Handle(), WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
 }
 
 auto CaffeineTray::LoadIconHelper(UINT icon) -> HICON

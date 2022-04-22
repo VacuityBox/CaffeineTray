@@ -4,7 +4,6 @@
 #include "ExecutionState.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
 #include "IconPack.hpp"
-#include "NotifyIcon.hpp"
 #include "Scanner.hpp"
 #include "Settings.hpp"
 #include "Timer.hpp"
@@ -44,14 +43,15 @@ class CaffeineTray
     fs::path        mCustomIconsPath;
     IconPack        mIconPack;
 
-    auto OnCreate      () -> void;
-    auto OnDestroy     () -> void;
-    auto OnCommand     (int selectedItem) -> void;
-    auto OnClick       (int x, int y) -> void;
-    auto OnContextMenu () -> void;
+    auto OnCreate            ()                     -> void;
+    auto OnDestroy           ()                     -> void;
+    auto OnClick             (int x, int y)         -> void;
+    auto OnContextMenuOpen   ()                     -> void;
+    auto OnContextMenuSelect (int selectedItem)     -> void;
+    auto OnThemeChange       (mni::ThemeInfo ti)    -> void;
+    auto OnDpiChange         (int dpi)              -> void;
+    auto OnSystemMessage     (UINT, WPARAM, LPARAM) -> bool;
    
-    auto CustomDispatch (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT;
-    
     auto EnableCaffeine        () -> bool;
     auto DisableCaffeine       () -> bool;
     auto UpdateExecutionState  (bool activate = false) -> void;
@@ -84,13 +84,8 @@ public:
     CaffeineTray  (const AppInitInfo& info);
     ~CaffeineTray ();
 
-    auto Init () -> bool;
-
-    // TODO move to cpp
-    auto MainLoop () -> int
-    {
-        return mNotifyIcon.MainLoop();
-    }
+    auto Init     () -> bool;
+    auto MainLoop () -> int;
 };
 
 } // namespace Caffeine
