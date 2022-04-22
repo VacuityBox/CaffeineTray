@@ -21,9 +21,9 @@
 #pragma once
 
 #include "AppInitInfo.hpp"
+#include "CaffeineIcons.hpp"
 #include "ExecutionState.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
-#include "IconPack.hpp"
 #include "Scanner.hpp"
 #include "Settings.hpp"
 #include "Timer.hpp"
@@ -49,8 +49,11 @@ class CaffeineTakeApp final
 {
     std::shared_ptr<Settings> mSettings;
 
-    mni::NotifyIcon mNotifyIcon;
     HINSTANCE       mInstanceHandle;
+    mni::NotifyIcon mNotifyIcon;
+    mni::ThemeInfo  mTheme;
+    CaffeineIcons   mIcons;
+    fs::path        mCustomIconsPath;
     bool            mLightTheme;
     bool            mInitialized;    
     bool            mSessionLocked;
@@ -60,8 +63,6 @@ class CaffeineTakeApp final
     ProcessScanner  mProcessScanner;
     WindowScanner   mWindowScanner;
     Timer           mScannerTimer;
-    fs::path        mCustomIconsPath;
-    IconPack        mIconPack;
 
     auto OnCreate            ()                     -> void;
     auto OnDestroy           ()                     -> void;
@@ -78,11 +79,8 @@ class CaffeineTakeApp final
     auto ToggleCaffeineMode    () -> void;
     auto SetCaffeineMode       (CaffeineMode mode) -> void;
 
-    auto UpdateIcon      (bool autoActive = false) -> bool;
-    auto UpdateAppIcon   ()          -> void;
-    auto LoadIconHelper  (UINT icon) -> HICON;
-    auto LoadSquaredIcon (UINT icon) -> HICON;
-    auto LoadCustomIcon  (UINT icon) -> HICON;
+    auto UpdateIcon    (bool autoActive = false) -> bool;
+    auto UpdateAppIcon () -> void;
 
     auto LoadSettings () -> bool;
     auto SaveSettings () -> bool;

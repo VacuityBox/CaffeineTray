@@ -43,6 +43,8 @@ namespace CaffeineTake {
 
 CaffeineTakeApp::CaffeineTakeApp(const AppInitInfo& info)
     : mSettings           (std::make_shared<Settings>())
+    , mSettingsFilePath   (info.SettingsPath)
+    , mCustomIconsPath    (info.DataDirectory / "Icons" / "")
     , mInstanceHandle     (info.InstanceHandle)
     , mLightTheme         (false)
     , mInitialized        (false)
@@ -57,10 +59,9 @@ CaffeineTakeApp::CaffeineTakeApp(const AppInitInfo& info)
             .className   = L"CaffeineTray_WndClass"
         }
     )
+    , mTheme (mni::ThemeInfo::Detect())
+    , mIcons (info.InstanceHandle)
 {
-    mSettingsFilePath = info.SettingsPath;
-    mCustomIconsPath  = info.DataDirectory / "Icons" / "";
-
     Log("---- Log started ----");
 }
 
@@ -91,7 +92,7 @@ auto CaffeineTakeApp::Init() -> bool
             }
         }
 
-        mLightTheme    = IsLightTheme();
+        mTheme         = mni::ThemeInfo::Detect();
         mSessionLocked = IsSessionLocked();
 
         Log("System theme " + ToString((mLightTheme ? "(light)" : "(dark)")));
@@ -128,9 +129,9 @@ auto CaffeineTakeApp::Init() -> bool
         mNotifyIcon.Show();
     }
 
-    // Load custom icons.
+    // Load icons.
     {
-        LoadCustomIcon(0);
+        mIcons.Load(mSettings->IconPack, mTheme.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, 16, 16);
     }
 
     // Update icons, timer, power settings.
@@ -229,14 +230,22 @@ auto CaffeineTakeApp::OnContextMenuSelect(int selectedItem) -> void
 
 auto CaffeineTakeApp::OnThemeChange(mni::ThemeInfo ti) -> void
 {
-    mLightTheme = ti.IsLight();
-    Log("System theme changed, new theme " + ToString((mLightTheme ? "(light)" : "(dark)")));
+    Log("System theme changed, new theme " + ToString((ti.IsLight() ? "(light)" : "(dark)")));
+    mTheme = ti;
+
+    mIcons.Load(mSettings->IconPack, mTheme.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, 16, 16);
+
     UpdateIcon(mCaffeine.IsSystemRequired());
     UpdateAppIcon();
 }
 
 auto CaffeineTakeApp::OnDpiChange(int dpi) -> void
 {
+    const auto w = (16 * dpi) / 96;
+    const auto h = (16 * dpi) / 96;
+
+    mIcons.Load(mSettings->IconPack, mTheme.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+
     UpdateIcon(mCaffeine.IsSystemRequired());
 }
 
@@ -387,23 +396,23 @@ auto CaffeineTakeApp::UpdateIcon(bool autoActive) -> bool
     switch (mSettings->Mode)
     {
     case CaffeineMode::Disabled:
-        icon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_DISABLED);
+        icon = mIcons.CaffeineDisabled;
         tip = IDS_CAFFEINE_DISABLED;
         break;
     case CaffeineMode::Enabled:
-        icon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_ENABLED);
+        icon = mIcons.CaffeineEnabled;
         tip = IDS_CAFFEINE_ENABLED;
         break;
     case CaffeineMode::Auto:
         //if (!mCaffeine.IsSystemRequired())
         if (!autoActive)
         {
-            icon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE);
+            icon = mIcons.CaffeineAutoInactive;
             tip = IDS_CAFFEINE_AUTO_INACTIVE;
         }
         else
         {
-            icon = LoadIconHelper(IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE);
+            icon = mIcons.CaffeineAutoActive;
             tip = IDS_CAFFEINE_AUTO_ACTIVE;
         }
         break;
@@ -430,150 +439,25 @@ auto CaffeineTakeApp::UpdateIcon(bool autoActive) -> bool
 
 auto CaffeineTakeApp::UpdateAppIcon() -> void
 {
-    auto icon = LoadIconHelper(IDI_CAFFEINE_APP);
-    SendMessage(mNotifyIcon.Handle(), WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
-    SendMessage(mNotifyIcon.Handle(), WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
-}
-
-auto CaffeineTakeApp::LoadIconHelper(UINT icon) -> HICON
-{
-    const auto flags = UINT{ LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED };
-
-    // Use user icon.
-    auto userIcon = LoadCustomIcon(icon);
-    if (userIcon)
-    {
-        return userIcon;
-    }
-
-    if (mSettings->UseNewIcons)
-    {
-        return LoadSquaredIcon(icon);
-    }
-
-    // Use default icons.
-    auto id = UINT{ 32512 };
-    if (mLightTheme)
-    {
-        switch (icon)
+    auto icon = [&](){
+        const auto flags = UINT{ LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED };
+        if (mTheme.IsLight())
         {
-        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_DARK;                           break;
-        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_ORIGINAL_CAFFEINE_DISABLED_DARK;      break;
-        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_ORIGINAL_CAFFEINE_ENABLED_DARK;       break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_DARK; break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_DARK;   break;
-        }
-    }
-    else
-    {
-        switch (icon)
-        {
-        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_LIGHT;                           break;
-        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_ORIGINAL_CAFFEINE_DISABLED_LIGHT;      break;
-        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_ORIGINAL_CAFFEINE_ENABLED_LIGHT;       break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_LIGHT; break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_LIGHT;   break;
-        }
-    }
-    
-    return static_cast<HICON>(
-        LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(id), IMAGE_ICON, 0, 0, flags)
-        );
-}
-
-auto CaffeineTakeApp::LoadSquaredIcon(UINT icon) -> HICON
-{
-    const auto flags = UINT{ LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED };
-
-    // Use default icons.
-    auto id = UINT{ 32512 };
-    if (mLightTheme)
-    {
-        switch (icon)
-        {
-        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_DARK;                         break;
-        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_DARK;      break;
-        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_DARK;       break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_DARK; break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_DARK;   break;
-        }
-    }
-    else
-    {
-        switch (icon)
-        {
-        case IDI_CAFFEINE_APP:                  id = IDI_CAFFEINE_APP_LIGHT;                         break;
-        case IDI_NOTIFY_CAFFEINE_DISABLED:      id = IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_LIGHT;      break;
-        case IDI_NOTIFY_CAFFEINE_ENABLED:       id = IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_LIGHT;       break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: id = IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_LIGHT; break;
-        case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   id = IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_LIGHT;   break;
-        }
-    }
-    
-    return static_cast<HICON>(
-        LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(id), IMAGE_ICON, 0, 0, flags)
-        );
-}
-
-auto CaffeineTakeApp::LoadCustomIcon(UINT icon) -> HICON
-{
-    // Reload from file.
-    if (icon == 0)
-    {
-        const auto flags = UINT{ LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED | LR_LOADFROMFILE };
-
-        auto loadIco = [&](std::string fileName) -> HICON
-        {
-            auto path = mCustomIconsPath / fileName;
-            if (fs::exists(path))
-            {
-                auto wpath = path.wstring();
-                return static_cast<HICON>(LoadImageW(NULL, wpath.c_str(), IMAGE_ICON, 0, 0, flags));
-            }
-
-            return NULL;
-        };
-
-        mIconPack.caffeineDisabledDark  = loadIco("CaffeineDisabledDark.ico");
-        mIconPack.caffeineDisabledLight = loadIco("CaffeineDisabledLight.ico");
-        
-        mIconPack.caffeineEnabledDark  = loadIco("CaffeineEnabledDark.ico");
-        mIconPack.caffeineEnabledLight = loadIco("CaffeineEnabledLight.ico");
-        
-        mIconPack.caffeineAutoInactiveDark  = loadIco("CaffeineAutoInactiveDark.ico");
-        mIconPack.caffeineAutoInactiveLight = loadIco("CaffeineAutoInactiveLight.ico");
-        
-        mIconPack.caffeineAutoActiveDark  = loadIco("CaffeineAutoActiveDark.ico");
-        mIconPack.caffeineAutoActiveLight = loadIco("CaffeineAutoActiveLight.ico");
-    }
-    else
-    {
-        auto customIcon = HICON{NULL};
-        if (mLightTheme)
-        {
-            switch (icon)
-            {
-            case IDI_NOTIFY_CAFFEINE_DISABLED:      customIcon = mIconPack.caffeineDisabledDark;     break;
-            case IDI_NOTIFY_CAFFEINE_ENABLED:       customIcon = mIconPack.caffeineEnabledDark;      break;
-            case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: customIcon = mIconPack.caffeineAutoInactiveDark; break;
-            case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   customIcon = mIconPack.caffeineAutoActiveDark;   break;
-            }
+            return static_cast<HICON>(
+                LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(IDI_CAFFEINE_APP_DARK), IMAGE_ICON, 0, 0, flags)
+            );
         }
         else
         {
-            switch (icon)
-            {
-            case IDI_NOTIFY_CAFFEINE_DISABLED:      customIcon = mIconPack.caffeineDisabledLight;     break;
-            case IDI_NOTIFY_CAFFEINE_ENABLED:       customIcon = mIconPack.caffeineEnabledLight;      break;
-            case IDI_NOTIFY_CAFFEINE_AUTO_INACTIVE: customIcon = mIconPack.caffeineAutoInactiveLight; break;
-            case IDI_NOTIFY_CAFFEINE_AUTO_ACTIVE:   customIcon = mIconPack.caffeineAutoActiveLight;   break;
-            }
+            return static_cast<HICON>(
+                LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(IDI_CAFFEINE_APP_LIGHT), IMAGE_ICON, 0, 0, flags)
+            );
         }
+    }();
 
-        return customIcon;
-    }
 
-    return NULL;
+    SendMessage(mNotifyIcon.Handle(), WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
+    SendMessage(mNotifyIcon.Handle(), WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
 }
 
 auto CaffeineTakeApp::LoadSettings() -> bool

@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "CaffeineIcons.hpp"
 #include "CaffeineMode.hpp"
 #include "Utility.hpp"
 
@@ -54,8 +55,8 @@ namespace CaffeineTake {
 class Settings final
 {
 public:
-    CaffeineMode Mode;
-    bool         UseNewIcons;
+    CaffeineMode            Mode;
+    CaffeineIcons::IconPack IconPack;
     
     struct Standard
     {
@@ -100,12 +101,12 @@ public:
     } Auto;
 
     Settings ()
-        : Mode        (CaffeineMode::Disabled)
-        , UseNewIcons (true)
+        : Mode     (CaffeineMode::Disabled)
+        , IconPack (CaffeineIcons::IconPack::Original)
     {
     }
 
-     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Settings, Mode, UseNewIcons, Standard, Auto)
+     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Settings, Mode, IconPack, Standard, Auto)
 };
 
 } // namespace CaffeineTake
