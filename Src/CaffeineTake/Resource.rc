@@ -1,0 +1,346 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "Resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "Resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDC_CAFFEINE_DISABLED_CONTEXTMENU MENU
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "Enable",                      IDM_ENABLE_CAFFEINE
+        MENUITEM "Enable (auto)",               IDM_ENABLE_AUTO
+        MENUITEM "Settings",                    IDM_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "About",                       IDM_ABOUT
+        MENUITEM "Exit",                        IDM_EXIT
+    END
+END
+
+IDC_CAFFEINE_ENABLED_CONTEXTMENU MENU
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "Disable",                     IDM_DISABLE_CAFFEINE
+        MENUITEM "Enable (auto)",               IDM_ENABLE_AUTO
+        MENUITEM "Settings",                    IDM_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "About",                       IDM_ABOUT
+        MENUITEM "Exit",                        IDM_EXIT
+    END
+END
+
+IDC_CAFFEINE_AUTO_CONTEXTMENU MENU
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "Disable",                     IDM_DISABLE_CAFFEINE
+        MENUITEM "Settings",                    IDM_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "About",                       IDM_ABOUT
+        MENUITEM "Exit",                        IDM_EXIT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_CAFFEINE_APP        ICON                    "..\\..\\Resources\\Icons\\CaffeineApp.ico"
+IDI_CAFFEINE_APP_LIGHT  ICON                    "..\\..\\Resources\\Icons\\CaffeineAppLight.ico"
+IDI_CAFFEINE_APP_DARK   ICON                    "..\\..\\Resources\\Icons\\CaffeineAppDark.ico"
+
+IDI_NOTIFY_ORIGINAL_CAFFEINE_DISABLED_LIGHT         ICON                    "..\\..\\Resources\\Icons\\Original\\CaffeineDisabledLight.ico"
+IDI_NOTIFY_ORIGINAL_CAFFEINE_ENABLED_LIGHT          ICON                    "..\\..\\Resources\\Icons\\Original\\CaffeineEnabledLight.ico"
+IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_LIGHT    ICON                    "..\\..\\Resources\\Icons\\Original\\CaffeineAutoInactiveLight.ico"
+IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_LIGHT      ICON                    "..\\..\\Resources\\Icons\\Original\\CaffeineAutoActiveLight.ico"
+IDI_NOTIFY_ORIGINAL_CAFFEINE_DISABLED_DARK          ICON                    "..\\..\\Resources\\Icons\\Original\\CaffeineDisabledDark.ico"
+IDI_NOTIFY_ORIGINAL_CAFFEINE_ENABLED_DARK           ICON                    "..\\..\\Resources\\Icons\\Original\\CaffeineEnabledDark.ico"
+IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_DARK     ICON                    "..\\..\\Resources\\Icons\\Original\\CaffeineAutoInactiveDark.ico"
+IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_DARK       ICON                    "..\\..\\Resources\\Icons\\Original\\CaffeineAutoActiveDark.ico"
+
+IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_LIGHT         ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineDisabledLight.ico"
+IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_LIGHT          ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineEnabledLight.ico"
+IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_LIGHT    ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineAutoInactiveLight.ico"
+IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_LIGHT      ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineAutoActiveLight.ico"
+IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_DARK          ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineDisabledDark.ico"
+IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_DARK           ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineEnabledDark.ico"
+IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_DARK     ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineAutoInactiveDark.ico"
+IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_DARK       ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineAutoActiveDark.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 2,0,1,0
+ PRODUCTVERSION 2,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "FileDescription", "CaffeineTray"
+            VALUE "FileVersion", "2.0.1"
+            VALUE "InternalName", "CaffeineTray.exe"
+            VALUE "LegalCopyright", "(c) 2020-2021 VacuityBox"
+            VALUE "LegalTrademarks", "GPL-3.0-or-later"
+            VALUE "OriginalFilename", "CaffeineTray.exe"
+            VALUE "ProductName", "CaffeineTray"
+            VALUE "ProductVersion", "2.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUT DIALOGEX 0, 0, 250, 177
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "About"
+FONT 9, "Segoe UI", 400, 0, 0xEE
+BEGIN
+    ICON            "Caffeine",IDC_ABOUT_CAFFEINE_LOGO,10,10,20,20
+    CONTROL         "Name",IDC_ABOUT_PROGRAM_NAME,"Static",SS_LEFT,48,10,189,12
+    CONTROL         "Author",IDC_ABOUT_AUTHOR,"Static",SS_LEFT,48,22,191,12
+    CONTROL         "Homepage",IDC_ABOUT_HOMEPAGE,"SysLink",WS_TABSTOP,48,34,191,12
+    CONTROL         "License",IDC_ABOUT_LICENSE,"SysLink",WS_TABSTOP,7,49,236,107
+    DEFPUSHBUTTON   "Close",IDCANCEL,193,156,50,14
+    PUSHBUTTON      "3rd Party License",IDC_ABOUT_BUTTON_3RDPARTY,7,156,60,14
+END
+
+IDD_SETTINGS DIALOGEX 0, 0, 487, 251
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "CaffeineTray Settings"
+FONT 9, "Segoe UI", 400, 0, 0xEE
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,375,230,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,430,230,50,14
+    GROUPBOX        "Standard Mode",IDC_GROUPBOX_STANDARD,7,7,473,31
+    CONTROL         "Keep display on",IDC_CHECKBOX_STANDARD_KEEP_DISPLAY_ON,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,66,10
+    CONTROL         "Disable on lock screen",IDC_CHECKBOX_STANDARD_DISABLE_ON_LOCK_SCREEN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,97,20,86,10
+    GROUPBOX        "Auto Mode",IDC_GROUPBOX_AUTO,7,40,473,184
+    CONTROL         "Keep display on",IDC_CHECKBOX_AUTO_KEEP_DISPLAY_ON,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,55,66,10
+    CONTROL         "Disable on lock screen",IDC_CHECKBOX_AUTO_DISABLE_ON_LOCK_SCREEN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,97,55,86,10
+    CONTROL         "ListView",IDC_LISTVIEW_PROCESSES_AND_WINDOWS,
+                    "SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | LVS_OWNERDATA | WS_BORDER | WS_TABSTOP,15,71,456,121
+    PUSHBUTTON      "Add",IDC_BUTTON_AUTO_ADD,16,198,50,14
+    PUSHBUTTON      "Add Wizard",IDC_BUTTON_AUTO_ADD_WIZARD,73,198,50,14
+    PUSHBUTTON      "Edit",IDC_BUTTON_AUTO_EDIT,366,197,50,14
+    PUSHBUTTON      "Remove",IDC_BUTTON_AUTO_REMOVE,422,197,50,14
+    ICON            "Warning",IDC_ICON_WARNING,7,233,16,16
+    LTEXT           "",IDC_TEXT_WARNING,21,233,335,9
+END
+
+IDD_ADD_EDIT DIALOGEX 0, 0, 309, 93
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Add"
+FONT 9, "Segoe UI", 400, 0, 0xEE
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,198,72,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,252,72,50,14
+    LTEXT           "Value:",IDC_STATIC,7,7,21,8
+    EDITTEXT        IDC_EDITBOX_ADD_EDIT,7,21,295,15,ES_AUTOHSCROLL
+    LTEXT           "Type:",IDC_STATIC,7,43,20,8
+    CONTROL         "Process Name",IDC_RADIO_PROCESS_NAME,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,7,55,61,10
+    CONTROL         "Process Path",IDC_RADIO_PROCESS_PATH,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,74,55,57,10
+    CONTROL         "Window Title",IDC_RADIO_WINDOW_TITLE,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,138,55,57,10
+END
+
+IDD_ADD_WIZARD DIALOGEX 0, 0, 449, 243
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Add Wizard"
+FONT 9, "Segoe UI", 400, 0, 0xEE
+BEGIN
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,392,222,50,14
+    CONTROL         "ListView",IDC_LISTVIEW_WIZARD_PROCESSES_AND_WINDOWS,
+                    "SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | LVS_OWNERDATA | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,7,19,435,122
+    LTEXT           "Name:",IDC_STATIC,16,153,22,8
+    EDITTEXT        IDC_EDITBOX_WIZARD_PROCESS_NAME,43,150,399,14,ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
+    LTEXT           "Path:",IDC_STATIC,17,177,18,8
+    EDITTEXT        IDC_EDITBOX_WIZARD_PROCESS_PATH,43,174,399,14,ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
+    LTEXT           "Window:",IDC_STATIC,10,201,29,8
+    EDITTEXT        IDC_EDITBOX_WIZARD_WINDOW_TITLE,43,199,399,14,ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
+    PUSHBUTTON      "Refresh",IDC_BUTTON_WIZARD_REFRESH,7,222,50,14
+    PUSHBUTTON      "Add Name",IDC_BUTTON_WIZARD_ADD_NAME,225,222,50,14
+    PUSHBUTTON      "Add Path",IDC_BUTTON_WIZARD_ADD_PATH,281,222,50,14
+    PUSHBUTTON      "Add Window",IDC_BUTTON_WIZARD_ADD_WINDOW,337,222,50,14
+    LTEXT           "Running Processes:",IDC_STATIC,7,7,59,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_PROPPAGE_SMALL AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_ABOUT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_SETTINGS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_ADD_EDIT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_ADD_WIZARD AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 243
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 170
+    END
+
+    IDD_SETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 480
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 244
+    END
+
+    IDD_ADD_EDIT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 86
+    END
+
+    IDD_ADD_WIZARD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 442
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 236
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_CAFFEINE_DISABLED   "Caffeine - Disabled"
+    IDS_CAFFEINE_ENABLED    "Caffeine - Enabled"
+    IDS_CAFFEINE_AUTO_INACTIVE "Caffeine - Auto (inactive)"
+    IDS_CAFFEINE_AUTO_ACTIVE "Caffeine - Auto (active)"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
