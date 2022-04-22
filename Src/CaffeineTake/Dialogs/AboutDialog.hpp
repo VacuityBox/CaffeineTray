@@ -37,11 +37,11 @@ auto AboutDialog::OnInit (HWND dlgHandle) -> bool
     );
     SendDlgItemMessage(mDlgHandle, IDC_ABOUT_CAFFEINE_LOGO, STM_SETIMAGE, IMAGE_ICON, reinterpret_cast<LPARAM>(caffeineIcon));
 
-    const auto name = std::wstring(CAFFEINE_PROGRAM_NAME) + L" v" + std::wstring(CAFFEINE_VERSION_STRING);
+    const auto name = std::wstring(CAFFEINE_TAKE_PROGRAM_NAME) + L" v" + std::wstring(CAFFEINE_TAKE_VERSION_STRING);
     SetDlgItemText(mDlgHandle, IDC_ABOUT_PROGRAM_NAME, name.c_str());
-    SetDlgItemText(mDlgHandle, IDC_ABOUT_AUTHOR, CAFFEINE_AUTHOR.data());
-    SetDlgItemText(mDlgHandle, IDC_ABOUT_HOMEPAGE, CAFFEINE_HOMEPAGE.data());
-    SetDlgItemText(mDlgHandle, IDC_ABOUT_LICENSE, CAFFEINE_LICENSE.data());
+    SetDlgItemText(mDlgHandle, IDC_ABOUT_AUTHOR, CAFFEINE_TAKE_AUTHOR.data());
+    SetDlgItemText(mDlgHandle, IDC_ABOUT_HOMEPAGE, CAFFEINE_TAKE_HOMEPAGE.data());
+    SetDlgItemText(mDlgHandle, IDC_ABOUT_LICENSE, CAFFEINE_TAKE_LICENSE.data());
 
     return true;
 }
@@ -53,7 +53,7 @@ auto AboutDialog::OnCommand (WPARAM wParam, LPARAM lParam) -> bool
     case IDC_ABOUT_BUTTON_3RDPARTY:
         if (m3rdParty)
         {
-            SetDlgItemText(mDlgHandle, IDC_ABOUT_LICENSE, CAFFEINE_LICENSE.data());
+            SetDlgItemText(mDlgHandle, IDC_ABOUT_LICENSE, CAFFEINE_TAKE_LICENSE.data());
             SetDlgItemText(mDlgHandle, IDC_ABOUT_BUTTON_3RDPARTY, L"3rd Party Licenses");
         }
         else

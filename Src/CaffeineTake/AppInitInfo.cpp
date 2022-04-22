@@ -53,7 +53,7 @@ auto GetAppInitInfo (HINSTANCE hInstance) -> AppInitInfo
         const auto exe = fs::path(ptr);
         
         root = exe.root_directory();
-        settings = root / CAFFEINE_PORTABLE_SETTINGS_FILENAME;
+        settings = root / CAFFEINE_TAKE_PORTABLE_SETTINGS_FILENAME;
 
         if (fs::exists(settings))
         {
@@ -63,18 +63,18 @@ auto GetAppInitInfo (HINSTANCE hInstance) -> AppInitInfo
 
     if (!isPortable)
     {
-        auto appData = GetAppDataPath() / CAFFEINE_PROGRAM_NAME;
+        auto appData = GetAppDataPath() / CAFFEINE_TAKE_PROGRAM_NAME;
         fs::create_directory(appData);
 
         root = std::move(appData);
-        settings = root / CAFFEINE_SETTINGS_FILENAME;
+        settings = root / CAFFEINE_TAKE_SETTINGS_FILENAME;
     }
 
     return AppInitInfo{
         .InstanceHandle = hInstance ? hInstance : GetModuleHandleW(NULL),
         .DataDirectory  = root,
         .SettingsPath   = settings,
-        .LogFilePath    = root / CAFFEINE_LOG_FILENAME,
+        .LogFilePath    = root / CAFFEINE_TAKE_LOG_FILENAME,
         .IsPortable     = isPortable
     };
 }

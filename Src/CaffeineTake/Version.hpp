@@ -9,14 +9,14 @@ namespace {
 
 namespace CaffeineTake {
 
-constexpr auto CAFFEINE_PROGRAM_NAME               = L"CaffeineTake"sv;
-constexpr auto CAFFEINE_VERSION_STRING             = L"2.0.1"sv;
-constexpr auto CAFFEINE_LOG_FILENAME               = L"CaffeineTake.log"sv;
-constexpr auto CAFFEINE_SETTINGS_FILENAME          = L"CaffeineTake.json"sv;
-constexpr auto CAFFEINE_PORTABLE_SETTINGS_FILENAME = L"CaffeineTake.Portable.json"sv;
+constexpr auto CAFFEINE_TAKE_PROGRAM_NAME               = L"CaffeineTake"sv;
+constexpr auto CAFFEINE_TAKE_VERSION_STRING             = L"3.0.0-dev"sv;
+constexpr auto CAFFEINE_TAKE_LOG_FILENAME               = L"CaffeineTake.log"sv;
+constexpr auto CAFFEINE_TAKE_SETTINGS_FILENAME          = L"CaffeineTake.json"sv;
+constexpr auto CAFFEINE_TAKE_PORTABLE_SETTINGS_FILENAME = L"CaffeineTake.Portable.json"sv;
 
-constexpr auto CAFFEINE_AUTHOR  = L"Copyright (c) 2020-2021 VacuityBox"sv;
-constexpr auto CAFFEINE_LICENSE = std::wstring_view(
+constexpr auto CAFFEINE_TAKE_AUTHOR  = L"Copyright (c) 2020-2021 VacuityBox"sv;
+constexpr auto CAFFEINE_TAKE_LICENSE = std::wstring_view(
     L"This program is free software: you can redistribute it and/or modify\r\n"
     L"it under the terms of the GNU General Public License as published by\r\n"
     L"the Free Software Foundation, either version 3 of the License, or\r\n"
@@ -31,7 +31,7 @@ constexpr auto CAFFEINE_LICENSE = std::wstring_view(
     L"along with this program.  If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a>\r\n"
 );
 
-constexpr auto CAFFEINE_HOMEPAGE = std::wstring_view(
+constexpr auto CAFFEINE_TAKE_HOMEPAGE = std::wstring_view(
     L"<a href=\"https://github.com/serverfailure71/CaffeineTake\">https://github.com/serverfailure71/CaffeineTake/</a>"
 );
 
