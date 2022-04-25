@@ -25,7 +25,7 @@
 #include "Helpers/ItemList.hpp"
 #include "Helpers/RunningProcess.hpp"
 #include "Settings.hpp"
-#include "resource.h"
+#include "Resource.hpp"
 
 #include <filesystem>
 #include <map>

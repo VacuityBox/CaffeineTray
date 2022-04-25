@@ -20,7 +20,7 @@
 
 #include "CaffeineIcons.hpp"
 
-#include "resource.h"
+#include "Resource.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -63,13 +63,13 @@ auto CaffeineIcons::LoadOriginalIcons (Theme theme, int w, int h) -> bool
         CaffeineDisabled     = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_DISABLED_LIGHT, w, h);
         CaffeineEnabled      = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_ENABLED_LIGHT, w, h);
         CaffeineAutoInactive = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_LIGHT, w, h);
-        CaffeineAutoInactive = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_LIGHT, w, h);
+        CaffeineAutoActive   = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_LIGHT, w, h);
         break;
     case CaffeineTake::CaffeineIcons::Theme::Dark:
         CaffeineDisabled     = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_DISABLED_DARK, w, h);
         CaffeineEnabled      = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_ENABLED_DARK, w, h);
         CaffeineAutoInactive = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_DARK, w, h);
-        CaffeineAutoInactive = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_DARK, w, h);
+        CaffeineAutoActive   = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_DARK, w, h);
         break;
     }
     spdlog::info("Finished loading icons");
@@ -86,13 +86,13 @@ auto CaffeineIcons::LoadSquareIcons (Theme theme, int w, int h) -> bool
         CaffeineDisabled     = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_LIGHT, w, h);
         CaffeineEnabled      = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_LIGHT, w, h);
         CaffeineAutoInactive = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_LIGHT, w, h);
-        CaffeineAutoInactive = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_LIGHT, w, h);
+        CaffeineAutoActive   = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_LIGHT, w, h);
         break;
     case CaffeineTake::CaffeineIcons::Theme::Dark:
         CaffeineDisabled     = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_DARK, w, h);
         CaffeineEnabled      = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_DARK, w, h);
         CaffeineAutoInactive = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_DARK, w, h);
-        CaffeineAutoInactive = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_DARK, w, h);
+        CaffeineAutoActive   = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_DARK, w, h);
         break;
     }
     spdlog::info("Finished loading icons");
@@ -109,13 +109,13 @@ auto CaffeineIcons::LoadCustomIcons (Theme theme, int w, int h) -> bool
         CaffeineDisabled     = LoadFromFile(L"CaffeineDisabledLight.ico", w, h);
         CaffeineEnabled      = LoadFromFile(L"CaffeineEnabledLight.ico", w, h);
         CaffeineAutoInactive = LoadFromFile(L"CaffeineAutoInactiveLight.ico", w, h);
-        CaffeineAutoInactive = LoadFromFile(L"CaffeineAutoActiveLight.ico", w, h);
+        CaffeineAutoActive   = LoadFromFile(L"CaffeineAutoActiveLight.ico", w, h);
         break;
     case CaffeineTake::CaffeineIcons::Theme::Dark:
         CaffeineDisabled     = LoadFromFile(L"CaffeineDisabledDark.ico", w, h);
         CaffeineEnabled      = LoadFromFile(L"CaffeineEnabledDark.ico", w, h);
         CaffeineAutoInactive = LoadFromFile(L"CaffeineAutoInactiveDark.ico", w, h);
-        CaffeineAutoInactive = LoadFromFile(L"CaffeineAutoActiveDark.ico", w, h);
+        CaffeineAutoActive   = LoadFromFile(L"CaffeineAutoActiveDark.ico", w, h);
         break;
     }
     spdlog::info("Finished loading icons");

@@ -19,7 +19,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "AppInitInfo.hpp"
-#include "CaffeineTake.hpp"
+#include "CaffeineApp.hpp"
 #include "InstanceGuard.hpp"
 #include "Logger.hpp"
 
@@ -45,7 +45,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         return -1;
     }
 
-    if (guard.IsSecondInstance())
+    if (guard.IsOtherInstance())
     {
         return 1;
     }
@@ -54,7 +54,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     CaffeineTake::InitLogger(info.LogFilePath);
 
-    auto caffeineTray = CaffeineTake::CaffeineTakeApp(info);
+    auto caffeineTray = CaffeineTake::CaffeineApp(info);
     if (!caffeineTray.Init())
     {
         MessageBoxW(

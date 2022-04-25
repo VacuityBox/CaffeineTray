@@ -21,11 +21,11 @@
 #pragma once
 
 #include "CaffeineIcons.hpp"
-#include "CaffeineMode.hpp"
 #include "Utility.hpp"
 
 #include <nlohmann/json.hpp>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -52,10 +52,12 @@ struct adl_serializer<std::wstring>
 
 namespace CaffeineTake {
 
+class Settings;
+using SettingsPtr = std::shared_ptr<Settings>;
+
 class Settings final
 {
 public:
-    CaffeineMode            Mode;
     CaffeineIcons::IconPack IconPack;
     
     struct Standard
@@ -101,12 +103,11 @@ public:
     } Auto;
 
     Settings ()
-        : Mode     (CaffeineMode::Disabled)
-        , IconPack (CaffeineIcons::IconPack::Original)
+        : IconPack (CaffeineIcons::IconPack::Original)
     {
     }
 
-     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Settings, Mode, IconPack, Standard, Auto)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Settings, IconPack, Standard, Auto)
 };
 
 } // namespace CaffeineTake

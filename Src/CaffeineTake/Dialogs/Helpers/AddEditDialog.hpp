@@ -22,7 +22,7 @@
 
 #include "Dialogs/Dialog.hpp"
 #include "Helpers/ItemList.hpp"
-#include "resource.h"
+#include "Resource.hpp"
 
 #include <filesystem>
 #include <map>

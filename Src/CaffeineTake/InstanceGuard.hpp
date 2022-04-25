@@ -47,7 +47,7 @@ public:
 
     auto Protect () -> bool
     {
-        mGuardMutex = ::CreateMutexW(nullptr, FALSE, L"CaffeineTray_InstanceGuard");
+        mGuardMutex = ::CreateMutexW(nullptr, FALSE, L"CaffeineTake_InstanceGuard");
         if (mGuardMutex != nullptr)
         {
             mMainInstance = GetLastError() != ERROR_ALREADY_EXISTS;
@@ -72,7 +72,7 @@ public:
         return mMainInstance;
     }
 
-    auto IsSecondInstance () -> bool
+    auto IsOtherInstance () -> bool
     {
         return !mMainInstance;
     }

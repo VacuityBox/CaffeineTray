@@ -21,8 +21,11 @@
 #pragma once
 
 #include "Dialog.hpp"
-#include "Resource.h"
+#include "Resource.hpp"
 #include "Version.hpp"
+
+#include <CommCtrl.h>
+#include <shellapi.h>
 
 namespace CaffeineTake {
 

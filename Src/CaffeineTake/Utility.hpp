@@ -31,34 +31,21 @@
 
 namespace CaffeineTake {
 
+enum class SessionState : bool
+{
+    Unlocked,
+    Locked
+};
+
 auto UTF8ToUTF16 (const std::string_view str) -> std::optional<std::wstring>;
 auto UTF16ToUTF8 (const std::wstring_view str) -> std::optional<std::string>;
 
 auto GetAppDataPath  () -> std::filesystem::path;
-auto IsLightTheme    () -> bool;
-auto IsSessionLocked () -> bool;
+auto IsSessionLocked () -> SessionState;
 
 auto ScanProcesses  (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool;
 auto ScanWindows    (std::function<bool (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible = true) -> bool;
 auto GetProcessPath (DWORD pid) -> std::filesystem::path;
-
-auto ToString (std::string str)       -> std::string;
-auto ToString (std::wstring str)      -> std::string;
-auto ToString (const char* str)       -> std::string;
-auto ToString (const wchar_t* str)    -> std::string;
-auto ToString (std::string_view str)  -> std::string;
-auto ToString (std::wstring_view str) -> std::string;
-
-inline auto ToString () -> std::string
-{
-    return std::string();
-}
-
-template <typename T, typename ...Ts>
-auto ToString (T message, Ts ... args) -> std::string
-{
-    return ToString(message) + ToString(args...);
-}
 
 #define SINGLE_INSTANCE_GUARD()                                                               \
     static std::mutex _mutex_##__LINE__;                                                      \

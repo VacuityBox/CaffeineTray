@@ -120,27 +120,7 @@ auto GetAppDataPath () -> std::filesystem::path
     return std::filesystem::path();
 }
 
-auto IsLightTheme () -> bool
-{
-    auto data     = DWORD{ 0 };
-    auto dataSize = DWORD{ sizeof(data) };
-    auto status   = ::RegGetValueW(
-        HKEY_CURRENT_USER,
-        L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-        L"SystemUsesLightTheme",
-        RRF_RT_DWORD,
-        NULL,
-        &data,
-        &dataSize
-    );
-
-    if (status == ERROR_SUCCESS)
-        return data;
-
-    return false;
-}
-
-auto IsSessionLocked () -> bool
+auto IsSessionLocked () -> SessionState
 {
     auto wtsinfo  = std::make_unique<WTSINFOEXW*>();
     auto retBytes = DWORD{ 0 };
@@ -154,11 +134,12 @@ auto IsSessionLocked () -> bool
     );
 
     if (!retCode)
-        return false;
+    {
+        return SessionState::Unlocked;
+    }
 
     auto isLocked = false;
-    auto rawPtr   = *wtsinfo.get();
-    if (rawPtr)
+    if (const auto rawPtr = *wtsinfo.get())
     {
         // WTS_SESSIONSTATE_LOCK and WTS_SESSIONSTATE_UNLOCK are reversed on Win7.
         // On newer versions it's fixed.
@@ -174,7 +155,7 @@ auto IsSessionLocked () -> bool
 
     WTSFreeMemory(*wtsinfo);
 
-    return isLocked;
+    return isLocked ? SessionState::Locked : SessionState::Unlocked;
 }
 
 auto ScanProcesses (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool
@@ -297,42 +278,6 @@ auto GetProcessPath (DWORD pid) -> std::filesystem::path
     }
 
     return std::filesystem::path();
-}
-
-auto ToString (std::string str) -> std::string
-{
-    return str;
-}
-
-auto ToString (std::wstring str) -> std::string
-{
-    return ToString(str.c_str());
-}
-
-auto ToString (const char* str) -> std::string
-{
-    return std::string(str);
-}
-
-auto ToString (std::string_view str)  -> std::string
-{
-    return std::string(str);
-}
-
-auto ToString (std::wstring_view str) -> std::string
-{
-    return ToString(str.data());
-}
-
-auto ToString (const wchar_t* str) -> std::string
-{
-    auto utf8 = UTF16ToUTF8(str);
-    if (utf8)
-    {
-        return utf8.value();
-    }
-
-    return "";
 }
 
 } // namespace CaffeineTake

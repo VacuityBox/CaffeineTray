@@ -20,6 +20,11 @@
 
 #pragma once
 
+#include "CaffeineAppSO.hpp"
+#include "Settings.hpp"
+#include "Scanner.hpp"
+#include "ThreadTimer.hpp"
+
 #include <string_view>
 
 namespace CaffeineTake {
@@ -42,5 +47,74 @@ constexpr auto CaffeineModeToString (CaffeineMode mode) -> std::wstring_view
 
     return L"Invalid CaffeineMode";
 }
+
+class DisabledMode
+{
+public:
+    auto Start (CaffeineAppSO* app) -> bool
+    {
+        app->DisableCaffeine();
+        return true;
+    }
+
+    auto Stop (CaffeineAppSO* app) -> bool
+    {
+        return true;
+    }
+};
+
+class EnabledMode
+{
+public:
+    auto Start (CaffeineAppSO* app) -> bool
+    {
+        app->EnableCaffeine();
+        return true;
+    }
+
+    auto Stop (CaffeineAppSO* app) -> bool
+    {
+        app->DisableCaffeine();
+        return true;
+    }
+};
+
+class AutoMode
+{
+    CaffeineAppSO* mAppPtr;
+    SettingsPtr    mSettingsPtr;
+    ProcessScanner mProcessScanner;
+    WindowScanner  mWindowScanner;
+    ThreadTimer    mScannerTimer;
+    bool           mPreviousResult;
+
+    auto TimerUpdate () -> void;
+
+public:
+    AutoMode (CaffeineAppSO* app, SettingsPtr settings)
+        : mAppPtr         (app)
+        , mSettingsPtr    (settings)
+        , mProcessScanner ()
+        , mWindowScanner  ()
+        , mScannerTimer   (std::bind(&AutoMode::TimerUpdate, this))
+    {
+    }
+
+    auto Start (CaffeineAppSO* app) -> bool
+    {
+        app->DisableCaffeine();
+        mScannerTimer.Start();
+
+        return true;
+    }
+
+    auto Stop (CaffeineAppSO* app) -> bool
+    {
+        mScannerTimer.Pause();
+        app->DisableCaffeine();
+
+        return true;
+    }
+};
 
 } // namespace CaffeineTake

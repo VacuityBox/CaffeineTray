@@ -23,8 +23,9 @@
 #include "Settings.hpp"
 #include "Utility.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <filesystem>
-#include <memory>
 #include <string>
 #include <string_view>
 
@@ -39,15 +40,14 @@ class Scanner
 public:
     virtual ~Scanner() {}
 
-    virtual auto Run () -> bool = 0;
+    virtual auto Run (SettingsPtr) -> bool = 0;
 };
 
 class ProcessScanner : public Scanner
 {
-    std::shared_ptr<Settings> mSettingsPtr;
-    std::wstring              mLastProcessName;
-    std::wstring              mLastProcessPath;
-    DWORD                     mLastPid;
+    std::wstring mLastProcessName = L"";
+    std::wstring mLastProcessPath = L"";
+    DWORD        mLastPid         = 0;
 
     auto CheckLast () -> bool
     {
@@ -68,15 +68,9 @@ class ProcessScanner : public Scanner
     }
 
 public:
-    ProcessScanner (std::shared_ptr<Settings> settings)
-        : mSettingsPtr (settings)
-        , mLastPid     (0)
+    virtual auto Run (SettingsPtr settings) -> bool override
     {
-    }
-
-    auto Run () -> bool override
-    {
-        if (mSettingsPtr->Auto.ProcessNames.empty() && mSettingsPtr->Auto.ProcessPaths.empty())
+        if (settings->Auto.ProcessNames.empty() && settings->Auto.ProcessPaths.empty())
         {
             return false;
         }
@@ -88,32 +82,40 @@ public:
             {
                 return true;
             }
+
+            const auto& last = mLastProcessPath.empty() ? mLastProcessName : mLastProcessPath;
+            spdlog::info(L"Process: {} (PID: {}), no longer exists, scanning all processes", last, mLastPid);
         }
 
         mLastProcessName.clear();
         mLastProcessPath.clear();
         mLastPid = 0;
+
         return ScanProcesses(
             [&](HANDLE handle, DWORD pid, fs::path path)
             {
                 // Check if process is on process names list.
-                for (auto procName : mSettingsPtr->Auto.ProcessNames)
+                for (auto procName : settings->Auto.ProcessNames)
                 {
                     if (procName == path.filename())
                     {
                         mLastProcessName = procName;
                         mLastPid         = pid;
+
+                        spdlog::info(L"Found process: {} (PID: {})", procName, pid);
                         return true;
                     }
                 }
 
                 // Check if process is on process paths list.
-                for (auto procPath : mSettingsPtr->Auto.ProcessPaths)
+                for (auto procPath : settings->Auto.ProcessPaths)
                 {
                     if (procPath == path)
                     {
                         mLastProcessPath = procPath;
                         mLastPid         = pid;
+
+                        spdlog::info(L"Found process: {} (PID: {})", procPath, pid);
                         return true;
                     }
                 }
@@ -121,37 +123,23 @@ public:
                 return false; // don't stop iterating
             }
         );
-    }
-
-    const auto& GetLastFound()
-    {
-        return mLastProcessPath.empty() ? mLastProcessName : mLastProcessPath;
     }
 };
 
 class WindowScanner : public Scanner
 {
-    std::shared_ptr<Settings> mSettingsPtr;
-    std::wstring              mLastFound;
-
 public:
-    WindowScanner (std::shared_ptr<Settings> settings)
-        : mSettingsPtr (settings)
+    auto Run (SettingsPtr settings) -> bool override
     {
-    }
-
-    auto Run () -> bool override
-    {
-        mLastFound = L"";
         return ScanWindows(
             [&](HWND hWnd, DWORD pid, std::wstring_view window)
             {
                 // Check if process is on window title list.
-                for (auto windowTitle : mSettingsPtr->Auto.WindowTitles)
+                for (auto windowTitle : settings->Auto.WindowTitles)
                 {
                     if (windowTitle == window)
                     {
-                        mLastFound = window;
+                        spdlog::info(L"Found window: {} (PID: {})", windowTitle, pid);
                         return true;
                     }
                 }
@@ -160,8 +148,6 @@ public:
             }
         );
     }
-
-    const auto& GetLastFound() { return mLastFound; }
 };
 
 } // namespace CaffeineTake

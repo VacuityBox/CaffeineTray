@@ -185,21 +185,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AppInitInfo.cpp" />
+    <ClCompile Include="CaffeineAppSO.cpp" />
     <ClCompile Include="CaffeineIcons.cpp" />
-    <ClCompile Include="ExecutionState.cpp" />
-    <ClCompile Include="CaffeineTake.cpp" />
+    <ClCompile Include="CaffeineApp.cpp" />
+    <ClCompile Include="CaffeineMode.cpp" />
     <ClCompile Include="Dialogs\AddWizard.cpp" />
     <ClCompile Include="Dialogs\CaffeineSettings.cpp" />
-    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppInitInfo.hpp" />
+    <ClInclude Include="CaffeineAppSO.hpp" />
+    <ClInclude Include="CaffeineState.hpp" />
     <ClInclude Include="Dialogs\AboutDialog.hpp" />
-    <ClInclude Include="ExecutionState.hpp" />
     <ClInclude Include="CaffeineMode.hpp" />
-    <ClInclude Include="CaffeineTake.hpp" />
+    <ClInclude Include="CaffeineApp.hpp" />
     <ClInclude Include="Dialogs\AddDialog.hpp" />
     <ClInclude Include="Dialogs\AddWizard.hpp" />
     <ClInclude Include="Dialogs\Dialog.hpp" />
@@ -215,10 +216,10 @@
     <ClInclude Include="CaffeineIcons.hpp" />
     <ClInclude Include="InstanceGuard.hpp" />
     <ClInclude Include="Logger.hpp" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="Resource.hpp" />
     <ClInclude Include="Scanner.hpp" />
     <ClInclude Include="Settings.hpp" />
-    <ClInclude Include="Timer.hpp" />
+    <ClInclude Include="ThreadTimer.hpp" />
     <ClInclude Include="Utility.hpp" />
     <ClInclude Include="Version.hpp" />
   </ItemGroup>

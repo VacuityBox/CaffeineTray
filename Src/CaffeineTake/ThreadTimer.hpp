@@ -27,7 +27,7 @@
 
 namespace CaffeineTake {
 
-class Timer
+class ThreadTimer
 {
     std::function<void ()>    mTickCallback;
     std::thread               mWorkerThread;
@@ -59,11 +59,11 @@ class Timer
         }
     }
 
-    Timer            (const Timer& rhs) = delete;
-    Timer& operator= (const Timer& rhs) = delete;
+    ThreadTimer            (const ThreadTimer& rhs) = delete;
+    ThreadTimer& operator= (const ThreadTimer& rhs) = delete;
 
 public:
-    Timer (
+    ThreadTimer (
         decltype(mTickCallback) fn,
         decltype(mInterval) interval = std::chrono::milliseconds(1000),
         bool autoStart = false
@@ -80,7 +80,7 @@ public:
         }
     }
 
-    ~Timer ()
+    ~ThreadTimer ()
     {
         Stop();
     }
@@ -91,7 +91,7 @@ public:
         {
             mIsDone        = false;
             mIsPaused      = false;
-            mWorkerThread  = std::thread(&Timer::Worker, this);
+            mWorkerThread  = std::thread(&ThreadTimer::Worker, this);
             mWorkerSpawned = true;
         }
 

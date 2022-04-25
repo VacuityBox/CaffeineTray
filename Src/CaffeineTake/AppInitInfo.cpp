@@ -42,7 +42,7 @@ auto GetAppInitInfo (HINSTANCE hInstance) -> AppInitInfo
     auto readExecutablePath = false;
     while (true)
     {
-        auto ret = GetModuleFileNameW(NULL, ptr, size);
+        auto ret = GetModuleFileNameW(NULL, ptr, static_cast<DWORD>(size));
         if (ret == 0)
         {
             break;
