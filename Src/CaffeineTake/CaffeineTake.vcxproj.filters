@@ -143,6 +143,9 @@
     <ClInclude Include="CaffeineAppSO.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Schedule.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

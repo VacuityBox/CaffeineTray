@@ -97,7 +97,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -120,7 +120,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -143,7 +143,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -166,7 +166,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -218,6 +218,7 @@
     <ClInclude Include="Logger.hpp" />
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="Scanner.hpp" />
+    <ClInclude Include="Schedule.hpp" />
     <ClInclude Include="Settings.hpp" />
     <ClInclude Include="ThreadTimer.hpp" />
     <ClInclude Include="Utility.hpp" />

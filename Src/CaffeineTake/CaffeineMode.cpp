@@ -20,9 +20,11 @@
 
 #include "CaffeineMode.hpp"
 
+#include <chrono>
+
 namespace CaffeineTake {
 
-auto AutoMode::TimerUpdate () -> void
+auto AutoMode::ScannerTimerProc () -> void
 {
     // Scan processes and windows if no process found.
     auto scannerResult = mProcessScanner.Run(mSettingsPtr);
@@ -32,7 +34,7 @@ auto AutoMode::TimerUpdate () -> void
     }
 
     // Only if there is state change.
-    if (scannerResult != mPreviousResult)
+    if (scannerResult != mScannerPreviousResult)
     {
         // Activate auto mode if process is found. Deactivate otherwise.
         if (scannerResult)
@@ -44,8 +46,33 @@ auto AutoMode::TimerUpdate () -> void
             mAppPtr->DisableCaffeine();
         }
 
-        mPreviousResult = scannerResult;
+        mScannerPreviousResult = scannerResult;
     }
+}
+
+auto AutoMode::ScheduleTimerProc () -> void
+{
+    // Scan processes and windows if no process found.
+    auto scheduleResult = Schedule::CheckSchedule(
+        mSettingsPtr->Auto.ScheduleEntries, std::chrono::system_clock::now()
+    );
+
+    // Only if there is state change.
+    if (scheduleResult != mSchedulePreviousResult)
+    {
+        if (scheduleResult)
+        {
+            mAppPtr->EnableCaffeine();
+        }
+        else
+        {
+            mAppPtr->DisableCaffeine();
+        }
+
+        mSchedulePreviousResult = scheduleResult;
+    }
+
+    // TODO it would be better if we first check schedule and the run scanner
 }
 
 } // namespace CaffeineTake

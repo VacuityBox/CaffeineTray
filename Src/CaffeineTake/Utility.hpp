@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <nlohmann/json.hpp>
+
 #include <filesystem>
 #include <functional>
 #include <optional>
@@ -54,3 +56,24 @@ auto GetProcessPath (DWORD pid) -> std::filesystem::path;
     do {} while (0)
 
 } // namespace CaffeineTake
+
+// std::wstring serializer/deserializer.
+namespace nlohmann {
+
+template <>
+struct adl_serializer<std::wstring>
+{
+    static void to_json(json& j, const std::wstring& opt)
+    {
+        auto utf8 = CaffeineTake::UTF16ToUTF8(opt.c_str());
+        j = utf8 ? utf8.value() : "";
+    }
+
+    static void from_json(const json& j, std::wstring& opt)
+    {
+        auto utf16 = CaffeineTake::UTF8ToUTF16(j.get<std::string>());
+        opt = utf16 ? utf16.value() : L"";
+    }
+};
+
+} // namespace nlohmann

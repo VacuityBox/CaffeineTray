@@ -21,6 +21,7 @@
 #pragma once
 
 #include "CaffeineIcons.hpp"
+#include "Schedule.hpp"
 #include "Utility.hpp"
 
 #include <nlohmann/json.hpp>
@@ -28,27 +29,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-
-// std::wstring serializer/deserializer.
-namespace nlohmann {
-
-template <>
-struct adl_serializer<std::wstring>
-{
-    static void to_json(json& j, const std::wstring& opt)
-    {
-        auto utf8 = CaffeineTake::UTF16ToUTF8(opt.c_str());
-        j = utf8 ? utf8.value() : "";
-    }
-
-    static void from_json(const json& j, std::wstring& opt)
-    {
-        auto utf16 = CaffeineTake::UTF8ToUTF16(j.get<std::string>());
-        opt = utf16 ? utf16.value() : L"";
-    }
-};
-
-} // namespace nlohmann
 
 namespace CaffeineTake {
 
@@ -63,7 +43,7 @@ public:
     struct Standard
     {
         bool KeepDisplayOn;
-        bool DisableOnLockScreen;
+        bool DisableOnLockScreen;  // TODO rename to more adequate name, this one might be mistaken with disabling Caffeine at all
 
         Standard ()
             : KeepDisplayOn       (true)
@@ -76,29 +56,39 @@ public:
 
     struct Auto
     {
-        unsigned int ScanInterval;  // in ms
-        bool         KeepDisplayOn;
-        bool         DisableOnLockScreen;
+        bool KeepDisplayOn;
+        bool DisableOnLockScreen; // TODO rename to more adequate name, this one might be mistaken with disabling Caffeine at all
 
+        // Scan interval for Process/Window triggers.
+        // TODO rename?
+        unsigned int ScanInterval;  // in ms
+
+        // Process trigger.
         std::vector<std::wstring> ProcessNames;
         std::vector<std::wstring> ProcessPaths;
+
+        // Window trigger.
         std::vector<std::wstring> WindowTitles;
 
+        // Schedule trigger.
+        std::vector<ScheduleEntry> ScheduleEntries;
+
         Auto ()
-            : ScanInterval        (2000)
-            , KeepDisplayOn       (true)
+            : KeepDisplayOn       (true)
             , DisableOnLockScreen (true)
+            , ScanInterval        (2000)
         {
         }
 
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(
             Auto,
-            ScanInterval,
             KeepDisplayOn,
             DisableOnLockScreen,
+            ScanInterval,
             ProcessNames,
             ProcessPaths,
-            WindowTitles
+            WindowTitles,
+            ScheduleEntries
         )
     } Auto;
 

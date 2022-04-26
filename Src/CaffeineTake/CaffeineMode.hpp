@@ -21,8 +21,9 @@
 #pragma once
 
 #include "CaffeineAppSO.hpp"
-#include "Settings.hpp"
 #include "Scanner.hpp"
+#include "Schedule.hpp"
+#include "Settings.hpp"
 #include "ThreadTimer.hpp"
 
 #include <string_view>
@@ -83,26 +84,39 @@ class AutoMode
 {
     CaffeineAppSO* mAppPtr;
     SettingsPtr    mSettingsPtr;
+    
     ProcessScanner mProcessScanner;
     WindowScanner  mWindowScanner;
-    ThreadTimer    mScannerTimer;
-    bool           mPreviousResult;
 
-    auto TimerUpdate () -> void;
+    bool           mScannerPreviousResult;
+    bool           mSchedulePreviousResult;
+
+    ThreadTimer    mScannerTimer;
+    ThreadTimer    mScheduleTimer;
+
+    auto ScannerTimerProc  () -> void;
+    auto ScheduleTimerProc () -> void;
 
 public:
     AutoMode (CaffeineAppSO* app, SettingsPtr settings)
-        : mAppPtr         (app)
-        , mSettingsPtr    (settings)
-        , mProcessScanner ()
-        , mWindowScanner  ()
-        , mScannerTimer   (std::bind(&AutoMode::TimerUpdate, this))
+        : mAppPtr                 (app)
+        , mSettingsPtr            (settings)
+        , mProcessScanner         ()
+        , mWindowScanner          ()
+        , mScannerTimer           (std::bind(&AutoMode::ScannerTimerProc, this))
+        , mScheduleTimer          (std::bind(&AutoMode::ScheduleTimerProc, this), std::chrono::milliseconds(1000))
+        , mScannerPreviousResult  (false)
+        , mSchedulePreviousResult (false)
     {
     }
 
     auto Start (CaffeineAppSO* app) -> bool
     {
         app->DisableCaffeine();
+
+        mScannerTimer.Interval(std::chrono::milliseconds(mSettingsPtr->Auto.ScanInterval));
+
+        mScheduleTimer.Start();
         mScannerTimer.Start();
 
         return true;
@@ -110,7 +124,9 @@ public:
 
     auto Stop (CaffeineAppSO* app) -> bool
     {
-        mScannerTimer.Pause();
+        mScannerTimer.Stop();
+        mScheduleTimer.Stop();
+
         app->DisableCaffeine();
 
         return true;
