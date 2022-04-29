@@ -73,6 +73,9 @@ public:
         // Schedule trigger.
         std::vector<ScheduleEntry> ScheduleEntries;
 
+        // USB Device trigger.
+        std::vector<std::wstring> UsbDevices;
+
         Auto ()
             : KeepDisplayOn       (true)
             , DisableOnLockScreen (true)
@@ -88,7 +91,8 @@ public:
             ProcessNames,
             ProcessPaths,
             WindowTitles,
-            ScheduleEntries
+            ScheduleEntries,
+            UsbDevices
         )
     } Auto;
 

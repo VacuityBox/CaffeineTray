@@ -85,8 +85,9 @@ class AutoMode
     CaffeineAppSO* mAppPtr;
     SettingsPtr    mSettingsPtr;
     
-    ProcessScanner mProcessScanner;
-    WindowScanner  mWindowScanner;
+    ProcessScanner   mProcessScanner;
+    WindowScanner    mWindowScanner;
+    UsbDeviceScanner mUsbScanner;
 
     bool           mScannerPreviousResult;
     bool           mSchedulePreviousResult;

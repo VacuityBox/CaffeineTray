@@ -32,6 +32,10 @@ auto AutoMode::ScannerTimerProc () -> void
     {
         scannerResult = mWindowScanner.Run(mSettingsPtr);
     }
+    if (!scannerResult)
+    {
+        scannerResult = mUsbScanner.Run(mSettingsPtr);
+    }
 
     // Only if there is state change.
     if (scannerResult != mScannerPreviousResult)

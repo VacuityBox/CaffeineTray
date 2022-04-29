@@ -26,8 +26,14 @@
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <string_view>
+
+#include <Windows.h>
+#include <initguid.h>
+#include <SetupAPI.h>
+#include <usbiodef.h>
 
 namespace {
     namespace fs = std::filesystem;
@@ -131,6 +137,11 @@ class WindowScanner : public Scanner
 public:
     auto Run (SettingsPtr settings) -> bool override
     {
+        if (settings->Auto.WindowTitles.empty())
+        {
+            return false;
+        }
+
         return ScanWindows(
             [&](HWND hWnd, DWORD pid, std::wstring_view window)
             {
@@ -147,6 +158,122 @@ public:
                 return false; // don't stop iterating
             }
         );
+    }
+};
+
+class UsbDeviceScanner : public Scanner
+{
+    std::wstring mLastFoundDevice = L"";
+
+public:
+    auto Run (SettingsPtr settings) -> bool override
+    {
+        if (settings->Auto.UsbDevices.empty())
+        {
+            return false;
+        }
+
+        // Get list of USB devices that are present in the system.
+        auto deviceInfoSet = SetupDiGetClassDevsW(&GUID_DEVINTERFACE_USB_DEVICE, NULL, NULL, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT);
+        if (deviceInfoSet == INVALID_HANDLE_VALUE)
+        {
+            return false;
+        }
+    
+        auto deviceIndex = DWORD{0};
+        auto deviceInfoData = SP_DEVINFO_DATA{};
+        ZeroMemory(&deviceInfoData, sizeof(SP_DEVINFO_DATA));
+        deviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+
+        auto found = false;
+        auto buffer = std::vector<wchar_t>();
+        buffer.resize(1024);
+
+        auto error = DWORD{0};
+        while (error != ERROR_NO_MORE_ITEMS)
+        {
+            auto success = SetupDiEnumDeviceInfo(deviceInfoSet, deviceIndex, &deviceInfoData);
+            if (!success)
+            {
+                error = GetLastError();
+
+                if (error != ERROR_NO_MORE_ITEMS)
+                {
+                    spdlog::error("SetupDiEnumDeviceInfo() failed with error: {}", error);
+                    break;
+                }
+            }
+            else
+            {
+                // Get required buffer size.
+                auto requiredSize = DWORD{0};
+                success = SetupDiGetDeviceInstanceIdW(deviceInfoSet, &deviceInfoData, NULL, 0, &requiredSize);
+                if (!success)
+                {
+                    error = GetLastError();
+
+                    if (error != ERROR_INSUFFICIENT_BUFFER)
+                    {
+                        spdlog::error("SetupDiGetDeviceInstanceIdW() failed with error: {}", error);
+                        break;
+                    }
+                }
+
+                // Resize buffer if needed.
+                if (requiredSize > buffer.capacity())
+                {
+                    buffer.resize(requiredSize);
+                }
+
+                // Get device id.
+                success = SetupDiGetDeviceInstanceIdW(deviceInfoSet, &deviceInfoData, buffer.data(), buffer.capacity(), &requiredSize);
+                if (!success)
+                {
+                    error = GetLastError();
+
+                    spdlog::error("SetupDiGetDeviceInstanceIdW() failed with error: {}", error);
+                    break;
+                }
+
+                // Check if device is in the trigger list.
+                for (const auto& id : settings->Auto.UsbDevices)
+                {
+                    if (id == std::wstring_view(buffer.data()))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            deviceIndex++;
+        }
+
+        // Cleanup.
+        if (deviceInfoSet)
+        {
+            SetupDiDestroyDeviceInfoList(deviceInfoSet);
+        }
+
+        if (found)
+        {
+            if (mLastFoundDevice != std::wstring_view(buffer.data()))
+            {
+                mLastFoundDevice = buffer.data();
+                spdlog::info(L"Found present USB device: '{}'", mLastFoundDevice);
+            }
+        }
+        else
+        {
+            if (!mLastFoundDevice.empty())
+            {
+                spdlog::info(L"USB Device '{}' is no longer present in system", mLastFoundDevice);
+            }
+
+            mLastFoundDevice = L"";
+        }
+
+        return found;
     }
 };
 
