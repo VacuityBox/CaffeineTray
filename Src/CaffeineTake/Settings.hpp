@@ -20,12 +20,14 @@
 
 #pragma once
 
+#include "BluetoothIdentifier.hpp"
 #include "CaffeineIcons.hpp"
 #include "Schedule.hpp"
 #include "Utility.hpp"
 
 #include <nlohmann/json.hpp>
 
+#include <format>
 #include <memory>
 #include <string>
 #include <vector>
@@ -76,10 +78,15 @@ public:
         // USB Device trigger.
         std::vector<std::wstring> UsbDevices;
 
+        // Bluetooth Device trigger.
+        std::vector<BluetoothIdentifier> BluetoothDevices;
+        unsigned int                     ActiveTimeout;   // in ms
+
         Auto ()
             : KeepDisplayOn       (true)
             , DisableOnLockScreen (true)
             , ScanInterval        (2000)
+            , ActiveTimeout       (60*1000)
         {
         }
 
@@ -92,7 +99,9 @@ public:
             ProcessPaths,
             WindowTitles,
             ScheduleEntries,
-            UsbDevices
+            UsbDevices,
+            BluetoothDevices,
+            ActiveTimeout
         )
     } Auto;
 

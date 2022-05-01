@@ -29,7 +29,10 @@
 #include <string_view>
 
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <Windows.h>
+
+using SystemTimePoint = std::chrono::system_clock::time_point;
 
 namespace CaffeineTake {
 
@@ -48,6 +51,11 @@ auto IsSessionLocked () -> SessionState;
 auto ScanProcesses  (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool;
 auto ScanWindows    (std::function<bool (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible = true) -> bool;
 auto GetProcessPath (DWORD pid) -> std::filesystem::path;
+
+auto HexCharToInt (const char c) -> unsigned char;
+
+SystemTimePoint FILETIME_to_system_clock (FILETIME fileTime);
+FILETIME        system_clock_to_FILETIME (SystemTimePoint systemPoint);
 
 #define SINGLE_INSTANCE_GUARD()                                                               \
     static std::mutex _mutex_##__LINE__;                                                      \

@@ -88,6 +88,7 @@ class AutoMode
     ProcessScanner   mProcessScanner;
     WindowScanner    mWindowScanner;
     UsbDeviceScanner mUsbScanner;
+    BluetoothScanner mBluetoothScanner;
 
     bool           mScannerPreviousResult;
     bool           mSchedulePreviousResult;

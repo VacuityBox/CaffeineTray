@@ -23,8 +23,6 @@
 #include <array>
 #include <filesystem>
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
 #include <Psapi.h>
 #include <ShlObj.h>
 #include <VersionHelpers.h>
@@ -278,6 +276,63 @@ auto GetProcessPath (DWORD pid) -> std::filesystem::path
     }
 
     return std::filesystem::path();
+}
+
+auto HexCharToInt (const char c) -> unsigned char
+{
+    if ('a' <= c && c <= 'f')
+    {
+        return c - 'a' + 10;
+    }
+
+    if ('A' <= c && c <= 'F')
+    {
+        return c - 'A' + 10;
+    }
+
+    if ('0' <= c && c <= '9')
+    {
+        return c - '0';
+    }
+
+    return std::numeric_limits<unsigned char>::max();
+}
+
+// https://github.com/HowardHinnant/date/wiki/Examples-and-Recipes#FILETIME
+// by Billy O'Neal
+
+using std::ratio;
+using std::chrono::duration;
+using std::chrono::duration_cast;
+using std::chrono::system_clock;
+
+// filetime_duration has the same layout as FILETIME; 100ns intervals
+using filetime_duration = duration<int64_t, ratio<1, 10'000'000>>;
+// January 1, 1601 (NT epoch) - January 1, 1970 (Unix epoch):
+constexpr duration<int64_t> nt_to_unix_epoch{INT64_C(-11644473600)};
+
+SystemTimePoint FILETIME_to_system_clock(FILETIME fileTime)
+{
+    const filetime_duration asDuration{
+        static_cast<int64_t>((static_cast<uint64_t>(fileTime.dwHighDateTime) << 32) | fileTime.dwLowDateTime)
+    };
+    const auto withUnixEpoch = asDuration + nt_to_unix_epoch;
+    return system_clock::time_point{
+        std::chrono::duration_cast<system_clock::duration>(withUnixEpoch)
+    };
+}
+
+FILETIME system_clock_to_FILETIME(SystemTimePoint systemPoint)
+{
+    const auto asDuration = std::chrono::duration_cast<filetime_duration>(
+        systemPoint.time_since_epoch()
+    );
+    const auto withNtEpoch = asDuration - nt_to_unix_epoch;
+    const uint64_t rawCount = withNtEpoch.count();
+    FILETIME result;
+    result.dwLowDateTime = static_cast<DWORD>(rawCount); // discards upper bits
+    result.dwHighDateTime = static_cast<DWORD>(rawCount >> 32);
+    return result;
 }
 
 } // namespace CaffeineTake

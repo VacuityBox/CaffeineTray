@@ -36,6 +36,10 @@ auto AutoMode::ScannerTimerProc () -> void
     {
         scannerResult = mUsbScanner.Run(mSettingsPtr);
     }
+    if (!scannerResult)
+    {
+        scannerResult = mBluetoothScanner.Run(mSettingsPtr);
+    }
 
     // Only if there is state change.
     if (scannerResult != mScannerPreviousResult)
