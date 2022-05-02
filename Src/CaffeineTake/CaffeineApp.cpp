@@ -41,7 +41,7 @@ using namespace std;
 
 namespace CaffeineTake {
 
-CaffeineApp::CaffeineApp(const AppInitInfo& info)
+CaffeineApp::CaffeineApp (const AppInitInfo& info)
     : mSettings           (std::make_shared<Settings>())
     , mSettingsFilePath   (info.SettingsPath)
     , mCustomIconsPath    (info.DataDirectory / "Icons" / "")
@@ -62,15 +62,13 @@ CaffeineApp::CaffeineApp(const AppInitInfo& info)
     , mAppSO               (this)
     , mAutoMode            (&mAppSO, mSettings)
     , mTimerMode           (&mAppSO, mSettings)
+    , mDpi                 (96)
 {
-    spdlog::info("---- Log started ----");
 }
 
 CaffeineApp::~CaffeineApp()
 {
     DisableCaffeine();
-
-    spdlog::info("---- Log ended ----");
 }
 
 auto CaffeineApp::Init() -> bool
@@ -145,8 +143,14 @@ auto CaffeineApp::Init() -> bool
         mIcons.Load(mSettings->IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
     }
 
-    // Update icons, timer, power settings.
+    // Update mode, icons, execution state, tip.
     {
+        if (!LoadMode())
+        {
+            spdlog::info("Writing default mode to registry");
+            SaveMode();
+        }
+
         SetCaffeineMode(mCaffeineMode);
         UpdateAppIcon();
     }
@@ -376,6 +380,8 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
 
     UpdateIcon();
     UpdateTip();
+
+    SaveMode();
 }
 
 auto CaffeineApp::StartMode () -> void
@@ -420,6 +426,70 @@ auto CaffeineApp::StopMode () -> void
         mTimerMode.Stop(&mAppSO);
         break;
     }
+}
+
+auto CaffeineApp::LoadMode () -> bool
+{
+    auto subKey   = std::format(L"Software\\{}", CAFFEINE_TAKE_PROGRAM_NAME);
+    auto data     = DWORD{0};
+    auto dataSize = DWORD{sizeof(data)};
+    auto status   = ::RegGetValueW(
+        HKEY_CURRENT_USER,
+        subKey.c_str(),
+        L"CaffeineMode",
+        RRF_RT_REG_DWORD,
+        NULL,
+        &data,
+        &dataSize
+    );
+
+    auto mode   = CaffeineMode::Disabled;
+    auto result = true;
+
+    if (status != ERROR_SUCCESS)
+    {
+        spdlog::error("Failed to load CaffeineMode from registry");
+        spdlog::info("Using default Disabled mode");
+        result = false;
+    }
+    else
+    {
+        spdlog::info("Loaded CaffeineMode from registry");
+        mode = static_cast<CaffeineMode>(data);
+    }
+
+    mCaffeineMode = mode;
+    
+    return result;
+}
+
+auto CaffeineApp::SaveMode () -> bool
+{
+    auto subKey   = std::format(L"Software\\{}", CAFFEINE_TAKE_PROGRAM_NAME);
+    auto data     = static_cast<DWORD>(mCaffeineMode);
+    auto dataSize = DWORD{sizeof(data)};
+    auto status   = ::RegSetKeyValueW(
+        HKEY_CURRENT_USER,
+        subKey.c_str(),
+        L"CaffeineMode",
+        REG_DWORD,
+        reinterpret_cast<LPCWSTR>(&data),
+        dataSize
+    );
+
+    auto result = true;
+
+    if (status != ERROR_SUCCESS)
+    {
+        spdlog::error("Failed to save CaffeineMode to registry");
+        result = false;
+    }
+    else
+    {
+        spdlog::info("Saved CaffeineMode to registry");
+    }
+    
+    return result;
 }
 
 auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void

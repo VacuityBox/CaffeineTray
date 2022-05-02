@@ -61,7 +61,7 @@ class CaffeineApp final
     SettingsPtr      mSettings;
     CaffeineIcons    mIcons;
     CaffeineAppSO    mAppSO;
-    CaffeineMode     mCaffeineMode; // TODO save this to file/registry, and reload on init
+    CaffeineMode     mCaffeineMode;
     CaffeineState    mCaffeineState;
     bool             mKeepDisplayOn;
     bool             mInitialized;
@@ -95,6 +95,9 @@ class CaffeineApp final
     
     auto StartMode () -> void;
     auto StopMode  () -> void;
+
+    auto LoadMode () -> bool;
+    auto SaveMode () -> bool;
 
     // Main update method. This change ui/es.
     auto UpdateExecutionState  (CaffeineState state) -> void;
