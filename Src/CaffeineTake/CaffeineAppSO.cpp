@@ -40,5 +40,15 @@ auto CaffeineAppSO::DisableCaffeine () -> void
     }
 }
 
+auto CaffeineAppSO::GetSettings () -> SettingsPtr
+{
+    if (mApp)
+    {
+        return mApp->mSettings;
+    }
+
+    return nullptr;
+}
+
 } // namespace CaffeineTake
     

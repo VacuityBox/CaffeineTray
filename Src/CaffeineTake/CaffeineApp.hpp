@@ -70,6 +70,7 @@ class CaffeineApp final
     fs::path         mSettingsFilePath;
     int              mDpi;
 
+    Mode*            mCurrentMode;
     DisabledMode     mDisabledMode;
     EnabledMode      mEnabledMode;
     AutoMode         mAutoMode;

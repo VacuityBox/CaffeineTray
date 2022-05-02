@@ -48,8 +48,8 @@ inline auto InitLogger (const fs::path& logFilePath) -> bool
     vsdbgsink->set_pattern("[%8l]{%5t} %v");
     logger->sinks().push_back(vsdbgsink);
 
-    spdlog::flush_on(spdlog::level::debug);
-    spdlog::set_level(spdlog::level::level_enum::debug);
+    spdlog::flush_on(spdlog::level::trace);
+    spdlog::set_level(spdlog::level::level_enum::trace);
 #endif
 
     spdlog::set_default_logger(logger);

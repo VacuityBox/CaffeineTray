@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "Settings.hpp"
+
 namespace CaffeineTake {
 
 class CaffeineApp;
@@ -42,6 +44,8 @@ public:
 
     auto EnableCaffeine  () -> void;
     auto DisableCaffeine () -> void;
+
+    auto GetSettings () -> SettingsPtr;
 };
 
 } // namespace CaffeineTake

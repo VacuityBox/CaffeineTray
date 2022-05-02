@@ -26,19 +26,25 @@ namespace CaffeineTake {
 
 auto AutoMode::ScannerTimerProc () -> bool
 {
+    const auto settingsPtr = mAppSO.GetSettings();
+    if (!settingsPtr)
+    {
+        return false;
+    }
+
     // Scan processes and windows if no process found.
-    auto scannerResult = mProcessScanner.Run(mSettingsPtr);
+    auto scannerResult = mProcessScanner.Run(settingsPtr);
     if (!scannerResult)
     {
-        scannerResult = mWindowScanner.Run(mSettingsPtr);
+        scannerResult = mWindowScanner.Run(settingsPtr);
     }
     if (!scannerResult)
     {
-        scannerResult = mUsbScanner.Run(mSettingsPtr);
+        scannerResult = mUsbScanner.Run(settingsPtr);
     }
     if (!scannerResult)
     {
-        scannerResult = mBluetoothScanner.Run(mSettingsPtr);
+        scannerResult = mBluetoothScanner.Run(settingsPtr);
     }
 
     // Only if there is state change.
@@ -47,11 +53,11 @@ auto AutoMode::ScannerTimerProc () -> bool
         // Activate auto mode if process is found. Deactivate otherwise.
         if (scannerResult)
         {
-            mAppPtr->EnableCaffeine();
+            mAppSO.EnableCaffeine();
         }
         else
         {
-            mAppPtr->DisableCaffeine();
+            mAppSO.DisableCaffeine();
         }
 
         mScannerPreviousResult = scannerResult;
@@ -62,9 +68,15 @@ auto AutoMode::ScannerTimerProc () -> bool
 
 auto AutoMode::ScheduleTimerProc () -> bool
 {
+    const auto settingsPtr = mAppSO.GetSettings();
+    if (!settingsPtr)
+    {
+        return false;
+    }
+
     // Scan processes and windows if no process found.
     auto scheduleResult = Schedule::CheckSchedule(
-        mSettingsPtr->Auto.ScheduleEntries, std::chrono::system_clock::now()
+        settingsPtr->Auto.ScheduleEntries, std::chrono::system_clock::now()
     );
 
     // Only if there is state change.
@@ -72,11 +84,11 @@ auto AutoMode::ScheduleTimerProc () -> bool
     {
         if (scheduleResult)
         {
-            mAppPtr->EnableCaffeine();
+            mAppSO.EnableCaffeine();
         }
         else
         {
-            mAppPtr->DisableCaffeine();
+            mAppSO.DisableCaffeine();
         }
 
         mSchedulePreviousResult = scheduleResult;

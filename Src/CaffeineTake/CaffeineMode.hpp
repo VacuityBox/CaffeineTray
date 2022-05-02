@@ -51,60 +51,90 @@ constexpr auto CaffeineModeToString (CaffeineMode mode) -> std::wstring_view
     return L"Invalid CaffeineMode";
 }
 
-class DisabledMode
+class Mode
+{
+protected:
+    CaffeineAppSO mAppSO = nullptr;
+
+public:
+    Mode (CaffeineAppSO app)
+        : mAppSO (app)
+    {
+    }
+
+    virtual auto Start () -> bool = 0;
+    virtual auto Stop  () -> bool = 0;
+
+    //virtual auto OnCustomMessage (UINT, WPARAM, LPARAM) -> bool = 0;
+};
+
+class DisabledMode : public Mode
 {
 public:
-    auto Start (CaffeineAppSO* app) -> bool
+    DisabledMode (CaffeineAppSO app)
+        : Mode (app)
     {
-        app->DisableCaffeine();
+    }
+
+    auto Start () -> bool override
+    {
+        mAppSO.DisableCaffeine();
+
+        spdlog::trace("Started Disabled mode");
         return true;
     }
 
-    auto Stop (CaffeineAppSO* app) -> bool
+    auto Stop () -> bool override
     {
+        spdlog::trace("Stopped Disabled mode");
         return true;
     }
 };
 
-class EnabledMode
+class EnabledMode : public Mode
 {
 public:
-    auto Start (CaffeineAppSO* app) -> bool
+    EnabledMode (CaffeineAppSO app)
+        : Mode (app)
     {
-        app->EnableCaffeine();
+    }
+
+    auto Start () -> bool override
+    {
+        mAppSO.EnableCaffeine();
+
+        spdlog::trace("Started Enabled mode");
         return true;
     }
 
-    auto Stop (CaffeineAppSO* app) -> bool
+    auto Stop () -> bool override
     {
-        app->DisableCaffeine();
+        mAppSO.DisableCaffeine();
+
+        spdlog::trace("Stopped Enabled mode");
         return true;
     }
 };
 
-class AutoMode
+class AutoMode : public Mode
 {
-    CaffeineAppSO* mAppPtr;
-    SettingsPtr    mSettingsPtr;
-    
     ProcessScanner   mProcessScanner;
     WindowScanner    mWindowScanner;
     UsbDeviceScanner mUsbScanner;
     BluetoothScanner mBluetoothScanner;
 
-    bool           mScannerPreviousResult;
-    bool           mSchedulePreviousResult;
+    bool             mScannerPreviousResult;
+    bool             mSchedulePreviousResult;
 
-    ThreadTimer    mScannerTimer;
-    ThreadTimer    mScheduleTimer;
+    ThreadTimer      mScannerTimer;
+    ThreadTimer      mScheduleTimer;
 
     auto ScannerTimerProc  () -> bool;
     auto ScheduleTimerProc () -> bool;
 
 public:
-    AutoMode (CaffeineAppSO* app, SettingsPtr settings)
-        : mAppPtr                 (app)
-        , mSettingsPtr            (settings)
+    AutoMode (CaffeineAppSO app)
+        : Mode                    (app)
         , mProcessScanner         ()
         , mWindowScanner          ()
         , mScannerTimer           (std::bind(&AutoMode::ScannerTimerProc, this), ThreadTimer::Interval(1000), false, true)
@@ -114,65 +144,77 @@ public:
     {
     }
 
-    auto Start (CaffeineAppSO* app) -> bool
+    auto Start () -> bool override
     {
-        app->DisableCaffeine();
+        mAppSO.DisableCaffeine();
 
-        mScannerTimer.SetInterval(std::chrono::milliseconds(mSettingsPtr->Auto.ScanInterval));
+        const auto settingsPtr = mAppSO.GetSettings();
+        if (settingsPtr)
+        {
+            mScannerTimer.SetInterval(std::chrono::milliseconds(settingsPtr->Auto.ScanInterval));
+        }
 
         mScheduleTimer.Start();
         mScannerTimer.Start();
 
+        spdlog::trace("Started Auto mode");
+
         return true;
     }
 
-    auto Stop (CaffeineAppSO* app) -> bool
+    auto Stop () -> bool override
     {
         mScannerTimer.Stop();
         mScheduleTimer.Stop();
 
-        app->DisableCaffeine();
+        mAppSO.DisableCaffeine();
+
+        spdlog::trace("Stopped Auto mode");
 
         return true;
     }
 };
 
-class TimerMode
+class TimerMode : public Mode
 {
-    CaffeineAppSO* mAppPtr;
-    SettingsPtr    mSettingsPtr;
-
-    ThreadTimer    mTimerThread;
+    ThreadTimer mTimerThread;
 
     auto TimerProc () -> bool
     {
-        mAppPtr->DisableCaffeine();
+        mAppSO.DisableCaffeine();
 
         return false;
     }
 
 public:
-    TimerMode (CaffeineAppSO* app, SettingsPtr settings)
-        : mAppPtr      (app)
-        , mSettingsPtr (settings)
+    TimerMode (CaffeineAppSO app)
+        : Mode         (app)
         , mTimerThread (std::bind(&TimerMode::TimerProc, this), ThreadTimer::Interval(1000), false, false)
     {
     }
 
-    auto Start (CaffeineAppSO* app) -> bool
+    auto Start () -> bool override
     {
-        mTimerThread.SetInterval(ThreadTimer::Interval(mSettingsPtr->Timer.Interval));
+        const auto settingsPtr = mAppSO.GetSettings();
+        if (settingsPtr)
+        {
+            mTimerThread.SetInterval(std::chrono::milliseconds(settingsPtr->Timer.Interval));
+        }
 
-        app->EnableCaffeine();
+        mAppSO.EnableCaffeine();
         mTimerThread.Start();
+
+        spdlog::trace("Started Timer mode");
 
         return true;
     }
 
-    auto Stop (CaffeineAppSO* app) -> bool
+    auto Stop () -> bool override
     {
         mTimerThread.Stop();
-        app->DisableCaffeine();
+        mAppSO.DisableCaffeine();
+
+        spdlog::trace("Stopped Timer mode");
 
         return true;
     }

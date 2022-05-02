@@ -60,9 +60,12 @@ CaffeineApp::CaffeineApp (const AppInitInfo& info)
     , mCaffeineMode        (CaffeineMode::Disabled)
     , mKeepDisplayOn       (false)
     , mAppSO               (this)
-    , mAutoMode            (&mAppSO, mSettings)
-    , mTimerMode           (&mAppSO, mSettings)
+    , mDisabledMode        (mAppSO)
+    , mEnabledMode         (mAppSO)
+    , mAutoMode            (mAppSO)
+    , mTimerMode           (mAppSO)
     , mDpi                 (96)
+    , mCurrentMode         (nullptr)
 {
 }
 
@@ -376,6 +379,14 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
 
     // Start new one.
     mCaffeineMode = mode;
+    switch (mCaffeineMode)
+    {
+    case CaffeineMode::Disabled: mCurrentMode = &mDisabledMode; break;
+    case CaffeineMode::Enabled:  mCurrentMode = &mEnabledMode;  break;
+    case CaffeineMode::Auto:     mCurrentMode = &mAutoMode;     break;
+    case CaffeineMode::Timer:    mCurrentMode = &mTimerMode;    break;
+    }
+
     StartMode();
 
     UpdateIcon();
@@ -386,45 +397,17 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
 
 auto CaffeineApp::StartMode () -> void
 {
-    switch (mCaffeineMode)
+    if (mCurrentMode)
     {
-    case CaffeineMode::Disabled:
-        mDisabledMode.Start(&mAppSO);
-        return;
-
-    case CaffeineMode::Enabled:
-        mEnabledMode.Start(&mAppSO);
-        break;
-
-    case CaffeineMode::Auto:
-        mAutoMode.Start(&mAppSO);
-        break;
-
-    case CaffeineMode::Timer:
-        mTimerMode.Start(&mAppSO);
-        break;
+        mCurrentMode->Start();
     }
 }
 
 auto CaffeineApp::StopMode () -> void
 {
-    switch (mCaffeineMode)
+    if (mCurrentMode)
     {
-    case CaffeineMode::Disabled:
-        mDisabledMode.Stop(&mAppSO);
-        return;
-
-    case CaffeineMode::Enabled:
-        mEnabledMode.Stop(&mAppSO);
-        break;
-
-    case CaffeineMode::Auto:
-        mAutoMode.Stop(&mAppSO);
-        break;
-
-    case CaffeineMode::Timer:
-        mTimerMode.Stop(&mAppSO);
-        break;
+        mCurrentMode->Stop();
     }
 }
 
