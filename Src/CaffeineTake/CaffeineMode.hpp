@@ -34,7 +34,8 @@ enum class CaffeineMode : unsigned char
 {
     Disabled,
     Enabled,
-    Auto
+    Auto,
+    Timer
 };
 
 constexpr auto CaffeineModeToString (CaffeineMode mode) -> std::wstring_view
@@ -44,6 +45,7 @@ constexpr auto CaffeineModeToString (CaffeineMode mode) -> std::wstring_view
     case CaffeineMode::Disabled: return L"Disabled";
     case CaffeineMode::Enabled:  return L"Enabled";
     case CaffeineMode::Auto:     return L"Auto";
+    case CaffeineMode::Timer:    return L"Timer";
     }
 
     return L"Invalid CaffeineMode";
@@ -129,6 +131,47 @@ public:
         mScannerTimer.Stop();
         mScheduleTimer.Stop();
 
+        app->DisableCaffeine();
+
+        return true;
+    }
+};
+
+class TimerMode
+{
+    CaffeineAppSO* mAppPtr;
+    SettingsPtr    mSettingsPtr;
+
+    ThreadTimer    mTimerThread;
+
+    auto TimerProc () -> bool
+    {
+        mAppPtr->DisableCaffeine();
+
+        return false;
+    }
+
+public:
+    TimerMode (CaffeineAppSO* app, SettingsPtr settings)
+        : mAppPtr      (app)
+        , mSettingsPtr (settings)
+        , mTimerThread (std::bind(&TimerMode::TimerProc, this), ThreadTimer::Interval(1000), false, false)
+    {
+    }
+
+    auto Start (CaffeineAppSO* app) -> bool
+    {
+        mTimerThread.SetInterval(ThreadTimer::Interval(mSettingsPtr->Timer.Interval));
+
+        app->EnableCaffeine();
+        mTimerThread.Start();
+
+        return true;
+    }
+
+    auto Stop (CaffeineAppSO* app) -> bool
+    {
+        mTimerThread.Stop();
         app->DisableCaffeine();
 
         return true;

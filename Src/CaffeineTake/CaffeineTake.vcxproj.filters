@@ -213,5 +213,17 @@
     <Image Include="..\..\Resources\Icons\Square\CaffeineEnabledLight.ico">
       <Filter>Resource Files\Icons\Square</Filter>
     </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineTimerActiveDark.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineTimerActiveLight.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineTimerInactiveDark.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Icons\Square\CaffeineTimerInactiveLight.ico">
+      <Filter>Resource Files\Icons\Square</Filter>
+    </Image>
   </ItemGroup>
 </Project>

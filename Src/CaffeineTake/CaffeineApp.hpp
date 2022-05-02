@@ -72,6 +72,7 @@ class CaffeineApp final
     DisabledMode     mDisabledMode;
     EnabledMode      mEnabledMode;
     AutoMode         mAutoMode;
+    TimerMode        mTimerMode;
 
     auto OnCreate            ()                     -> void;
     auto OnDestroy           ()                     -> void;

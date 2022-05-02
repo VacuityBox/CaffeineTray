@@ -133,10 +133,14 @@ IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_LIGHT         ICON                    "..\\.
 IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_LIGHT          ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineEnabledLight.ico"
 IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_LIGHT    ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineAutoInactiveLight.ico"
 IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_LIGHT      ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineAutoActiveLight.ico"
+IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_INACTIVE_LIGHT   ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineTimerInactiveLight.ico"
+IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_ACTIVE_LIGHT     ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineTimerActiveLight.ico"
 IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_DARK          ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineDisabledDark.ico"
 IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_DARK           ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineEnabledDark.ico"
 IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_DARK     ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineAutoInactiveDark.ico"
 IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_DARK       ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineAutoActiveDark.ico"
+IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_INACTIVE_DARK    ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineTimerInactiveDark.ico"
+IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_ACTIVE_DARK      ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineTimerActiveDark.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -347,6 +351,8 @@ BEGIN
     IDS_CAFFEINE_ENABLED    "Caffeine - Enabled"
     IDS_CAFFEINE_AUTO_INACTIVE "Caffeine - Auto (inactive)"
     IDS_CAFFEINE_AUTO_ACTIVE "Caffeine - Auto (active)"
+    IDS_CAFFEINE_TIMER_INACTIVE "Caffeine - Timer (inactive)"
+    IDS_CAFFEINE_TIMER_ACTIVE "Caffeine - Timer (active)"
 END
 
 #endif    // English (United States) resources

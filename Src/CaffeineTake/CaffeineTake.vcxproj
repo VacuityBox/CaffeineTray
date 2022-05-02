@@ -248,6 +248,10 @@
     <Image Include="..\..\Resources\Icons\Square\CaffeineDisabledLight.ico" />
     <Image Include="..\..\Resources\Icons\Square\CaffeineEnabledDark.ico" />
     <Image Include="..\..\Resources\Icons\Square\CaffeineEnabledLight.ico" />
+    <Image Include="..\..\Resources\Icons\Square\CaffeineTimerActiveDark.ico" />
+    <Image Include="..\..\Resources\Icons\Square\CaffeineTimerActiveLight.ico" />
+    <Image Include="..\..\Resources\Icons\Square\CaffeineTimerInactiveDark.ico" />
+    <Image Include="..\..\Resources\Icons\Square\CaffeineTimerInactiveLight.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

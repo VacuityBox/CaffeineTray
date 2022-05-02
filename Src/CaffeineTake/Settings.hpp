@@ -105,12 +105,29 @@ public:
         )
     } Auto;
 
+    struct Timer
+    {
+        bool KeepDisplayOn;
+        bool DisableOnLockScreen;  // TODO rename to more adequate name, this one might be mistaken with disabling Caffeine at all
+
+        unsigned int Interval;
+
+        Timer ()
+            : KeepDisplayOn       (true)
+            , DisableOnLockScreen (true)
+            , Interval            (0)
+        {
+        }
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(Timer, KeepDisplayOn, DisableOnLockScreen, Interval)
+    } Timer;
+
     Settings ()
         : IconPack (CaffeineIcons::IconPack::Original)
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Settings, IconPack, Standard, Auto)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Settings, IconPack, Standard, Auto, Timer)
 };
 
 } // namespace CaffeineTake

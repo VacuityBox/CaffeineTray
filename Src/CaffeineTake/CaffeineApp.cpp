@@ -61,6 +61,7 @@ CaffeineApp::CaffeineApp(const AppInitInfo& info)
     , mKeepDisplayOn       (false)
     , mAppSO               (this)
     , mAutoMode            (&mAppSO, mSettings)
+    , mTimerMode           (&mAppSO, mSettings)
 {
     spdlog::info("---- Log started ----");
 }
@@ -191,6 +192,10 @@ auto CaffeineApp::OnContextMenuOpen() -> void
         hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_ENABLED_CONTEXTMENU));
         break;
     case CaffeineMode::Auto:
+        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_AUTO_CONTEXTMENU));
+        break;
+    // TODO change when timer menu added
+    case CaffeineMode::Timer:
         hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_AUTO_CONTEXTMENU));
         break;
     }
@@ -338,6 +343,9 @@ auto CaffeineApp::ToggleCaffeineMode() -> void
         mode = CaffeineMode::Auto;
         break;
     case CaffeineMode::Auto:
+        mode = CaffeineMode::Timer;
+        break;
+    case CaffeineMode::Timer:
         mode = CaffeineMode::Disabled;
         break;
     }
@@ -375,6 +383,10 @@ auto CaffeineApp::StartMode () -> void
     case CaffeineMode::Auto:
         mAutoMode.Start(&mAppSO);
         break;
+
+    case CaffeineMode::Timer:
+        mTimerMode.Start(&mAppSO);
+        break;
     }
 }
 
@@ -392,6 +404,10 @@ auto CaffeineApp::StopMode () -> void
 
     case CaffeineMode::Auto:
         mAutoMode.Stop(&mAppSO);
+        break;
+
+    case CaffeineMode::Timer:
+        mTimerMode.Stop(&mAppSO);
         break;
     }
 }
@@ -414,6 +430,11 @@ auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void
     case CaffeineMode::Auto:
         keepDisplayOn = mSettings->Auto.KeepDisplayOn;
         disableOnLock = mSettings->Auto.DisableOnLockScreen;
+        break;
+
+    case CaffeineMode::Timer:
+        keepDisplayOn = mSettings->Timer.KeepDisplayOn;
+        disableOnLock = mSettings->Timer.DisableOnLockScreen;
         break;
     }
 
@@ -493,6 +514,16 @@ auto CaffeineApp::UpdateIcon() -> bool
             icon = mIcons.CaffeineAutoActive;
         }
         break;
+    case CaffeineMode::Timer:
+        if (mCaffeineState == CaffeineState::Inactive)
+        {
+            icon = mIcons.CaffeineTimerInactive;
+        }
+        else
+        {
+            icon = mIcons.CaffeineTimerActive;
+        }
+        break;
     }
 
     // No need to update.
@@ -531,6 +562,16 @@ auto CaffeineApp::UpdateTip() -> bool
         else
         {
             tip = IDS_CAFFEINE_AUTO_ACTIVE;
+        }
+        break;
+    case CaffeineMode::Timer:
+        if (mCaffeineState == CaffeineState::Inactive)
+        {
+            tip = IDS_CAFFEINE_TIMER_INACTIVE;
+        }
+        else
+        {
+            tip = IDS_CAFFEINE_TIMER_ACTIVE;
         }
         break;
     }
