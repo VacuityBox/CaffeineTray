@@ -24,7 +24,7 @@
 
 namespace CaffeineTake {
 
-auto AutoMode::ScannerTimerProc () -> void
+auto AutoMode::ScannerTimerProc () -> bool
 {
     // Scan processes and windows if no process found.
     auto scannerResult = mProcessScanner.Run(mSettingsPtr);
@@ -56,9 +56,11 @@ auto AutoMode::ScannerTimerProc () -> void
 
         mScannerPreviousResult = scannerResult;
     }
+
+    return true;
 }
 
-auto AutoMode::ScheduleTimerProc () -> void
+auto AutoMode::ScheduleTimerProc () -> bool
 {
     // Scan processes and windows if no process found.
     auto scheduleResult = Schedule::CheckSchedule(
@@ -81,6 +83,7 @@ auto AutoMode::ScheduleTimerProc () -> void
     }
 
     // TODO it would be better if we first check schedule and the run scanner
+    return true;
 }
 
 } // namespace CaffeineTake

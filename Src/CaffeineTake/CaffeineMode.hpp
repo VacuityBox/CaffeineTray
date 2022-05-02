@@ -96,8 +96,8 @@ class AutoMode
     ThreadTimer    mScannerTimer;
     ThreadTimer    mScheduleTimer;
 
-    auto ScannerTimerProc  () -> void;
-    auto ScheduleTimerProc () -> void;
+    auto ScannerTimerProc  () -> bool;
+    auto ScheduleTimerProc () -> bool;
 
 public:
     AutoMode (CaffeineAppSO* app, SettingsPtr settings)
@@ -105,8 +105,8 @@ public:
         , mSettingsPtr            (settings)
         , mProcessScanner         ()
         , mWindowScanner          ()
-        , mScannerTimer           (std::bind(&AutoMode::ScannerTimerProc, this))
-        , mScheduleTimer          (std::bind(&AutoMode::ScheduleTimerProc, this), std::chrono::milliseconds(1000))
+        , mScannerTimer           (std::bind(&AutoMode::ScannerTimerProc, this), ThreadTimer::Interval(1000), false, true)
+        , mScheduleTimer          (std::bind(&AutoMode::ScheduleTimerProc, this), ThreadTimer::Interval(1000), false, true)
         , mScannerPreviousResult  (false)
         , mSchedulePreviousResult (false)
     {
@@ -116,7 +116,7 @@ public:
     {
         app->DisableCaffeine();
 
-        mScannerTimer.Interval(std::chrono::milliseconds(mSettingsPtr->Auto.ScanInterval));
+        mScannerTimer.SetInterval(std::chrono::milliseconds(mSettingsPtr->Auto.ScanInterval));
 
         mScheduleTimer.Start();
         mScannerTimer.Start();
