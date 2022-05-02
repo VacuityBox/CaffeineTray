@@ -278,6 +278,26 @@ auto GetProcessPath (DWORD pid) -> std::filesystem::path
     return std::filesystem::path();
 }
 
+auto GetDpi (HWND hWnd) -> int
+{
+    auto dpi = 96;
+
+    auto hUser32 = LoadLibraryW(L"user32.dll");
+    if (hUser32)
+    {
+        typedef UINT (__stdcall *GetDpiForWindowFn)(HWND);
+        if (auto proc = GetProcAddress(hUser32, "GetDpiForWindow"))
+        {
+            auto fnGetDpiForWindow = reinterpret_cast<GetDpiForWindowFn>(proc);
+            dpi = fnGetDpiForWindow(hWnd);
+        }
+
+        FreeLibrary(hUser32);
+    }
+    
+    return dpi;
+}
+
 auto HexCharToInt (const char c) -> unsigned char
 {
     if ('a' <= c && c <= 'f')

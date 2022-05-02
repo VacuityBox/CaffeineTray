@@ -68,6 +68,7 @@ class CaffeineApp final
     SessionState     mSessionState;
     fs::path         mCustomIconsPath;
     fs::path         mSettingsFilePath;
+    int              mDpi;
 
     DisabledMode     mDisabledMode;
     EnabledMode      mEnabledMode;

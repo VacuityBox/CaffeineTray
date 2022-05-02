@@ -52,6 +52,8 @@ auto ScanProcesses  (std::function<bool (HANDLE, DWORD, const std::wstring_view)
 auto ScanWindows    (std::function<bool (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible = true) -> bool;
 auto GetProcessPath (DWORD pid) -> std::filesystem::path;
 
+auto GetDpi (HWND hWnd) -> int;
+
 auto HexCharToInt (const char c) -> unsigned char;
 
 SystemTimePoint FILETIME_to_system_clock (FILETIME fileTime);

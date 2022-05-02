@@ -92,12 +92,6 @@ auto CaffeineApp::Init() -> bool
                 return false;
             }
         }
-
-        mThemeInfo = mni::ThemeInfo::Detect();
-        mSessionState = IsSessionLocked();
-
-        spdlog::info("System theme: {}", static_cast<int>(mThemeInfo.GetTheme()));
-        spdlog::info("Session state: {}", mSessionState == SessionState::Unlocked ? "Unlocked" : "Locked");
     }
 
     // For hyperlinks in About dialog.
@@ -132,10 +126,23 @@ auto CaffeineApp::Init() -> bool
         mNotifyIcon.Show();
     }
 
+    // Get theme/dpi.
+    {
+        mDpi = GetDpi(mNotifyIcon.Handle());
+        mThemeInfo = mni::ThemeInfo::Detect();
+        mSessionState = IsSessionLocked();
+
+        spdlog::info("System dpi: {}", mDpi);
+        spdlog::info("System theme: {}", static_cast<int>(mThemeInfo.GetTheme()));
+        spdlog::info("Session state: {}", mSessionState == SessionState::Unlocked ? "Unlocked" : "Locked");
+    }
+
     // Load icons.
     {
-        // TODO get dpi and load proper size
-        mIcons.Load(mSettings->IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, 16, 16);
+        const auto w = (16 * mDpi) / 96;
+        const auto h = (16 * mDpi) / 96;
+
+        mIcons.Load(mSettings->IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
     }
 
     // Update icons, timer, power settings.
@@ -246,10 +253,12 @@ auto CaffeineApp::OnThemeChange(mni::ThemeInfo ti) -> void
 
     mThemeInfo = ti;
 
+    const auto w = (16 * mDpi) / 96;
+    const auto h = (16 * mDpi) / 96;
+
     // Load proper icons.
-    // TODO save dpi
     // TODO pick right icons for high contrast
-    mIcons.Load(mSettings->IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, 16, 16);
+    mIcons.Load(mSettings->IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
 
     UpdateIcon();
     UpdateAppIcon();
@@ -259,10 +268,11 @@ auto CaffeineApp::OnDpiChange(int dpi) -> void
 {
     spdlog::info("System dpi changed, new dpi: {}", dpi);
 
+    mDpi = dpi;
+
     const auto w = (16 * dpi) / 96;
     const auto h = (16 * dpi) / 96;
 
-    // TODO save dpi
     // TODO pick right icons for high contrast
     // it can be specific icon override
     mIcons.Load(mSettings->IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
@@ -602,18 +612,20 @@ auto CaffeineApp::UpdateAppIcon() -> void
     // TODO sometimes icon in taskmanger is invalid
     // TODO is this function needed, maybe making a proper icon to look good on both themes, white icon with black outline or something
     auto icon = [&](){
-        // TODO dpi load?
+        const auto w = (16 * mDpi) / 96;
+        const auto h = (16 * mDpi) / 96;
+
         const auto flags = UINT{ LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED };
         if (mThemeInfo.IsLight())
         {
             return static_cast<HICON>(
-                LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(IDI_CAFFEINE_APP_DARK), IMAGE_ICON, 0, 0, flags)
+                LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(IDI_CAFFEINE_APP_DARK), IMAGE_ICON, w, h, flags)
             );
         }
         else
         {
             return static_cast<HICON>(
-                LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(IDI_CAFFEINE_APP_LIGHT), IMAGE_ICON, 0, 0, flags)
+                LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(IDI_CAFFEINE_APP_LIGHT), IMAGE_ICON, w, h, flags)
             );
         }
     }();
