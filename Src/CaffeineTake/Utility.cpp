@@ -156,7 +156,7 @@ auto IsSessionLocked () -> SessionState
     return isLocked ? SessionState::Locked : SessionState::Unlocked;
 }
 
-auto ScanProcesses (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool
+auto ScanProcesses (std::function<ScanResult (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool
 {
     // Get the list of process identifiers (PID's).
     const auto PROCESS_LIST_MAX_SIZE = 2048;
@@ -188,10 +188,21 @@ auto ScanProcesses (std::function<bool (HANDLE, DWORD, const std::wstring_view)>
             if (QueryFullProcessImageNameW(processHandle, 0, imageName.data(), &size))
             {
                 // Execute callback.
-                if (checkFn(processHandle, pid, imageName.data()))
+                const auto result = checkFn(processHandle, pid, imageName.data());
+                switch (result)
                 {
+                default:
+                case ScanResult::Continue:
+                    break;
+
+                case ScanResult::Success:
                     CloseHandle(processHandle);
                     return true;
+
+                case ScanResult::Stop:
+                case ScanResult::Failure:
+                    CloseHandle(processHandle);
+                    return false;
                 }
             }
             
@@ -202,7 +213,7 @@ auto ScanProcesses (std::function<bool (HANDLE, DWORD, const std::wstring_view)>
     return false;
 }
 
-auto ScanWindows (std::function<bool (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible) -> bool
+auto ScanWindows (std::function<ScanResult (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible) -> bool
 {
     #define ERROR_USER_CALLBACK_SUCCESS (1 << 29) // bit 29 for user errors
 
@@ -235,10 +246,20 @@ auto ScanWindows (std::function<bool (HWND, DWORD, const std::wstring_view)> che
             GetWindowThreadProcessId(hWnd, &pid);
 
             // Execute callback.            
-            if (callbackFn(hWnd, pid, title.data()))
+            const auto result = callbackFn(hWnd, pid, title.data());
+            switch (result)
             {
+            default:
+            case ScanResult::Continue:
+                break;
+
+            case ScanResult::Success:
                 SetLastError(ERROR_USER_CALLBACK_SUCCESS);
                 return FALSE;
+
+            case ScanResult::Stop:
+            case ScanResult::Failure:
+                break;
             }
         }
 

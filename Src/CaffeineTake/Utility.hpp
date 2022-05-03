@@ -42,14 +42,22 @@ enum class SessionState : bool
     Locked
 };
 
+enum class ScanResult : unsigned char
+{
+    Continue, // continue scanning
+    Stop,     // stop scaning and return false
+    Success,  // stop scaning and return true
+    Failure   // stop scaning and return false
+};
+
 auto UTF8ToUTF16 (const std::string_view str) -> std::optional<std::wstring>;
 auto UTF16ToUTF8 (const std::wstring_view str) -> std::optional<std::string>;
 
 auto GetAppDataPath  () -> std::filesystem::path;
 auto IsSessionLocked () -> SessionState;
 
-auto ScanProcesses  (std::function<bool (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool;
-auto ScanWindows    (std::function<bool (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible = true) -> bool;
+auto ScanProcesses  (std::function<ScanResult (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool;
+auto ScanWindows    (std::function<ScanResult (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible = true) -> bool;
 auto GetProcessPath (DWORD pid) -> std::filesystem::path;
 
 auto GetDpi (HWND hWnd) -> int;

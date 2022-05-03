@@ -77,7 +77,7 @@ public:
                     )
                 );
 
-                return false; // don't stop iterating
+                return ScanResult::Continue;
             }
         );
 
@@ -93,7 +93,7 @@ public:
                     }
                 }
 
-                return false; // don't stop iterating
+                return ScanResult::Continue;
             }
         );
     }
