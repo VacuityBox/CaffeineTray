@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <functional>
@@ -27,68 +28,195 @@
 
 namespace CaffeineTake {
 
+class ThreadTimer;
+
+class StopToken final
+{
+    friend class ThreadTimer;
+
+    std::atomic<bool> mStopAtomic;
+
+    inline auto Stop () -> void
+    {
+        mStopAtomic.store(true);
+    }
+
+    inline auto Reset () -> void
+    {
+        mStopAtomic.store(false);
+    }
+
+public:
+    StopToken ()
+        : mStopAtomic (false)
+    {
+    }
+
+    inline auto Test () const -> bool
+    {
+        return mStopAtomic.load();
+    }
+
+    inline operator bool () const
+    {
+        return Test();
+    }
+};
+
+class PauseToken final
+{
+    friend class ThreadTimer;
+
+    std::atomic<bool> mPauseAtomic;
+
+    inline auto Pause () -> void
+    {
+        mPauseAtomic.store(true);
+    }
+
+    inline auto Notify () -> void
+    {
+        mPauseAtomic.notify_one();
+    }
+
+    inline auto Reset () -> void
+    {
+        mPauseAtomic.store(false);
+    }
+
+public:
+    PauseToken ()
+        : mPauseAtomic (false)
+    {
+    }
+
+    inline auto Test () const -> bool
+    {
+        return mPauseAtomic.load();
+    }
+
+    inline operator bool () const
+    {
+        return Test();
+    }
+
+    inline auto Wait () const -> void
+    {
+        mPauseAtomic.wait(true);
+    }
+};
+
 class ThreadTimer
 {
 public:
-    using CallbackFn = std::function<bool ()>;
+    using CallbackFn = std::function<bool (const StopToken&, const PauseToken&)>;
     using Interval   = std::chrono::milliseconds;
 
 private:
-    CallbackFn                mTimeoutCallback        = nullptr;         // return false to stop
-    std::thread               mWorkerThread;
-    bool                      mWorkerRunning          = false;           // ro from caller, rw from worker
-    bool                      mIsDone                 = true;            // rw from caller, ro from worker
-    std::condition_variable   mPauseConditionVar;
-    std::mutex                mPauseMutex;
-    bool                      mIsPaused               = false;           // rw from caller, ro from worker
+    CallbackFn                mTimerCallback          = nullptr;         // return false to stop
     Interval                  mInterval               = Interval(0);
-    bool                      mRunCallbackImmediately = false;           // run callback immediately after worker start
+    std::thread               mWorkerThread;
+    std::mutex                mWorkerMutex;
+    std::condition_variable   mWorkerConditionVar;
+    std::atomic<bool>         mWorkerRunning          = false;
+    std::atomic<bool>         mIsDone                 = true;
+    std::atomic<bool>         mIsPaused               = false;
+    std::atomic<bool>         mIsWaiting              = false;
+    std::atomic<bool>         mInCallback             = false;
+    const bool                mRunCallbackImmediately = false;           // run callback immediately after worker start
+    StopToken                 mStopToken              = StopToken();
+    PauseToken                mPauseToken             = PauseToken();
 
     auto Worker () -> void
     {
-        mWorkerRunning = true;
-
-        if (mTimeoutCallback)
         {
-            auto pauseLock = std::unique_lock<std::mutex>(mPauseMutex);
+            auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+            mWorkerRunning = true;
+        }
 
-            auto result = true;
-            if (mRunCallbackImmediately)
+        auto result = true;
+        if (mRunCallbackImmediately)
+        {
             {
-                result = mTimeoutCallback();
+                auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+                mInCallback = true;
             }
-
-            if (result)
+            result = mTimerCallback(mStopToken, mPauseToken);
             {
-                while (!mIsDone)
-                {
-                    std::this_thread::sleep_for(mInterval);
-
-                    if (!mIsDone)
-                    {
-                        if (!mIsPaused)
-                        {
-                            if (!mTimeoutCallback())
-                            {
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            mPauseConditionVar.wait(
-                                pauseLock,
-                                [&]
-                                {
-                                    return !mIsPaused || mIsDone; // return false to continue wait
-                                }
-                            );
-                        }
-                    }
-                }
+                auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+                mInCallback = false;
             }
         }
 
-        mWorkerRunning = false;
+        if (result)
+        {
+            while (true)
+            {
+                // Wait for specific interval.
+                {
+                    auto waitLock  = std::unique_lock<std::mutex>(mWorkerMutex);
+                    mIsWaiting = true;
+                    mWorkerConditionVar.wait_for(
+                        waitLock,
+                        mInterval,
+                        [&]
+                        {
+                            return mIsPaused || mIsDone; // return false to continue wait
+                        }
+                    );
+                    mIsWaiting = false;
+                }
+
+                // Check if we finished.
+                mWorkerMutex.lock();
+                if (mIsDone)
+                {
+                    mWorkerMutex.unlock();
+                    break;
+                }
+
+                if (mIsPaused)
+                {
+                    mWorkerMutex.unlock();
+                    {
+                        auto waitLock  = std::unique_lock<std::mutex>(mWorkerMutex);
+                        mWorkerConditionVar.wait(
+                            waitLock,
+                            [&]
+                            {
+                                return !mIsPaused || mIsDone; // return false to continue wait
+                            }
+                        );
+                    }
+                    mWorkerMutex.lock();
+                }
+                else
+                {
+                    mInCallback = true;
+                    mWorkerMutex.unlock();
+                    if (!mTimerCallback(mStopToken, mPauseToken))
+                    {
+                        break;
+                    }
+                    mWorkerMutex.lock();
+                    mInCallback = false;
+                }
+                
+                // Check if we finished.
+                if (mIsDone)
+                {
+                    mWorkerMutex.unlock();
+                    break;
+                }
+
+                mWorkerMutex.unlock();
+            }
+        }
+
+        {
+            auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+            mWorkerRunning = false;
+        }
     }
 
     ThreadTimer            (const ThreadTimer& rhs) = delete;
@@ -101,11 +229,10 @@ public:
         bool       autoStart           = false,
         bool       callbackImmediately = false
     )
-        : mTimeoutCallback        (callback)
+        : mTimerCallback          (callback)
         , mInterval               (interval)
         , mIsDone                 (true)
         , mIsPaused               (false)
-        , mWorkerRunning          (false)
         , mRunCallbackImmediately (callbackImmediately)
     {
         if (autoStart)
@@ -127,19 +254,24 @@ public:
         {
             result = false;
         }
-        else if (mTimeoutCallback == nullptr)
+        else if (mTimerCallback == nullptr)
         {
             result = false;
         }
         else
         {
-            if (!mWorkerRunning)
+            auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+
+            if (mIsDone)
             {
                 // If worker quit from callback, we need to join.
                 if (mWorkerThread.joinable())
                 {
                     mWorkerThread.join();
                 }
+
+                mStopToken.Reset();
+                mPauseToken.Reset();
 
                 mIsDone       = false;
                 mIsPaused     = false;
@@ -149,7 +281,16 @@ public:
             if (mIsPaused)
             {
                 mIsPaused = false;
-                mPauseConditionVar.notify_one();
+                mPauseToken.Reset();
+
+                if (mInCallback)
+                {
+                    mPauseToken.Notify();
+                }
+                else
+                {
+                    mWorkerConditionVar.notify_one();
+                }
             }
         }
 
@@ -158,14 +299,34 @@ public:
 
     auto Stop () -> void
     {
-        mIsDone = true;
-        if (mIsPaused)
         {
-            mIsPaused = false;
-            mPauseConditionVar.notify_one();
+            auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+        
+            mIsDone = true;
+            mStopToken.Stop();
+
+            if (mIsPaused)
+            {
+                mIsPaused = false;
+                mPauseToken.Reset();
+            
+                if (mInCallback)
+                {
+                    mPauseToken.Notify();
+                }
+                else
+                {
+                    mWorkerConditionVar.notify_one();
+                }
+            }
+
+            if (mIsWaiting)
+            {
+                mWorkerConditionVar.notify_one();
+            }
         }
 
-        if (mWorkerRunning || mWorkerThread.joinable())
+        if (mWorkerThread.joinable())
         {
             mWorkerThread.join();
         }
@@ -173,30 +334,37 @@ public:
 
     auto Pause () -> void
     {
-        if (!mIsPaused && mWorkerRunning)
+        auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+
+        if (!mIsDone && !mIsPaused)
         {
             mIsPaused = true;
+            mPauseToken.Pause();
         }
     }
 
     auto SetCallback (CallbackFn callback) -> bool
     {
-        if (!mWorkerRunning)
+        auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+
+        if (mIsDone)
         {
-            mTimeoutCallback = callback;            
+            mTimerCallback = callback;
         }
 
-        return !mWorkerRunning;
+        return mIsDone;
     }
 
     auto SetInterval (Interval interval) -> bool
     {
-        if (!mWorkerRunning)
+        auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+
+        if (mIsDone)
         {
-            mInterval = interval;            
+            mInterval = interval;
         }
 
-        return !mWorkerRunning;
+        return mIsDone;
     }
 
     auto GetInterval () const -> Interval
@@ -204,9 +372,23 @@ public:
         return mInterval;
     }
 
-    auto IsRunning () const -> bool { return mWorkerRunning; }
-    auto IsPaused  () const -> bool { return mWorkerRunning && mIsPaused; }
-    auto IsStopped () const -> bool { return !mWorkerRunning; }
+    auto IsRunning () -> bool
+    {
+        auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+        return !mIsDone;
+    }
+
+    auto IsPaused () -> bool
+    {
+        auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+        return !mIsDone && mIsPaused;
+    }
+
+    auto IsStopped () -> bool
+    {
+        auto lockGuard = std::lock_guard<std::mutex>(mWorkerMutex);
+        return mIsDone;
+    }
 };
 
 } // namespace CaffeineTake

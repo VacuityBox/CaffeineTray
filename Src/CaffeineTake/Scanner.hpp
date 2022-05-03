@@ -22,6 +22,7 @@
 
 #include "BluetoothIdentifier.hpp"
 #include "Settings.hpp"
+#include "ThreadTimer.hpp"
 #include "Utility.hpp"
 
 #include <spdlog/spdlog.h>
@@ -51,7 +52,7 @@ class Scanner
 public:
     virtual ~Scanner() {}
 
-    virtual auto Run (SettingsPtr) -> bool = 0;
+    virtual auto Run (SettingsPtr, const StopToken&, const PauseToken&) -> bool = 0;
 };
 
 class ProcessScanner : public Scanner
@@ -79,7 +80,7 @@ class ProcessScanner : public Scanner
     }
 
 public:
-    virtual auto Run (SettingsPtr settings) -> bool override
+    virtual auto Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool override
     {
         if (settings->Auto.ProcessNames.empty() && settings->Auto.ProcessPaths.empty())
         {
@@ -140,7 +141,7 @@ public:
 class WindowScanner : public Scanner
 {
 public:
-    auto Run (SettingsPtr settings) -> bool override
+    auto Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool override
     {
         if (settings->Auto.WindowTitles.empty())
         {
@@ -171,7 +172,7 @@ class UsbDeviceScanner : public Scanner
     std::wstring mLastFoundDevice = L"";
 
 public:
-    auto Run (SettingsPtr settings) -> bool override
+    auto Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool override
     {
         if (settings->Auto.UsbDevices.empty())
         {
@@ -514,7 +515,7 @@ public:
         }
     }
 
-    auto Run (SettingsPtr settings) -> bool override
+    auto Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool override
     {
         if (settings->Auto.BluetoothDevices.empty())
         {

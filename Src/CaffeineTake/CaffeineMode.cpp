@@ -24,7 +24,7 @@
 
 namespace CaffeineTake {
 
-auto AutoMode::ScannerTimerProc () -> bool
+auto AutoMode::ScannerTimerProc (const StopToken& stop, const PauseToken& pause) -> bool
 {
     const auto settingsPtr = mAppSO.GetSettings();
     if (!settingsPtr)
@@ -33,18 +33,18 @@ auto AutoMode::ScannerTimerProc () -> bool
     }
 
     // Scan processes and windows if no process found.
-    auto scannerResult = mProcessScanner.Run(settingsPtr);
+    auto scannerResult = mProcessScanner.Run(settingsPtr, stop, pause);
     if (!scannerResult)
     {
-        scannerResult = mWindowScanner.Run(settingsPtr);
+        scannerResult = mWindowScanner.Run(settingsPtr, stop, pause);
     }
     if (!scannerResult)
     {
-        scannerResult = mUsbScanner.Run(settingsPtr);
+        scannerResult = mUsbScanner.Run(settingsPtr, stop, pause);
     }
     if (!scannerResult)
     {
-        scannerResult = mBluetoothScanner.Run(settingsPtr);
+        scannerResult = mBluetoothScanner.Run(settingsPtr, stop, pause);
     }
 
     // Only if there is state change.
@@ -66,7 +66,7 @@ auto AutoMode::ScannerTimerProc () -> bool
     return true;
 }
 
-auto AutoMode::ScheduleTimerProc () -> bool
+auto AutoMode::ScheduleTimerProc (const StopToken& stop, const PauseToken& pause) -> bool
 {
     const auto settingsPtr = mAppSO.GetSettings();
     if (!settingsPtr)

@@ -129,16 +129,26 @@ class AutoMode : public Mode
     ThreadTimer      mScannerTimer;
     ThreadTimer      mScheduleTimer;
 
-    auto ScannerTimerProc  () -> bool;
-    auto ScheduleTimerProc () -> bool;
+    auto ScannerTimerProc  (const StopToken& stop, const PauseToken& pause) -> bool;
+    auto ScheduleTimerProc (const StopToken& stop, const PauseToken& pause) -> bool;
 
 public:
     AutoMode (CaffeineAppSO app)
         : Mode                    (app)
         , mProcessScanner         ()
         , mWindowScanner          ()
-        , mScannerTimer           (std::bind(&AutoMode::ScannerTimerProc, this), ThreadTimer::Interval(1000), false, true)
-        , mScheduleTimer          (std::bind(&AutoMode::ScheduleTimerProc, this), ThreadTimer::Interval(1000), false, true)
+        , mScannerTimer
+            ( std::bind(&AutoMode::ScannerTimerProc, this, std::placeholders::_1, std::placeholders::_2)
+            , ThreadTimer::Interval(1000)
+            , false
+            , true
+            )
+        , mScheduleTimer
+            ( std::bind(&AutoMode::ScheduleTimerProc, this, std::placeholders::_1, std::placeholders::_2)
+            , ThreadTimer::Interval(1000)
+            , false
+            , true
+            )
         , mScannerPreviousResult  (false)
         , mSchedulePreviousResult (false)
     {
@@ -179,7 +189,7 @@ class TimerMode : public Mode
 {
     ThreadTimer mTimerThread;
 
-    auto TimerProc () -> bool
+    auto TimerProc (const StopToken& stop, const PauseToken& pause) -> bool
     {
         mAppSO.DisableCaffeine();
 
@@ -189,7 +199,12 @@ class TimerMode : public Mode
 public:
     TimerMode (CaffeineAppSO app)
         : Mode         (app)
-        , mTimerThread (std::bind(&TimerMode::TimerProc, this), ThreadTimer::Interval(1000), false, false)
+        , mTimerThread
+            ( std::bind(&TimerMode::TimerProc, this, std::placeholders::_1, std::placeholders::_2)
+            , ThreadTimer::Interval(1000)
+            , false
+            , false
+            )
     {
     }
 
