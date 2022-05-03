@@ -22,6 +22,7 @@
 
 #include "Dialogs/AboutDialog.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
+#include "Logger.hpp"
 #include "Resource.hpp"
 #include "Utility.hpp"
 #include "Version.hpp"
@@ -76,14 +77,14 @@ CaffeineApp::~CaffeineApp()
 
 auto CaffeineApp::Init() -> bool
 {
-    spdlog::info("Initializing CaffeineTake...");
+    LOG_INFO("Initializing CaffeineTake...");
 
     // Load Settings.
     {
         // Create default settings file if not exists.
         if (!fs::exists(mSettingsFilePath))
         {
-            spdlog::warn("Settings file not found, creating default one");
+            LOG_WARNING("Settings file not found, creating default one");
             SaveSettings();
         }
         else
@@ -107,11 +108,11 @@ auto CaffeineApp::Init() -> bool
     {
         if (FAILED(mNotifyIcon.Init()))
         {
-            spdlog::error("Failed to create NotifyIcon");
+            LOG_ERROR("Failed to create NotifyIcon");
             return false;
         }
 
-        spdlog::info("Created NotifyIcon");
+        LOG_INFO("Created NotifyIcon");
 
         // Register callbacks.
         mNotifyIcon.OnCreate            = std::bind(&CaffeineApp::OnCreate, this);
@@ -133,9 +134,9 @@ auto CaffeineApp::Init() -> bool
         mThemeInfo = mni::ThemeInfo::Detect();
         mSessionState = IsSessionLocked();
 
-        spdlog::info("System dpi: {}", mDpi);
-        spdlog::info("System theme: {}", static_cast<int>(mThemeInfo.GetTheme()));
-        spdlog::info("Session state: {}", mSessionState == SessionState::Unlocked ? "Unlocked" : "Locked");
+        LOG_INFO("System dpi: {}", mDpi);
+        LOG_INFO("System theme: {}", static_cast<int>(mThemeInfo.GetTheme()));
+        LOG_INFO("Session state: {}", mSessionState == SessionState::Unlocked ? "Unlocked" : "Locked");
     }
 
     // Load icons.
@@ -150,7 +151,7 @@ auto CaffeineApp::Init() -> bool
     {
         if (!LoadMode())
         {
-            spdlog::info("Writing default mode to registry");
+            LOG_INFO("Writing default mode to registry");
             SaveMode();
         }
 
@@ -159,7 +160,7 @@ auto CaffeineApp::Init() -> bool
     }
 
     mInitialized = true;
-    spdlog::info("Initialization finished");
+    LOG_INFO("Initialization finished");
 
     return true;
 }
@@ -174,27 +175,27 @@ auto CaffeineApp::OnCreate() -> void
     // Add session lock notification event.
     if (!WTSRegisterSessionNotification(mNotifyIcon.Handle(), NOTIFY_FOR_THIS_SESSION))
     {
-        spdlog::error("Failed to register session notification event");
-        spdlog::info("DisableOnLockScreen functionality will not work");
+        LOG_ERROR("Failed to register session notification event");
+        LOG_INFO("DisableOnLockScreen functionality will not work");
     }
 }
 
 auto CaffeineApp::OnDestroy() -> void
 {
-    spdlog::info("Shutting down application");
+    LOG_INFO("Shutting down application");
     WTSUnRegisterSessionNotification(mNotifyIcon.Handle());
 }
 
 
 auto CaffeineApp::OnClick(int x, int y) -> void
 {
-    spdlog::trace("NotifyIcon::OnClick");
+    LOG_TRACE("NotifyIcon::OnClick");
     ToggleCaffeineMode();
 }
 
 auto CaffeineApp::OnContextMenuOpen() -> void
 {
-    spdlog::trace("NotifyIcon::OnContextMenuOpen");
+    LOG_TRACE("NotifyIcon::OnContextMenuOpen");
 
     auto hMenu = HMENU{0};
     switch (mCaffeineMode)
@@ -219,7 +220,7 @@ auto CaffeineApp::OnContextMenuOpen() -> void
 
 auto CaffeineApp::OnContextMenuSelect(int selectedItem) -> void
 {
-    spdlog::trace("NotifyIcon::OnContextMenuSelect(selectedItem={})", selectedItem);
+    LOG_TRACE("NotifyIcon::OnContextMenuSelect(selectedItem={})", selectedItem);
 
     switch (selectedItem)
     {
@@ -256,7 +257,7 @@ auto CaffeineApp::OnContextMenuSelect(int selectedItem) -> void
 
 auto CaffeineApp::OnThemeChange(mni::ThemeInfo ti) -> void
 {
-    spdlog::info("System theme changed, new theme: {}", static_cast<int>(ti.GetTheme()));
+    LOG_INFO("System theme changed, new theme: {}", static_cast<int>(ti.GetTheme()));
 
     mThemeInfo = ti;
 
@@ -273,7 +274,7 @@ auto CaffeineApp::OnThemeChange(mni::ThemeInfo ti) -> void
 
 auto CaffeineApp::OnDpiChange(int dpi) -> void
 {
-    spdlog::info("System dpi changed, new dpi: {}", dpi);
+    LOG_INFO("System dpi changed, new dpi: {}", dpi);
 
     mDpi = dpi;
 
@@ -289,7 +290,7 @@ auto CaffeineApp::OnDpiChange(int dpi) -> void
 
 auto CaffeineApp::OnCustomMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) -> void
 {
-    spdlog::trace("NotifyIcon::OnCustomMessage(uMsg={})", uMsg);
+    LOG_TRACE("NotifyIcon::OnCustomMessage(uMsg={})", uMsg);
     switch (uMsg)
     {
     case WM_CAFFEINE_TAKE_UPDATE_EXECUTION_STATE:
@@ -307,20 +308,20 @@ auto CaffeineApp::OnCustomMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) -> vo
 
 auto CaffeineApp::OnSystemMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) -> bool
 {
-    spdlog::trace("NotifyIcon::OnSystemMessage(uMsg={})", uMsg);
+    LOG_TRACE("NotifyIcon::OnSystemMessage(uMsg={})", uMsg);
     switch (uMsg)
     {
     case WM_WTSSESSION_CHANGE:
         switch (wParam)
         {
         case WTS_SESSION_LOCK:
-            spdlog::info("Session lock event");
+            LOG_INFO("Session lock event");
             mSessionState = SessionState::Locked;
             RefreshExecutionState();
             return true;
 
         case WTS_SESSION_UNLOCK:
-            spdlog::info("Session unlock event");
+            LOG_INFO("Session unlock event");
             mSessionState = SessionState::Unlocked;
             RefreshExecutionState();
             return true;
@@ -334,21 +335,21 @@ auto CaffeineApp::OnSystemMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) -> bo
 
 auto CaffeineApp::EnableCaffeine () -> bool
 {
-    spdlog::trace("EnableCaffeine()");
+    LOG_TRACE("EnableCaffeine()");
     mNotifyIcon.SendCustomMessage(WM_CAFFEINE_TAKE_UPDATE_EXECUTION_STATE, static_cast<WPARAM>(true), NULL);
     return true;
 }
 
 auto CaffeineApp::DisableCaffeine () -> bool
 {
-    spdlog::trace("DisableCaffeine()");
+    LOG_TRACE("DisableCaffeine()");
     mNotifyIcon.SendCustomMessage(WM_CAFFEINE_TAKE_UPDATE_EXECUTION_STATE, static_cast<WPARAM>(false), NULL);
     return true;
 }
 
 auto CaffeineApp::ToggleCaffeineMode() -> void
 {
-    spdlog::trace("ToggleCaffeineMode()");
+    LOG_TRACE("ToggleCaffeineMode()");
     
     auto mode = CaffeineMode::Disabled;
     switch (mCaffeineMode)
@@ -372,7 +373,7 @@ auto CaffeineApp::ToggleCaffeineMode() -> void
 
 auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
 {
-    spdlog::info(L"Setting CaffeineMode to {}", CaffeineModeToString(mode));
+    LOG_INFO(L"Setting CaffeineMode to {}", CaffeineModeToString(mode));
 
     // Stop current mode.
     StopMode();
@@ -431,13 +432,13 @@ auto CaffeineApp::LoadMode () -> bool
 
     if (status != ERROR_SUCCESS)
     {
-        spdlog::error("Failed to load CaffeineMode from registry");
-        spdlog::info("Using default Disabled mode");
+        LOG_ERROR("Failed to load CaffeineMode from registry");
+        LOG_INFO("Using default Disabled mode");
         result = false;
     }
     else
     {
-        spdlog::info("Loaded CaffeineMode from registry");
+        LOG_INFO("Loaded CaffeineMode from registry");
         mode = static_cast<CaffeineMode>(data);
     }
 
@@ -464,12 +465,12 @@ auto CaffeineApp::SaveMode () -> bool
 
     if (status != ERROR_SUCCESS)
     {
-        spdlog::error("Failed to save CaffeineMode to registry");
+        LOG_ERROR("Failed to save CaffeineMode to registry");
         result = false;
     }
     else
     {
-        spdlog::info("Saved CaffeineMode to registry");
+        LOG_INFO("Saved CaffeineMode to registry");
     }
     
     return result;
@@ -510,7 +511,7 @@ auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void
 
         if (mCaffeineState == state && mKeepDisplayOn == keepDisplayOn)
         {
-            spdlog::debug("No need to update execution state, continuing");
+            LOG_DEBUG("No need to update execution state, continuing");
             return;
         }
     }
@@ -518,7 +519,7 @@ auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void
     {
         if (mCaffeineState == state)
         {
-            spdlog::debug("No need to update execution state, continuing");
+            LOG_DEBUG("No need to update execution state, continuing");
             return;
         }
     }
@@ -540,11 +541,11 @@ auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void
 
     if (!SetThreadExecutionState(flags))
     {
-        spdlog::error("Failed to update execution state");
+        LOG_ERROR("Failed to update execution state");
         return;
     }
 
-    spdlog::info("Updated execution state");
+    LOG_INFO("Updated execution state");
 
     UpdateIcon();
     UpdateTip();
@@ -597,11 +598,11 @@ auto CaffeineApp::UpdateIcon() -> bool
 
     if (FAILED(mNotifyIcon.SetIcon(icon)))
     {
-        spdlog::error("Failed to update notifyicon icon");
+        LOG_ERROR("Failed to update notifyicon icon");
         return false;
     }
 
-    spdlog::info("Updated notifyicon icon");
+    LOG_INFO("Updated notifyicon icon");
     return true;
 }
 
@@ -652,11 +653,11 @@ auto CaffeineApp::UpdateTip() -> bool
 
     if (FAILED(mNotifyIcon.SetTip(buffer.data())))
     {
-        spdlog::error("Failed to update notifyicon tip");
+        LOG_ERROR("Failed to update notifyicon tip");
         return false;
     }
 
-    spdlog::info("Updated notifyicon tip");
+    LOG_INFO("Updated notifyicon tip");
     return true;
 }
 
@@ -695,7 +696,7 @@ auto CaffeineApp::LoadSettings() -> bool
     auto file = std::ifstream(mSettingsFilePath);
     if (!file)
     {
-        spdlog::error("Can't open Settings file '" + mSettingsFilePath.string() + "' for reading");
+        LOG_ERROR("Can't open Settings file '{}' for reading", mSettingsFilePath.string());
         return false;
     }
 
@@ -703,7 +704,7 @@ auto CaffeineApp::LoadSettings() -> bool
     auto json = nlohmann::json::parse(file, nullptr, false, true);
     if (json.is_discarded())
     {
-        spdlog::error("Failed to deserialize json");
+        LOG_ERROR("Failed to deserialize json");
         return false;
     }
     
@@ -713,14 +714,14 @@ auto CaffeineApp::LoadSettings() -> bool
     }
     catch (nlohmann::json::exception&)
     {
-        spdlog::error("Failed to deserialize settings");
-        spdlog::warn("Using default values");
+        LOG_ERROR("Failed to deserialize settings");
+        LOG_WARNING("Using default values");
         *mSettings = Settings();
         return true;
     }
 
-    spdlog::debug("{}", json.dump(4));
-    spdlog::info("Loaded Settings '" + mSettingsFilePath.string() + "'");
+    LOG_DEBUG("{}", json.dump(4));
+    LOG_INFO("Loaded Settings '{}'", mSettingsFilePath.string());
 
     return true;
 }
@@ -731,7 +732,7 @@ auto CaffeineApp::SaveSettings() -> bool
     auto file = std::ofstream(mSettingsFilePath);
     if (!file)
     {
-        spdlog::error("Can't open Settings file '" + mSettingsFilePath.string() + "' for writing");
+        LOG_ERROR("Can't open Settings file '{}' for writing", mSettingsFilePath.string());
         return false;
     }
 
@@ -739,7 +740,7 @@ auto CaffeineApp::SaveSettings() -> bool
     auto json = nlohmann::json(*mSettings);
     file << std::setw(4) << json;
 
-    spdlog::info("Saved Settings '" + mSettingsFilePath.string() + "'");
+    LOG_INFO("Saved Settings '{}'", mSettingsFilePath.string());
     return true;
 }
 

@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "Logger.hpp"
 #include "Utility.hpp"
 
 #include <nlohmann/json.hpp>
@@ -118,7 +119,7 @@ public:
                             tr.Begin,
                             tr.End
                         );
-                        spdlog::debug(fmt);
+                        LOG_DEBUG("{}", fmt);
                         return true;
                     }
                 }

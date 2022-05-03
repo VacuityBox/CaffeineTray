@@ -191,6 +191,7 @@
     <ClCompile Include="CaffeineMode.cpp" />
     <ClCompile Include="Dialogs\AddWizard.cpp" />
     <ClCompile Include="Dialogs\CaffeineSettings.cpp" />
+    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="Utility.cpp" />

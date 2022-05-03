@@ -69,7 +69,7 @@ auto ProcessScanner::Run (SettingsPtr settings, const StopToken& stop, const Pau
         }
 
         const auto& last = mLastProcessPath.empty() ? mLastProcessName : mLastProcessPath;
-        spdlog::info(L"Process: {} (PID: {}), no longer exists, scanning all processes", last, mLastPid);
+        LOG_INFO(L"Process: {} (PID: {}), no longer exists, scanning all processes", last, mLastPid);
     }
 
     mLastProcessName.clear();
@@ -88,7 +88,7 @@ auto ProcessScanner::Run (SettingsPtr settings, const StopToken& stop, const Pau
                     mLastProcessName = procName;
                     mLastPid         = pid;
 
-                    spdlog::info(L"Found process: {} (PID: {})", procName, pid);
+                    LOG_INFO(L"Found process: {} (PID: {})", procName, pid);
                     return ScanResult::Success;
                 }
             }
@@ -101,7 +101,7 @@ auto ProcessScanner::Run (SettingsPtr settings, const StopToken& stop, const Pau
                     mLastProcessPath = procPath;
                     mLastPid         = pid;
 
-                    spdlog::info(L"Found process: {} (PID: {})", procPath, pid);
+                    LOG_INFO(L"Found process: {} (PID: {})", procPath, pid);
                     return ScanResult::Success;
                 }
             }
@@ -135,7 +135,7 @@ auto WindowScanner::Run (SettingsPtr settings, const StopToken& stop, const Paus
             {
                 if (windowTitle == window)
                 {
-                    spdlog::info(L"Found window: {} (PID: {})", windowTitle, pid);
+                    LOG_INFO(L"Found window: {} (PID: {})", windowTitle, pid);
                     return ScanResult::Success;
                 }
             }
@@ -188,7 +188,7 @@ auto UsbDeviceScanner::Run (SettingsPtr settings, const StopToken& stop, const P
 
             if (error != ERROR_NO_MORE_ITEMS)
             {
-                spdlog::error("SetupDiEnumDeviceInfo() failed with error: {}", error);
+                LOG_ERROR("SetupDiEnumDeviceInfo() failed with error: {}", error);
                 break;
             }
         }
@@ -203,7 +203,7 @@ auto UsbDeviceScanner::Run (SettingsPtr settings, const StopToken& stop, const P
 
                 if (error != ERROR_INSUFFICIENT_BUFFER)
                 {
-                    spdlog::error("SetupDiGetDeviceInstanceIdW() failed with error: {}", error);
+                    LOG_ERROR("SetupDiGetDeviceInstanceIdW() failed with error: {}", error);
                     break;
                 }
             }
@@ -220,7 +220,7 @@ auto UsbDeviceScanner::Run (SettingsPtr settings, const StopToken& stop, const P
             {
                 error = GetLastError();
 
-                spdlog::error("SetupDiGetDeviceInstanceIdW() failed with error: {}", error);
+                LOG_ERROR("SetupDiGetDeviceInstanceIdW() failed with error: {}", error);
                 break;
             }
 
@@ -257,14 +257,14 @@ auto UsbDeviceScanner::Run (SettingsPtr settings, const StopToken& stop, const P
             if (mLastFoundDevice != std::wstring_view(buffer.data()))
             {
                 mLastFoundDevice = buffer.data();
-                spdlog::info(L"Found present USB device: '{}'", mLastFoundDevice);
+                LOG_INFO(L"Found present USB device: '{}'", mLastFoundDevice);
             }
         }
         else
         {
             if (!mLastFoundDevice.empty())
             {
-                spdlog::info(L"USB Device '{}' is no longer present in system", mLastFoundDevice);
+                LOG_INFO(L"USB Device '{}' is no longer present in system", mLastFoundDevice);
             }
 
             mLastFoundDevice = L"";
@@ -333,7 +333,7 @@ auto BluetoothScanner::ShouldPerformDeviceInquiry (const LocalTime& localTime, c
 
 auto BluetoothScanner::IssueDeviceInquiry () -> bool
 {
-    spdlog::trace("Starting bluetooth device inquiry");
+    LOG_TRACE("Starting bluetooth device inquiry");
 
     auto result = true;
 
@@ -358,12 +358,12 @@ auto BluetoothScanner::IssueDeviceInquiry () -> bool
         auto error = GetLastError();
         if (error != ERROR_NO_MORE_ITEMS)
         {
-            spdlog::error("IssueDeviceInquiry() failed with error {}", GetLastError());
+            LOG_ERROR("IssueDeviceInquiry() failed with error {}", GetLastError());
             result = false;
         }
         else
         {
-            spdlog::debug("IssueDeviceInquiry() no more items");
+            LOG_DEBUG("IssueDeviceInquiry() no more items");
         }
     }
     else
@@ -371,7 +371,7 @@ auto BluetoothScanner::IssueDeviceInquiry () -> bool
         BluetoothFindDeviceClose(deviceFind);
     }
 
-    spdlog::trace("Finished bluetooth device inqury");
+    LOG_TRACE("Finished bluetooth device inqury");
 
     return result;
 }
@@ -424,11 +424,11 @@ auto BluetoothScanner::EnumerateBluetoothDevices (
         auto error = GetLastError();
         if (error != ERROR_NO_MORE_ITEMS)
         {
-            spdlog::error("BluetoothFindFirstDevice() failed with error {}", GetLastError());
+            LOG_ERROR("BluetoothFindFirstDevice() failed with error {}", GetLastError());
         }
         else
         {
-            spdlog::debug("BluetoothFindFirstDevice() no more items");
+            LOG_DEBUG("BluetoothFindFirstDevice() no more items");
         }
     }
     else
@@ -457,7 +457,7 @@ auto BluetoothScanner::EnumerateBluetoothDevices (
                         if (mLastFoundDevice != id)
                         {
                             const auto name = std::wstring(deviceInfo.szName);
-                            spdlog::info(L"Found connected Bluetooth device '{}' ({})", uniqid, name);
+                            LOG_INFO(L"Found connected Bluetooth device '{}' ({})", uniqid, name);
                             mLastFoundDevice = id;
                         }
                             
@@ -478,7 +478,7 @@ auto BluetoothScanner::EnumerateBluetoothDevices (
 
                                 if (found != mLastFoundDevice)
                                 {
-                                    spdlog::info(L"Bluetooth device '{}' ({}) was last seen in {}", uniqid, name, diffStr);
+                                    LOG_INFO(L"Bluetooth device '{}' ({}) was last seen in {}", uniqid, name, diffStr);
                                 }
                             }
                         }
@@ -510,7 +510,7 @@ auto BluetoothScanner::Run (SettingsPtr settings, const StopToken& stop, const P
     // Check if there is bluetooth adapter.
     if (!CheckIfThereIsBluetoothRadio())
     {
-        spdlog::debug("No Bluetooth adapter found");
+        LOG_DEBUG("No Bluetooth adapter found");
         return false;
     }
 
@@ -533,7 +533,7 @@ auto BluetoothScanner::Run (SettingsPtr settings, const StopToken& stop, const P
     {
         if (IssueDeviceInquiry())
         {
-            spdlog::info("Finished Bluetooth device inquiry");
+            LOG_INFO("Finished Bluetooth device inquiry");
             mLastInquiryTime = localTime;
         }
     }
@@ -543,7 +543,7 @@ auto BluetoothScanner::Run (SettingsPtr settings, const StopToken& stop, const P
 
     if (found.IsInvalid() && mLastFoundDevice.IsValid())
     {
-        spdlog::info(L"Bluetooth device '{}' is no longer connected", mLastFoundDevice.ToWString());
+        LOG_INFO(L"Bluetooth device '{}' is no longer connected", mLastFoundDevice.ToWString());
     }
 
     if (found != mLastFoundDevice)

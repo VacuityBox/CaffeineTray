@@ -20,6 +20,7 @@
 
 #include "CaffeineIcons.hpp"
 
+#include "Logger.hpp"
 #include "Resource.hpp"
 
 #include <spdlog/spdlog.h>
@@ -33,7 +34,7 @@ inline auto CaffeineIcons::LoadFromResource (int id, int w, int h) -> HICON
     auto ico = static_cast<HICON>(LoadImageW(mInstanceHandle, MAKEINTRESOURCEW(id), IMAGE_ICON, w, h, flags));
     if (!ico)
     {
-        spdlog::error("Failed to load icon: {}", id);
+        LOG_ERROR("Failed to load icon: {}", id);
     }
 
     return ico;
@@ -48,7 +49,7 @@ inline auto CaffeineIcons::LoadFromFile (std::wstring_view fileName, int w, int 
     auto ico = static_cast<HICON>(LoadImageW(mInstanceHandle, str.c_str(), IMAGE_ICON, w, h, flags));
     if (!ico)
     {
-        spdlog::error("Failed to load icon: '{}'", path.string());
+        LOG_ERROR("Failed to load icon: '{}'", path.string());
     }
 
     return ico;
@@ -56,7 +57,7 @@ inline auto CaffeineIcons::LoadFromFile (std::wstring_view fileName, int w, int 
 
 auto CaffeineIcons::LoadOriginalIcons (Theme theme, int w, int h) -> bool
 {
-    spdlog::info("Loading Original icons (theme: {} [{}x{}])...", theme == Theme::Light ? "light" : "dark", w, h);
+    LOG_INFO("Loading Original icons (theme: {} [{}x{}])...", theme == Theme::Light ? "light" : "dark", w, h);
     switch (theme)
     {
     case CaffeineTake::CaffeineIcons::Theme::Light:
@@ -78,14 +79,14 @@ auto CaffeineIcons::LoadOriginalIcons (Theme theme, int w, int h) -> bool
         CaffeineTimerActive   = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_DARK, w, h);
         break;
     }
-    spdlog::info("Finished loading icons");
+    LOG_INFO("Finished loading icons");
 
     return CaffeineDisabled && CaffeineEnabled && CaffeineAutoInactive && CaffeineAutoActive;
 }
 
 auto CaffeineIcons::LoadSquareIcons (Theme theme, int w, int h) -> bool
 {
-    spdlog::info("Loading Square icons (theme: {} [{}x{}])...", theme == Theme::Light ? "light" : "dark", w, h);
+    LOG_INFO("Loading Square icons (theme: {} [{}x{}])...", theme == Theme::Light ? "light" : "dark", w, h);
     switch (theme)
     {
     case CaffeineTake::CaffeineIcons::Theme::Light:
@@ -105,14 +106,14 @@ auto CaffeineIcons::LoadSquareIcons (Theme theme, int w, int h) -> bool
         CaffeineTimerActive   = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_ACTIVE_DARK, w, h);
         break;
     }
-    spdlog::info("Finished loading icons");
+    LOG_INFO("Finished loading icons");
 
     return CaffeineDisabled && CaffeineEnabled && CaffeineAutoInactive && CaffeineAutoActive;
 }
 
 auto CaffeineIcons::LoadCustomIcons (Theme theme, int w, int h) -> bool
 {
-    spdlog::info("Loading Custom icons (theme: {} [{}x{}])...", theme == Theme::Light ? "light" : "dark", w, h);
+    LOG_INFO("Loading Custom icons (theme: {} [{}x{}])...", theme == Theme::Light ? "light" : "dark", w, h);
     switch (theme)
     {
     case CaffeineTake::CaffeineIcons::Theme::Light:
@@ -132,14 +133,14 @@ auto CaffeineIcons::LoadCustomIcons (Theme theme, int w, int h) -> bool
         CaffeineTimerActive   = LoadFromFile(L"CaffeineTimerActiveDark.ico", w, h);
         break;
     }
-    spdlog::info("Finished loading icons");
+    LOG_INFO("Finished loading icons");
 
     return CaffeineDisabled && CaffeineEnabled && CaffeineAutoInactive && CaffeineAutoActive;
 }
 
 auto CaffeineIcons::InternalCleanup () -> void
 {
-    spdlog::info("Cleaning up icons...");
+    LOG_INFO("Cleaning up icons...");
     if (CaffeineDisabled)
     {
         DestroyIcon(CaffeineDisabled);
@@ -170,7 +171,7 @@ auto CaffeineIcons::InternalCleanup () -> void
         DestroyIcon(CaffeineTimerActive);
         CaffeineTimerActive = NULL;
     }
-    spdlog::info("Finished cleaning-up icons");
+    LOG_INFO("Finished cleaning-up icons");
 }
 
 CaffeineIcons::CaffeineIcons (HINSTANCE hInstance)

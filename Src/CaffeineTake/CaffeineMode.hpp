@@ -21,6 +21,7 @@
 #pragma once
 
 #include "CaffeineAppSO.hpp"
+#include "Logger.hpp"
 #include "Scanner.hpp"
 #include "Schedule.hpp"
 #include "Settings.hpp"
@@ -80,13 +81,13 @@ public:
     {
         mAppSO.DisableCaffeine();
 
-        spdlog::trace("Started Disabled mode");
+        LOG_TRACE("Started Disabled mode");
         return true;
     }
 
     auto Stop () -> bool override
     {
-        spdlog::trace("Stopped Disabled mode");
+        LOG_TRACE("Stopped Disabled mode");
         return true;
     }
 };
@@ -103,7 +104,7 @@ public:
     {
         mAppSO.EnableCaffeine();
 
-        spdlog::trace("Started Enabled mode");
+        LOG_TRACE("Started Enabled mode");
         return true;
     }
 
@@ -111,7 +112,7 @@ public:
     {
         mAppSO.DisableCaffeine();
 
-        spdlog::trace("Stopped Enabled mode");
+        LOG_TRACE("Stopped Enabled mode");
         return true;
     }
 };
@@ -167,7 +168,7 @@ public:
         mScheduleTimer.Start();
         mScannerTimer.Start();
 
-        spdlog::trace("Started Auto mode");
+        LOG_TRACE("Started Auto mode");
 
         return true;
     }
@@ -179,7 +180,7 @@ public:
 
         mAppSO.DisableCaffeine();
 
-        spdlog::trace("Stopped Auto mode");
+        LOG_TRACE("Stopped Auto mode");
 
         return true;
     }
@@ -219,7 +220,7 @@ public:
         mAppSO.EnableCaffeine();
         mTimerThread.Start();
 
-        spdlog::trace("Started Timer mode");
+        LOG_TRACE("Started Timer mode");
 
         return true;
     }
@@ -229,7 +230,7 @@ public:
         mTimerThread.Stop();
         mAppSO.DisableCaffeine();
 
-        spdlog::trace("Stopped Timer mode");
+        LOG_TRACE("Stopped Timer mode");
 
         return true;
     }
