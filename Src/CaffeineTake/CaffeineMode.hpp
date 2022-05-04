@@ -33,8 +33,8 @@ namespace CaffeineTake {
 
 enum class CaffeineMode : unsigned char
 {
-    Disabled,
-    Enabled,
+    Disabled, // TODO better name?
+    Enabled,  // TODO better name?
     Auto,
     Timer
 };
@@ -216,6 +216,8 @@ public:
         {
             mTimerThread.SetInterval(std::chrono::milliseconds(settingsPtr->Timer.Interval));
         }
+
+        // TOOD FIXME if interval is 0 dont start
 
         mAppSO.EnableCaffeine();
         mTimerThread.Start();

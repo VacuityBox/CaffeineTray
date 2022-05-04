@@ -119,6 +119,7 @@
 #define IDM_ENABLE_AUTO                              40004
 #define IDM_ENABLE_CAFFEINE                          40005
 #define IDM_DISABLE_CAFFEINE                         40006
+#define IDM_ENABLE_TIMER                             40007
 #define IDM_ABOUT                                    40008
 
 // Next default values for new objects

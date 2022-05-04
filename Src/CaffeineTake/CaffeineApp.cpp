@@ -205,25 +205,55 @@ auto CaffeineApp::OnContextMenuOpen() -> void
 {
     LOG_TRACE("NotifyIcon::OnContextMenuOpen");
 
-    auto hMenu = HMENU{0};
+    auto hPopupMenu = CreatePopupMenu();
+    if (!hPopupMenu)
+    {
+        LOG_ERROR("Failed to create popup menu, error: {}", GetLastError());
+        return;
+    }
+
+    auto hMenu = CreateMenu();
+    if (!hMenu)
+    {
+        LOG_ERROR("Failed to create menu, error: {}", GetLastError());
+        return;
+    }
+
     switch (mCaffeineMode)
     {
     case CaffeineMode::Disabled:
-        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_DISABLED_CONTEXTMENU));
+        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
+        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
+        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_TIMER, mLang->ContextMenu_EnableTimer.c_str());
         break;
     case CaffeineMode::Enabled:
-        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_ENABLED_CONTEXTMENU));
+        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
+        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_TIMER, mLang->ContextMenu_EnableTimer.c_str());
+        AppendMenuW(hMenu, MF_STRING, IDM_DISABLE_CAFFEINE, mLang->ContextMenu_DisableCaffeine.c_str());
         break;
     case CaffeineMode::Auto:
-        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_AUTO_CONTEXTMENU));
+        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
+        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_TIMER, mLang->ContextMenu_EnableTimer.c_str());
+        AppendMenuW(hMenu, MF_STRING, IDM_DISABLE_CAFFEINE, mLang->ContextMenu_DisableCaffeine.c_str());
         break;
-    // TODO change when timer menu added
     case CaffeineMode::Timer:
-        hMenu = LoadMenuW(mInstanceHandle, MAKEINTRESOURCE(IDC_CAFFEINE_AUTO_CONTEXTMENU));
+        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
+        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
+        AppendMenuW(hMenu, MF_STRING, IDM_DISABLE_CAFFEINE, mLang->ContextMenu_DisableCaffeine.c_str());
         break;
     }
 
-    mNotifyIcon.SetMenu(hMenu);
+    AppendMenuW(hMenu, MF_SEPARATOR, NULL, NULL);
+    AppendMenuW(hMenu, MF_STRING, IDM_SETTINGS, mLang->ContextMenu_Settings.c_str());
+    AppendMenuW(hMenu, MF_STRING, IDM_EXIT, mLang->ContextMenu_Exit.c_str());
+
+    AppendMenuW(hPopupMenu, MF_POPUP, reinterpret_cast<UINT_PTR>(hMenu), NULL);
+
+    const auto hr = mNotifyIcon.SetMenu(hPopupMenu);
+    if (FAILED(hr))
+    {
+        LOG_ERROR("Failed to set menu, error: {}", hr);
+    }
 }
 
 auto CaffeineApp::OnContextMenuSelect(int selectedItem) -> void
@@ -247,6 +277,10 @@ auto CaffeineApp::OnContextMenuSelect(int selectedItem) -> void
 
     case IDM_ENABLE_AUTO:
         SetCaffeineMode(CaffeineMode::Auto);
+        return;
+
+    case IDM_ENABLE_TIMER:
+        SetCaffeineMode(CaffeineMode::Timer);
         return;
 
     case IDM_SETTINGS:
