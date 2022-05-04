@@ -40,7 +40,19 @@ using SettingsPtr = std::shared_ptr<Settings>;
 class Settings final
 {
 public:
-    CaffeineIcons::IconPack IconPack;
+    struct General
+    {
+        CaffeineIcons::IconPack IconPack;
+        std::wstring            LangId;
+
+        General ()
+            : IconPack (CaffeineIcons::IconPack::Original)
+            , LangId   (L"en")
+        {
+        }
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(General, IconPack, LangId)
+    } General;
     
     struct Standard
     {
@@ -122,12 +134,9 @@ public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(Timer, KeepDisplayOn, DisableOnLockScreen, Interval)
     } Timer;
 
-    Settings ()
-        : IconPack (CaffeineIcons::IconPack::Original)
-    {
-    }
+    Settings () = default;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Settings, IconPack, Standard, Auto, Timer)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Settings, General, Standard, Auto, Timer)
 };
 
 } // namespace CaffeineTake

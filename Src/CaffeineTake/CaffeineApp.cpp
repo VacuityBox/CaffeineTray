@@ -44,8 +44,10 @@ namespace CaffeineTake {
 
 CaffeineApp::CaffeineApp (const AppInitInfo& info)
     : mSettings           (std::make_shared<Settings>())
+    , mLang               (std::make_shared<Lang>())
     , mSettingsFilePath   (info.SettingsPath)
     , mCustomIconsPath    (info.DataDirectory / "Icons" / "")
+    , mLangDirectory      (info.DataDirectory / "Lang" / "")
     , mInstanceHandle     (info.InstanceHandle)
     , mInitialized        (false)
     , mSessionState       (SessionState::Unlocked)
@@ -144,7 +146,12 @@ auto CaffeineApp::Init() -> bool
         const auto w = (16 * mDpi) / 96;
         const auto h = (16 * mDpi) / 96;
 
-        mIcons.Load(mSettings->IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+        mIcons.Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+    }
+
+    // Load language.
+    {
+        LoadLang();
     }
 
     // Update mode, icons, execution state, tip.
@@ -183,6 +190,7 @@ auto CaffeineApp::OnCreate() -> void
 auto CaffeineApp::OnDestroy() -> void
 {
     LOG_INFO("Shutting down application");
+    // TODO set caffeine mdoe to disabled here instead destructor?
     WTSUnRegisterSessionNotification(mNotifyIcon.Handle());
 }
 
@@ -266,7 +274,7 @@ auto CaffeineApp::OnThemeChange(mni::ThemeInfo ti) -> void
 
     // Load proper icons.
     // TODO pick right icons for high contrast
-    mIcons.Load(mSettings->IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+    mIcons.Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
 
     UpdateIcon();
     UpdateAppIcon();
@@ -283,7 +291,7 @@ auto CaffeineApp::OnDpiChange(int dpi) -> void
 
     // TODO pick right icons for high contrast
     // it can be specific icon override
-    mIcons.Load(mSettings->IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+    mIcons.Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
 
     UpdateIcon();
 }
@@ -691,6 +699,7 @@ auto CaffeineApp::UpdateAppIcon() -> void
 
 auto CaffeineApp::LoadSettings() -> bool
 {
+    // TODO return default settings on error always?
     // NOTE: Settings should be in UTF-8
     // Read Settings file.
     auto file = std::ifstream(mSettingsFilePath);
@@ -704,7 +713,7 @@ auto CaffeineApp::LoadSettings() -> bool
     auto json = nlohmann::json::parse(file, nullptr, false, true);
     if (json.is_discarded())
     {
-        LOG_ERROR("Failed to deserialize json");
+        LOG_ERROR("Failed to parse json of settings file");
         return false;
     }
     
@@ -716,7 +725,10 @@ auto CaffeineApp::LoadSettings() -> bool
     {
         LOG_ERROR("Failed to deserialize settings");
         LOG_WARNING("Using default values");
-        *mSettings = Settings();
+
+        mSettings.reset();
+        mSettings = std::make_shared<Settings>();
+
         return true;
     }
 
@@ -741,6 +753,57 @@ auto CaffeineApp::SaveSettings() -> bool
     file << std::setw(4) << json;
 
     LOG_INFO("Saved Settings '{}'", mSettingsFilePath.string());
+    return true;
+}
+
+auto CaffeineApp::LoadLang () -> bool
+{
+    // NOTE: Language file should be in UTF-8
+    // Read Lang file.
+    const auto langPath = mLangDirectory / (mSettings->General.LangId + L".json");
+    auto file = std::ifstream(langPath);
+    if (!file)
+    {
+        LOG_ERROR("Can't open language file '{}' for reading", langPath.string());
+        return LoadDefaultLang();
+    }
+
+    // Deserialize.
+    auto json = nlohmann::json::parse(file, nullptr, false, true);
+    if (json.is_discarded())
+    {
+        LOG_ERROR("Failed to parse json of lang file");
+        return LoadDefaultLang();
+    }
+    
+    try
+    {
+        *mLang = json.get<Lang>();
+    }
+    catch (nlohmann::json::exception&)
+    {
+        LOG_ERROR("Failed to deserialize language file");
+        return LoadDefaultLang();
+    }
+
+    LOG_DEBUG("{}", json.dump(4));
+
+    mLang->LangId = mSettings->General.LangId;
+    // TODO get name from langid
+    //mLang->LangName = 
+
+    LOG_INFO(L"Loaded language {} ({}), file: '{}'", mLang->LangName, mLang->LangId, langPath.wstring());
+
+    return true;
+}
+
+auto CaffeineApp::LoadDefaultLang () -> bool
+{
+    LOG_INFO("Using default language (en)");
+        
+    mLang.reset();
+    mLang = std::make_shared<Lang>();
+
     return true;
 }
 

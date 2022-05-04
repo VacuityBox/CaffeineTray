@@ -218,6 +218,7 @@
     <ClInclude Include="Dialogs\CaffeineSettings.hpp" />
     <ClInclude Include="CaffeineIcons.hpp" />
     <ClInclude Include="InstanceGuard.hpp" />
+    <ClInclude Include="Lang.hpp" />
     <ClInclude Include="Logger.hpp" />
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="Scanner.hpp" />

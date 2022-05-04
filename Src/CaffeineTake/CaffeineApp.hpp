@@ -25,6 +25,7 @@
 #include "CaffeineIcons.hpp"
 #include "CaffeineMode.hpp"
 #include "CaffeineState.hpp"
+#include "Lang.hpp"
 #include "Settings.hpp"
 
 #include <mni/NotifyIcon.hpp>
@@ -58,7 +59,6 @@ class CaffeineApp final
     HINSTANCE        mInstanceHandle;
     mni::NotifyIcon  mNotifyIcon;
     mni::ThemeInfo   mThemeInfo;
-    SettingsPtr      mSettings;
     CaffeineIcons    mIcons;
     CaffeineAppSO    mAppSO;
     CaffeineMode     mCaffeineMode;
@@ -66,9 +66,13 @@ class CaffeineApp final
     bool             mKeepDisplayOn;
     bool             mInitialized;
     SessionState     mSessionState;
-    fs::path         mCustomIconsPath;
     fs::path         mSettingsFilePath;
+    fs::path         mCustomIconsPath;
+    fs::path         mLangDirectory;
     int              mDpi;
+
+    SettingsPtr      mSettings;
+    LangPtr          mLang;
 
     Mode*            mCurrentMode;
     DisabledMode     mDisabledMode;
@@ -110,6 +114,9 @@ class CaffeineApp final
 
     auto LoadSettings () -> bool;
     auto SaveSettings () -> bool;
+
+    auto LoadLang        () -> bool;
+    auto LoadDefaultLang () -> bool;
 
     auto ShowSettingsDialog () -> bool;
     auto ShowAboutDialog    () -> bool;
