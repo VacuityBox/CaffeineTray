@@ -650,52 +650,51 @@ auto CaffeineApp::UpdateIcon() -> bool
 
 auto CaffeineApp::UpdateTip() -> bool
 {
-    auto tip  = UINT{0};
+    auto tip = std::wstring_view();
 
     switch (mCaffeineMode)
     {
     case CaffeineMode::Disabled:
-        tip = IDS_CAFFEINE_DISABLED;
+        tip = mLang->Tip_DisabledInactive;
         break;
+
     case CaffeineMode::Enabled:
-        tip = IDS_CAFFEINE_ENABLED;
+        tip = mLang->Tip_EnabledActive;
         break;
+
     case CaffeineMode::Auto:
         if (mCaffeineState == CaffeineState::Inactive)
         {
-            tip = IDS_CAFFEINE_AUTO_INACTIVE;
+            tip = mLang->Tip_AutoInactive;
         }
         else
         {
-            tip = IDS_CAFFEINE_AUTO_ACTIVE;
+            tip = mLang->Tip_AutoActive;
         }
         break;
+
     case CaffeineMode::Timer:
         if (mCaffeineState == CaffeineState::Inactive)
         {
-            tip = IDS_CAFFEINE_TIMER_INACTIVE;
+            tip = mLang->Tip_TimerInactive;
         }
         else
         {
-            tip = IDS_CAFFEINE_TIMER_ACTIVE;
+            tip = mLang->Tip_TimerActive;
         }
         break;
     }
 
-    auto buffer = std::array<wchar_t, 128>();
-    buffer.fill(L'\0');
-    
-    LoadStringW(mInstanceHandle, tip, buffer.data(), buffer.size());
-
     // No need to update.
-    if (mNotifyIcon.GetTip() == buffer.data())
+    if (mNotifyIcon.GetTip() == tip.data())
     {
         return false;
     }
 
-    if (FAILED(mNotifyIcon.SetTip(buffer.data())))
+    const auto hr = mNotifyIcon.SetTip(tip);
+    if (FAILED(hr))
     {
-        LOG_ERROR("Failed to update notifyicon tip");
+        LOG_ERROR("Failed to update notifyicon tip, error: {}", hr);
         return false;
     }
 
