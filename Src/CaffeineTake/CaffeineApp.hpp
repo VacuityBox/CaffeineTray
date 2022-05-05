@@ -66,6 +66,7 @@ class CaffeineApp final
     bool             mKeepDisplayOn;
     bool             mInitialized;
     SessionState     mSessionState;
+    fs::path         mExecutablePath;
     fs::path         mSettingsFilePath;
     fs::path         mCustomIconsPath;
     fs::path         mLangDirectory;
@@ -108,9 +109,10 @@ class CaffeineApp final
     auto UpdateExecutionState  (CaffeineState state) -> void;
     auto RefreshExecutionState () -> void;
     
-    auto UpdateIcon    () -> bool;
-    auto UpdateTip     () -> bool;
-    auto UpdateAppIcon () -> void;
+    auto UpdateIcon     () -> bool;
+    auto UpdateTip      () -> bool;
+    auto UpdateAppIcon  () -> void;
+    auto UpdateJumpList () -> bool;
 
     auto LoadSettings () -> bool;
     auto SaveSettings () -> bool;

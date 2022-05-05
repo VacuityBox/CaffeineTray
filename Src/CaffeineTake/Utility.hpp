@@ -29,6 +29,7 @@
 #include <string_view>
 
 #define WIN32_LEAN_AND_MEAN
+#define STRICT_TYPED_ITEMIDS
 #define NOMINMAX
 #include <Windows.h>
 

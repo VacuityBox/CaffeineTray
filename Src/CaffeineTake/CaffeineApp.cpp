@@ -22,6 +22,7 @@
 
 #include "Dialogs/AboutDialog.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
+#include "JumpList.hpp"
 #include "Logger.hpp"
 #include "Resource.hpp"
 #include "Utility.hpp"
@@ -45,6 +46,7 @@ namespace CaffeineTake {
 CaffeineApp::CaffeineApp (const AppInitInfo& info)
     : mSettings           (std::make_shared<Settings>())
     , mLang               (std::make_shared<Lang>())
+    , mExecutablePath     (info.ExecutablePath)
     , mSettingsFilePath   (info.SettingsPath)
     , mCustomIconsPath    (info.DataDirectory / "Icons" / "")
     , mLangDirectory      (info.DataDirectory / "Lang" / "")
@@ -75,6 +77,7 @@ CaffeineApp::CaffeineApp (const AppInitInfo& info)
 CaffeineApp::~CaffeineApp()
 {
     DisableCaffeine();
+    CoUninitialize();
 }
 
 auto CaffeineApp::Init() -> bool
@@ -104,6 +107,16 @@ auto CaffeineApp::Init() -> bool
         ccs.dwSize = sizeof(ccs);
         ccs.dwICC  = ICC_LINK_CLASS;
         InitCommonControlsEx(&ccs);
+    }
+
+    // For Jump Lists.
+    {
+        auto hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+        if (FAILED(hr))
+        {
+            LOG_ERROR("Failed to CoInitializeEx(), hr: {}", hr);
+            LOG_WARNING("Jump List functionality will not work");
+        }
     }
 
     // Create NotifyIcon.
@@ -190,7 +203,6 @@ auto CaffeineApp::OnCreate() -> void
 auto CaffeineApp::OnDestroy() -> void
 {
     LOG_INFO("Shutting down application");
-    // TODO set caffeine mdoe to disabled here instead destructor?
     WTSUnRegisterSessionNotification(mNotifyIcon.Handle());
 }
 
@@ -434,6 +446,7 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
 
     UpdateIcon();
     UpdateTip();
+    UpdateJumpList();
 
     SaveMode();
 }
@@ -728,6 +741,71 @@ auto CaffeineApp::UpdateAppIcon() -> void
 
     SendMessage(mNotifyIcon.Handle(), WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
     SendMessage(mNotifyIcon.Handle(), WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
+}
+
+auto CaffeineApp::UpdateJumpList () -> bool
+{
+    const auto exe = mExecutablePath.wstring();
+
+    // TODO update icons of tasks
+    // TODO translate
+    const auto OptionDisableCaffeine = JumpListEntry(JumpListEntry::Type::Normal, L"Disable Caffeine", L"/task:DisableCaffeine", exe.c_str(), 0);
+    const auto OptionEnableCaffeine  = JumpListEntry(JumpListEntry::Type::Normal, L"Enable Caffeine", L"/task:EnableCaffeine", exe.c_str(), 0);
+    const auto OptionEnableAutoMode  = JumpListEntry(JumpListEntry::Type::Normal, L"Enable Auto Mode", L"/task:EnableAutoMode", exe.c_str(), 0);
+    const auto OptionEnableTimerMode = JumpListEntry(JumpListEntry::Type::Normal, L"Enable Timer Mode", L"/task:EnableTimerMode", exe.c_str(), 0);
+    const auto OptionSeparator       = JumpListEntry(JumpListEntry::Type::Separator, L"", L"", L"", 0);
+    const auto OptionSettings        = JumpListEntry(JumpListEntry::Type::Normal, L"Settings", L"/task:Settings", exe.c_str(), 0);
+    const auto OptionExit            = JumpListEntry(JumpListEntry::Type::Normal, L"Exit", L"/task:Exit", exe.c_str(), 0);
+
+    auto list = std::vector<JumpListEntry>();
+
+    switch (mCaffeineMode)
+    {
+    case CaffeineMode::Disabled:
+        list.push_back(OptionEnableCaffeine);
+        list.push_back(OptionEnableAutoMode);
+        list.push_back(OptionEnableTimerMode);
+        //list.push_back(OptionDisableCaffeine);
+        break;
+
+    case CaffeineMode::Enabled:
+        //list.push_back(OptionEnableCaffeine);
+        list.push_back(OptionEnableAutoMode);
+        list.push_back(OptionEnableTimerMode);
+        list.push_back(OptionDisableCaffeine);
+        break;
+
+    case CaffeineMode::Auto:
+        list.push_back(OptionEnableCaffeine);
+        //list.push_back(OptionEnableAutoMode);
+        list.push_back(OptionEnableTimerMode);
+        list.push_back(OptionDisableCaffeine);
+        break;
+
+    case CaffeineMode::Timer:
+        list.push_back(OptionEnableCaffeine);
+        list.push_back(OptionEnableAutoMode);
+        //list.push_back(OptionEnableTimerMode);
+        list.push_back(OptionDisableCaffeine);
+        break;
+    }
+
+    list.push_back(OptionSeparator);
+    list.push_back(OptionSettings);
+    list.push_back(OptionExit);
+
+
+    const auto result = JumpList::Update(mExecutablePath, list);
+    if (result)
+    {
+        LOG_INFO("Updated Jump List");
+    }
+    else
+    {
+        LOG_ERROR("Failed to update Jump List");
+    }
+
+    return result;
 }
 
 auto CaffeineApp::LoadSettings() -> bool

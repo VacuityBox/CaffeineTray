@@ -25,6 +25,7 @@
 
 #include <Psapi.h>
 #include <ShlObj.h>
+#include <shlwapi.h>
 #include <VersionHelpers.h>
 #include <wtsapi32.h>
 
@@ -339,6 +340,8 @@ auto HexCharToInt (const char c) -> unsigned char
     return std::numeric_limits<unsigned char>::max();
 }
 
+#pragma region "FILETIME to system_clock"
+
 // https://github.com/HowardHinnant/date/wiki/Examples-and-Recipes#FILETIME
 // by Billy O'Neal
 
@@ -375,5 +378,7 @@ FILETIME system_clock_to_FILETIME(SystemTimePoint systemPoint)
     result.dwHighDateTime = static_cast<DWORD>(rawCount >> 32);
     return result;
 }
+
+#pragma endregion
 
 } // namespace CaffeineTake

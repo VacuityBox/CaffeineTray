@@ -194,6 +194,7 @@
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Scanner.cpp" />
+    <ClCompile Include="JumpList.cpp" />
     <ClCompile Include="Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -224,6 +225,7 @@
     <ClInclude Include="Scanner.hpp" />
     <ClInclude Include="Schedule.hpp" />
     <ClInclude Include="Settings.hpp" />
+    <ClInclude Include="JumpList.hpp" />
     <ClInclude Include="ThreadTimer.hpp" />
     <ClInclude Include="Utility.hpp" />
     <ClInclude Include="Version.hpp" />

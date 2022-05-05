@@ -49,12 +49,22 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     {
         return 1;
     }
-
+    
     const auto info = CaffeineTake::GetAppInitInfo(hInstance);
+    if (!info)
+    {
+        MessageBoxW(
+            0,
+            L"Failed to read executable path",
+            L"Initialization failed",
+            MB_OK
+        );
+        return -3;
+    }
 
-    CaffeineTake::InitLogger(info.LogFilePath);
+    CaffeineTake::InitLogger(info.value().LogFilePath);
 
-    auto caffeineTray = CaffeineTake::CaffeineApp(info);
+    auto caffeineTray = CaffeineTake::CaffeineApp(info.value());
     if (!caffeineTray.Init())
     {
         MessageBoxW(
