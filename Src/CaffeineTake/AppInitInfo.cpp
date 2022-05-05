@@ -28,7 +28,7 @@
 
 namespace CaffeineTake {
 
-auto GetAppInitInfo (HINSTANCE hInstance) -> AppInitInfo
+auto GetAppInitInfo (HINSTANCE hInstance) -> std::optional<AppInitInfo>
 {
     auto stackBuffer = std::array<wchar_t, MAX_PATH>();
     stackBuffer.fill(L'\0');
@@ -62,23 +62,19 @@ auto GetAppInitInfo (HINSTANCE hInstance) -> AppInitInfo
         break;
     }
 
-    auto root = fs::path();
-    auto settings = fs::path();
+    if (!readExecutablePath)
+    {
+        return std::nullopt;
+    }
+
+    auto exe = fs::path(ptr);
+    auto root = exe.parent_path();
+    auto settings = root / CAFFEINE_TAKE_PORTABLE_SETTINGS_FILENAME;
 
     auto isPortable = false;
-
-    // If reading executable path failed, we use %appdata% as fallback.
-    if (readExecutablePath)
+    if (fs::exists(settings))
     {
-        const auto exe = fs::path(ptr);
-        
-        root = exe.root_directory();
-        settings = root / CAFFEINE_TAKE_PORTABLE_SETTINGS_FILENAME;
-
-        if (fs::exists(settings))
-        {
-            isPortable = true;
-        }
+        isPortable = true;
     }
 
     if (!isPortable)
@@ -92,6 +88,7 @@ auto GetAppInitInfo (HINSTANCE hInstance) -> AppInitInfo
 
     return AppInitInfo{
         .InstanceHandle = hInstance ? hInstance : GetModuleHandleW(NULL),
+        .ExecutablePath = exe,
         .DataDirectory  = root,
         .SettingsPath   = settings,
         .LogFilePath    = root / CAFFEINE_TAKE_LOG_FILENAME,

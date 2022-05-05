@@ -21,6 +21,7 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -34,12 +35,13 @@ namespace CaffeineTake {
 struct AppInitInfo
 {
     HINSTANCE InstanceHandle;
+    fs::path  ExecutablePath;
     fs::path  DataDirectory;
     fs::path  SettingsPath;
     fs::path  LogFilePath;
     bool      IsPortable;
 };
 
-auto GetAppInitInfo (HINSTANCE hInstance) -> AppInitInfo;
+auto GetAppInitInfo (HINSTANCE hInstance) -> std::optional<AppInitInfo>;
 
 } // namespace CaffeineTake
