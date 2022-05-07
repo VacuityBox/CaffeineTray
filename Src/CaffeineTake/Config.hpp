@@ -60,16 +60,6 @@
 #   endif
 #endif
 
-#if FEATURE_SET == FEATURE_SET_MINIMAL
-#   pragma message("FEATURE_SET is set to MINIMAL")
-#elif FEATURE_SET == FEATURE_SET_STANDARD
-#   pragma message("FEATURE_SET is set to STANDARD")
-#elif FEATURE_SET == FEATURE_SET_FULL
-#   pragma message("FEATURE_SET is set to FULL")
-#else
-#   pragma message("FEATURE_SET is set to CUSTOM")
-#endif
-
 // ========================== //
 // Minimal Build              //
 // ========================== //

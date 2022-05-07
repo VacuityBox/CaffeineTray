@@ -19,3 +19,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "Config.hpp"
+
+#if defined(FEATURE_CAFFEINETAKE_IMMERSIVE_CONTEXT_MENU)
+#   pragma comment(lib, "ImmersiveNotifyIcon.lib")
+#else
+#   pragma comment(lib, "ClassicNotifyIcon.lib")
+#endif

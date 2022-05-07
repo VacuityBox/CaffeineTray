@@ -28,7 +28,11 @@
 #include "Lang.hpp"
 #include "Settings.hpp"
 
-#include <mni/ImmersiveNotifyIcon.hpp>
+#if defined(FEATURE_CAFFEINETAKE_IMMERSIVE_CONTEXT_MENU)
+#   include <mni/ImmersiveNotifyIcon.hpp>
+#else
+#   include <mni/ClassicNotifyIcon.hpp>
+#endif
 
 #include <filesystem>
 #include <memory>
