@@ -20,13 +20,14 @@
 
 #pragma once
 
+#include "Config.hpp"
+
+#if defined(FEATURE_CAFFEINETAKE_LOGGER)
+
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
 #include <cstdarg>
-
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
 
 namespace {
     namespace fs = std::filesystem;
@@ -44,3 +45,14 @@ namespace CaffeineTake {
 auto InitLogger (const fs::path& logFilePath) -> bool;
 
 } // namespace CaffeineTake
+
+#else
+
+// Logging macros.
+#define LOG_TRACE(...)   do{}while(0)
+#define LOG_DEBUG(...)   do{}while(0)
+#define LOG_INFO(...)    do{}while(0)
+#define LOG_WARNING(...) do{}while(0)
+#define LOG_ERROR(...)   do{}while(0)
+
+#endif // #if defined(FEATURE_CAFFEINETAKE_LOGGER)

@@ -62,7 +62,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         return -3;
     }
 
+#if defined(FEATURE_CAFFEINETAKE_LOGGER)
     CaffeineTake::InitLogger(info.value().LogFilePath);
+#endif
 
     auto caffeineTray = CaffeineTake::CaffeineApp(info.value());
     if (!caffeineTray.Init())

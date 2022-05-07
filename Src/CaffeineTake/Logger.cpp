@@ -22,6 +22,8 @@
 
 #include "Logger.hpp"
 
+#if defined(FEATURE_CAFFEINETAKE_LOGGER)
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
@@ -60,3 +62,5 @@ auto InitLogger (const fs::path& logFilePath) -> bool
 }
 
 } // namespace CaffeineTake
+
+#endif // #if defined(FEATURE_CAFFEINETAKE_LOGGER)
