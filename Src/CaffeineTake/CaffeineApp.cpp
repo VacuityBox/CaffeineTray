@@ -65,7 +65,9 @@ CaffeineApp::CaffeineApp (const AppInitInfo& info)
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     , mAutoMode           (mAppSO)
 #endif
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     , mTimerMode          (mAppSO)
+#endif
     , mDpi                (96)
     , mCurrentMode        (nullptr)
 {
@@ -253,11 +255,13 @@ auto CaffeineApp::OnContextMenuOpen() -> void
         AppendMenuW(hMenu, MF_STRING, IDM_DISABLE_CAFFEINE, mLang->ContextMenu_DisableCaffeine.c_str());
         break;
 #endif
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case CaffeineMode::Timer:
         AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
         AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
         AppendMenuW(hMenu, MF_STRING, IDM_DISABLE_CAFFEINE, mLang->ContextMenu_DisableCaffeine.c_str());
         break;
+#endif
     }
 
     AppendMenuW(hMenu, MF_SEPARATOR, NULL, NULL);
@@ -291,14 +295,18 @@ auto CaffeineApp::OnContextMenuSelect(int selectedItem) -> void
     case IDM_ENABLE_CAFFEINE:
         SetCaffeineMode(CaffeineMode::Enabled);
         return;
+
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     case IDM_ENABLE_AUTO:
         SetCaffeineMode(CaffeineMode::Auto);
         return;
 #endif
+
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case IDM_ENABLE_TIMER:
         SetCaffeineMode(CaffeineMode::Timer);
         return;
+#endif
 
     case IDM_SETTINGS:
         ShowSettingsDialog();
@@ -429,13 +437,22 @@ auto CaffeineApp::ToggleCaffeineMode() -> void
 
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     case CaffeineMode::Auto:
+#   if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
         mode = CaffeineMode::Timer;
+#   else
+        mode = CaffeineMode::Disabled;
+#   endif
         break;
 #endif
 
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case CaffeineMode::Timer:
         mode = CaffeineMode::Disabled;
         break;
+#endif
+
+    default:
+        mode = CaffeineMode::Disabled;
     }
 
     SetCaffeineMode(mode);
@@ -445,20 +462,29 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
 {
     LOG_INFO(L"Setting CaffeineMode to {}", CaffeineModeToString(mode));
 
+    auto nextMode = static_cast<Mode*>(nullptr);
+    switch (mode)
+    {
+    case CaffeineMode::Disabled: nextMode = &mDisabledMode; break;
+    case CaffeineMode::Enabled:  nextMode = &mEnabledMode;  break;
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
+    case CaffeineMode::Auto:     nextMode = &mAutoMode;     break;
+#endif
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
+    case CaffeineMode::Timer:    nextMode = &mTimerMode;    break;
+#endif
+    default:
+        LOG_WARNING("SetCaffeineMode() Invalid mode: {}, setting mode to Disabled", static_cast<int>(mCaffeineMode));
+        nextMode = &mDisabledMode;
+        break;
+    }
+
     // Stop current mode.
     StopMode();
 
     // Start new one.
     mCaffeineMode = mode;
-    switch (mCaffeineMode)
-    {
-    case CaffeineMode::Disabled: mCurrentMode = &mDisabledMode; break;
-    case CaffeineMode::Enabled:  mCurrentMode = &mEnabledMode;  break;
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
-    case CaffeineMode::Auto:     mCurrentMode = &mAutoMode;     break;
-#endif
-    case CaffeineMode::Timer:    mCurrentMode = &mTimerMode;    break;
-    }
+    mCurrentMode = nextMode;
 
     StartMode();
 
@@ -569,10 +595,15 @@ auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void
         disableOnLock = mSettings->Auto.DisableOnLockScreen;
         break;
 #endif
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case CaffeineMode::Timer:
         keepDisplayOn = mSettings->Timer.KeepDisplayOn;
         disableOnLock = mSettings->Timer.DisableOnLockScreen;
         break;
+#endif
+    default:
+        LOG_ERROR("UpdateExecutionState() Invalid mode: {}", static_cast<int>(mCaffeineMode));
+        return;
     }
 
     if (mCaffeineMode != CaffeineMode::Disabled)
@@ -653,6 +684,7 @@ auto CaffeineApp::UpdateIcon() -> bool
         }
         break;
 #endif
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case CaffeineMode::Timer:
         if (mCaffeineState == CaffeineState::Inactive)
         {
@@ -663,6 +695,10 @@ auto CaffeineApp::UpdateIcon() -> bool
             icon = mIcons.CaffeineTimerActive;
         }
         break;
+#endif
+    default:
+        LOG_ERROR("UpdateIcon() Invalid mode: {}", static_cast<int>(mCaffeineMode));
+        return false;
     }
 
     // No need to update.
@@ -707,6 +743,7 @@ auto CaffeineApp::UpdateTip() -> bool
         }
         break;
 #endif
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case CaffeineMode::Timer:
         if (mCaffeineState == CaffeineState::Inactive)
         {
@@ -717,6 +754,10 @@ auto CaffeineApp::UpdateTip() -> bool
             tip = mLang->Tip_TimerActive;
         }
         break;
+#endif
+    default:
+        LOG_ERROR("UpdateTip() Invalid mode: {}", static_cast<int>(mCaffeineMode));
+        return false;
     }
 
     // No need to update.
@@ -804,12 +845,18 @@ auto CaffeineApp::UpdateJumpList () -> bool
         break;
 #endif
 
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case CaffeineMode::Timer:
         list.push_back(OptionEnableCaffeine);
         list.push_back(OptionEnableAutoMode);
         //list.push_back(OptionEnableTimerMode);
         list.push_back(OptionDisableCaffeine);
         break;
+#endif
+
+    default:
+        LOG_ERROR("UpdateJumpList() Invalid mode: {}", static_cast<int>(mCaffeineMode));
+        return false;
     }
 
     list.push_back(OptionSeparator);

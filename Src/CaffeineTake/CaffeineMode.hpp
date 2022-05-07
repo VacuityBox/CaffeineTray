@@ -168,6 +168,7 @@ public:
 
 #endif // #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
 
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
 class TimerMode : public Mode
 {
     ThreadTimer mTimerThread;
@@ -219,5 +220,7 @@ public:
         return true;
     }
 };
+
+#endif // #if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
 
 } // namespace CaffeineTake

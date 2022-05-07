@@ -85,7 +85,9 @@ class CaffeineApp final
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     AutoMode         mAutoMode;
 #endif
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     TimerMode        mTimerMode;
+#endif
 
     auto OnCreate            ()                     -> void;
     auto OnDestroy           ()                     -> void;
