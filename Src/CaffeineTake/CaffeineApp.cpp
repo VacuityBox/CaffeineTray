@@ -24,7 +24,9 @@
 #if defined(FEATURE_CAFFEINETAKE_SETTINGS_DIALOG)
 #   include "Dialogs/CaffeineSettings.hpp"
 #endif
+#if defined(FEATURE_CAFFEINETAKE_JUMPLISTS)
 #include "JumpList.hpp"
+#endif
 #include "Lang.hpp"
 #include "Logger.hpp"
 #include "Resource.hpp"
@@ -809,6 +811,7 @@ auto CaffeineApp::UpdateAppIcon() -> void
 
 auto CaffeineApp::UpdateJumpList () -> bool
 {
+#if defined(FEATURE_CAFFEINETAKE_JUMPLISTS)
     const auto exe = mExecutablePath.wstring();
 
     // TODO update icons of tasks
@@ -877,6 +880,9 @@ auto CaffeineApp::UpdateJumpList () -> bool
     }
 
     return result;
+#else
+    return true;
+#endif
 }
 
 auto CaffeineApp::LoadSettings() -> bool

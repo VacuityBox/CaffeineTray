@@ -23,6 +23,7 @@
 // Portions of this repo are provided under the SIL Open Font License.
 // See the LICENSE file in individual samples for additional details.
 
+#include "Config.hpp"
 #include "JumpList.hpp"
 
 #define NTDDI_VERSION NTDDI_WIN7  // Specifies that the minimum required platform is Windows 7.
@@ -31,17 +32,21 @@
 
 // Windows Header Files:
 #include <windows.h>
-#include <psapi.h>
-#include <shlwapi.h>
+
+#if defined(FEATURE_CAFFEINETAKE_JUMPLISTS)
+#   include <psapi.h>
+#   include <shlwapi.h>
 
 // Header Files for Jump List features
-#include <objectarray.h>
-#include <shobjidl.h>
-#include <propkey.h>
-#include <propvarutil.h>
-#include <knownfolders.h>
-#include <shlobj.h>
+#   include <objectarray.h>
+#   include <shobjidl.h>
+#   include <propkey.h>
+#   include <propvarutil.h>
+#   include <knownfolders.h>
+#   include <shlobj.h>
+#endif
 
+#if defined(FEATURE_CAFFEINETAKE_JUMPLISTS)
 // Creates a CLSID_ShellLink to insert into the Tasks section of the Jump List.  This type of Jump
 // List item allows the specification of an explicit command line to execute the task.
 HRESULT CreateShellLink(PCWSTR pszTargetExecutable, PCWSTR pszArguments, PCWSTR pszTitle, PCWSTR pszIconPath, int iIcon, IShellLink **ppsl)
@@ -119,10 +124,13 @@ HRESULT CreateSeparatorLink(IShellLink **ppsl)
     return hr;
 }
 
+#endif // #if defined(FEATURE_CAFFEINETAKE_JUMPLISTS)
+
 namespace CaffeineTake {
 
 auto JumpList::Update (const fs::path& target, const std::vector<JumpListEntry>& jumpList) -> bool
 {
+#if defined(FEATURE_CAFFEINETAKE_JUMPLISTS)
     const auto targetPath = target.wstring();
 
     // Create the custom Jump List object.
@@ -186,10 +194,14 @@ auto JumpList::Update (const fs::path& target, const std::vector<JumpListEntry>&
     }
 
     return SUCCEEDED(hr);
+#else
+    return S_OK;
+#endif
 }
 
 auto JumpList::Clear () -> bool
 {
+#if defined(FEATURE_CAFFEINETAKE_JUMPLISTS)
     ICustomDestinationList *pcdl;
     HRESULT hr = CoCreateInstance(CLSID_DestinationList, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pcdl));
     if (SUCCEEDED(hr))
@@ -199,6 +211,9 @@ auto JumpList::Clear () -> bool
     }
 
     return SUCCEEDED(hr); 
+#else
+    return S_OK;
+#endif
 }
 
 } // namespace CaffeineTake
