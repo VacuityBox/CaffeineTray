@@ -20,9 +20,10 @@
 
 #pragma once
 
-#include "Utility.hpp"
-
-#include <nlohmann/json.hpp>
+#if defined(FEATURE_CAFFEINETAKE_MULTILANG)
+#   include "Utility.hpp"
+#   include <nlohmann/json.hpp>
+#endif
 
 #include <memory>
 #include <string>
@@ -56,6 +57,8 @@ struct Lang
     std::wstring Tip_TimerActive             = L"Caffeine - Timer (Active)";
 };
     
+#if defined(FEATURE_CAFFEINETAKE_MULTILANG)
+
 inline auto to_json (nlohmann::json& j, const Lang& lang)
 {
 }
@@ -83,4 +86,7 @@ inline auto from_json (const nlohmann::json& j, Lang& lang)
     LOAD_LANG_STR(Tip_TimerInactive          );
     LOAD_LANG_STR(Tip_TimerActive            );
 }
+
+#endif
+
 } // namespace CaffeineTake

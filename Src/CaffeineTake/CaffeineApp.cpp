@@ -23,12 +23,12 @@
 #include "Dialogs/AboutDialog.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
 #include "JumpList.hpp"
+#include "Lang.hpp"
 #include "Logger.hpp"
 #include "Resource.hpp"
+#include "Settings.hpp"
 #include "Utility.hpp"
 #include "Version.hpp"
-
-#include <nlohmann/json.hpp>
 
 #include <filesystem>
 #include <fstream>
@@ -937,6 +937,9 @@ auto CaffeineApp::SaveSettings() -> bool
 
 auto CaffeineApp::LoadLang () -> bool
 {
+#if !defined(FEATURE_CAFFEINETAKE_MULTILANG)
+    return LoadDefaultLang();
+#else
     // NOTE: Language file should be in UTF-8
     // Read Lang file.
     const auto langPath = mLangDirectory / (mSettings->General.LangId + L".json");
@@ -972,6 +975,7 @@ auto CaffeineApp::LoadLang () -> bool
     //mLang->LangName = 
 
     LOG_INFO(L"Loaded language {} ({}), file: '{}'", mLang->LangName, mLang->LangId, langPath.wstring());
+#endif
 
     return true;
 }
