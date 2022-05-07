@@ -20,11 +20,12 @@
 
 #pragma once
 
+#include "Config.hpp"
+
 #include "Logger.hpp"
 #include "Utility.hpp"
 
 #include <nlohmann/json.hpp>
-#include <spdlog/spdlog.h>
 
 #include <chrono>
 #include <format>
@@ -68,6 +69,7 @@ struct ScheduleEntry
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(ScheduleEntry, Name, ActiveDays, ActiveHours)
 };
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
 class Schedule
 {
 public:
@@ -129,5 +131,6 @@ public:
         return false;
     }
 };
+#endif // #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
 
 } // namespace CaffeineTake

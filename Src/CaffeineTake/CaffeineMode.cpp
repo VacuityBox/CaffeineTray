@@ -81,6 +81,7 @@ auto AutoMode::ScannerTimerProc (const StopToken& stop, const PauseToken& pause)
 }
 #endif
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
 auto AutoMode::ScheduleTimerProc (const StopToken& stop, const PauseToken& pause) -> bool
 {
     const auto settingsPtr = mAppSO.GetSettings();
@@ -112,6 +113,7 @@ auto AutoMode::ScheduleTimerProc (const StopToken& stop, const PauseToken& pause
     // TODO it would be better if we first check schedule and the run scanner
     return true;
 }
+#endif
 
 AutoMode::AutoMode (CaffeineAppSO app)
     : Mode (app)
