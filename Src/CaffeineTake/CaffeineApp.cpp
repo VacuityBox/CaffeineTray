@@ -21,7 +21,9 @@
 #include "CaffeineApp.hpp"
 
 #include "Dialogs/AboutDialog.hpp"
-#include "Dialogs/CaffeineSettings.hpp"
+#if defined(FEATURE_CAFFEINETAKE_SETTINGS_DIALOG)
+#   include "Dialogs/CaffeineSettings.hpp"
+#endif
 #include "JumpList.hpp"
 #include "Lang.hpp"
 #include "Logger.hpp"
@@ -475,6 +477,7 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
     default:
         LOG_WARNING("SetCaffeineMode() Invalid mode: {}, setting mode to Disabled", static_cast<int>(mCaffeineMode));
         nextMode = &mDisabledMode;
+        mode     = CaffeineMode::Disabled;
         break;
     }
 
@@ -878,14 +881,16 @@ auto CaffeineApp::UpdateJumpList () -> bool
 
 auto CaffeineApp::LoadSettings() -> bool
 {
-    // TODO return default settings on error always?
+#if !defined(FEATURE_CAFFEINETAKE_SETTINGS)
+    return LoadDefaultSettings();
+#else
     // NOTE: Settings should be in UTF-8
     // Read Settings file.
     auto file = std::ifstream(mSettingsFilePath);
     if (!file)
     {
         LOG_ERROR("Can't open Settings file '{}' for reading", mSettingsFilePath.string());
-        return false;
+        return LoadDefaultSettings();
     }
 
     // Deserialize.
@@ -893,7 +898,7 @@ auto CaffeineApp::LoadSettings() -> bool
     if (json.is_discarded())
     {
         LOG_ERROR("Failed to parse json of settings file");
-        return false;
+        return LoadDefaultSettings();
     }
     
     try
@@ -905,20 +910,30 @@ auto CaffeineApp::LoadSettings() -> bool
         LOG_ERROR("Failed to deserialize settings");
         LOG_WARNING("Using default values");
 
-        mSettings.reset();
-        mSettings = std::make_shared<Settings>();
-
-        return true;
+        return LoadDefaultSettings();
     }
 
     LOG_DEBUG("{}", json.dump(4));
     LOG_INFO("Loaded Settings '{}'", mSettingsFilePath.string());
 
     return true;
+#endif
+}
+
+auto CaffeineApp::LoadDefaultSettings() -> bool
+{
+    LOG_INFO("Using default settings");
+        
+    mSettings.reset();
+    mSettings = std::make_shared<Settings>();
+
+    return true;
 }
 
 auto CaffeineApp::SaveSettings() -> bool
 {
+#if !defined(FEATURE_CAFFEINETAKE_SETTINGS)
+    return LoadDefaultLang();
     // Open Settings file.
     auto file = std::ofstream(mSettingsFilePath);
     if (!file)
@@ -932,6 +947,7 @@ auto CaffeineApp::SaveSettings() -> bool
     file << std::setw(4) << json;
 
     LOG_INFO("Saved Settings '{}'", mSettingsFilePath.string());
+#endif
     return true;
 }
 
@@ -975,9 +991,9 @@ auto CaffeineApp::LoadLang () -> bool
     //mLang->LangName = 
 
     LOG_INFO(L"Loaded language {} ({}), file: '{}'", mLang->LangName, mLang->LangId, langPath.wstring());
-#endif
 
     return true;
+#endif
 }
 
 auto CaffeineApp::LoadDefaultLang () -> bool
@@ -992,6 +1008,7 @@ auto CaffeineApp::LoadDefaultLang () -> bool
 
 auto CaffeineApp::ShowSettingsDialog () -> bool
 {
+#if defined(FEATURE_CAFFEINETAKE_SETTINGS_DIALOG)
     SINGLE_INSTANCE_GUARD();
     
     auto caffeineSettings = CaffeineSettings(mSettings);
@@ -1010,6 +1027,7 @@ auto CaffeineApp::ShowSettingsDialog () -> bool
 
         SaveSettings();
     }
+#endif
 
     return true;
 }

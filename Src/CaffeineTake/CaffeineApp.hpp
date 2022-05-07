@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "Config.hpp"
+
 #include "AppInitInfo.hpp"
 #include "CaffeineAppSO.hpp"
 #include "CaffeineIcons.hpp"
@@ -122,8 +124,9 @@ class CaffeineApp final
     auto UpdateAppIcon  () -> void;
     auto UpdateJumpList () -> bool;
 
-    auto LoadSettings () -> bool;
-    auto SaveSettings () -> bool;
+    auto LoadSettings        () -> bool;
+    auto LoadDefaultSettings () -> bool;
+    auto SaveSettings        () -> bool;
 
     auto LoadLang        () -> bool;
     auto LoadDefaultLang () -> bool;

@@ -52,7 +52,7 @@
 
 // To change feature configuration define FEATURE_SET from build system.
 #if !defined(FEATURE_SET)
-#   define FEATURE_SET FEATURE_TYPE_CUSTOM
+#   define FEATURE_SET FEATURE_SET_CUSTOM
 #else
 #   if (FEATURE_SET != FEATURE_SET_MINIMAL)  \
     && (FEATURE_SET != FEATURE_SET_STANDARD) \
@@ -61,13 +61,20 @@
 #   endif
 #endif
 
+//#undef FEATURE_SET
+//#define FEATURE_SET FEATURE_SET_MINIMAL
+
 // ========================== //
 // Minimal Build              //
 // ========================== //
 
 #if FEATURE_SET == FEATURE_SET_MINIMAL
 #   define FEATURE_SET_STRING "Minimal"
-// ...
+
+#   if defined(_DEBUG)
+#       define FEATURE_CAFFEINETAKE_LOGGER
+#       define FEATURE_CAFFEINETAKE_SETTINGS
+#   endif
 #endif
 
 // ========================== //
