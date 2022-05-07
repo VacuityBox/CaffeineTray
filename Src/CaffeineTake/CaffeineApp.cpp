@@ -53,24 +53,19 @@ CaffeineApp::CaffeineApp (const AppInitInfo& info)
     , mInstanceHandle     (info.InstanceHandle)
     , mInitialized        (false)
     , mSessionState       (SessionState::Unlocked)
-    , mNotifyIcon         (mni::NotifyIcon::Desc{
-            .instance    = info.InstanceHandle,
-            .windowTitle = L"CaffeineTray_InvisibleWindow",
-            .className   = L"CaffeineTray_WndClass"
-        }
-    )
-    , mThemeInfo           (mni::ThemeInfo::Detect())
-    , mIcons               (info.InstanceHandle)
-    , mCaffeineState       (CaffeineState::Inactive)
-    , mCaffeineMode        (CaffeineMode::Disabled)
-    , mKeepDisplayOn       (false)
-    , mAppSO               (this)
-    , mDisabledMode        (mAppSO)
-    , mEnabledMode         (mAppSO)
-    , mAutoMode            (mAppSO)
-    , mTimerMode           (mAppSO)
-    , mDpi                 (96)
-    , mCurrentMode         (nullptr)
+    , mNotifyIcon         ()
+    , mThemeInfo          (mni::ThemeInfo::Detect())
+    , mIcons              (info.InstanceHandle)
+    , mCaffeineState      (CaffeineState::Inactive)
+    , mCaffeineMode       (CaffeineMode::Disabled)
+    , mKeepDisplayOn      (false)
+    , mAppSO              (this)
+    , mDisabledMode       (mAppSO)
+    , mEnabledMode        (mAppSO)
+    , mAutoMode           (mAppSO)
+    , mTimerMode          (mAppSO)
+    , mDpi                (96)
+    , mCurrentMode        (nullptr)
 {
 }
 
@@ -121,7 +116,13 @@ auto CaffeineApp::Init() -> bool
 
     // Create NotifyIcon.
     {
-        if (FAILED(mNotifyIcon.Init()))
+        const auto desc = mni::NotifyIcon::Desc{
+            .instance    = mInstanceHandle,
+            .windowTitle = L"CaffeineTake_InvisibleWindow",
+            .className   = L"CaffeineTake_WndClass",
+        };
+
+        if (FAILED(mNotifyIcon.Init(desc)))
         {
             LOG_ERROR("Failed to create NotifyIcon");
             return false;

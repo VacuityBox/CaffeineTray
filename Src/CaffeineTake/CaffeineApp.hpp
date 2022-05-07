@@ -28,7 +28,7 @@
 #include "Lang.hpp"
 #include "Settings.hpp"
 
-#include <mni/NotifyIcon.hpp>
+#include <mni/ImmersiveNotifyIcon.hpp>
 
 #include <filesystem>
 #include <memory>
