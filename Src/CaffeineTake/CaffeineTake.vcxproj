@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" InitialTargets="DisplayMessages">
+  <Target Name="DisplayMessages">
+    <Message Text="FeatureSet is set to $(FeatureSet)" />
+  </Target>
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -74,28 +77,63 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Minimal'">$(OutDir)Minimal\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Standard'">$(OutDir)Standard\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Full'">$(OutDir)Full\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'==''">$(OutDir)Custom\</OutDir>
     <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Minimal'">$(IntDir)\Minimal\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Standard'">$(IntDir)\Standard\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Full'">$(IntDir)\Full\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'==''">$(IntDir)\Custom\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Minimal'">$(OutDir)Minimal\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Standard'">$(OutDir)Standard\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Full'">$(OutDir)Full\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'==''">$(OutDir)Custom\</OutDir>
     <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Minimal'">$(IntDir)\Minimal\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Standard'">$(IntDir)\Standard\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Full'">$(IntDir)\Full\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'==''">$(IntDir)\Custom\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Minimal'">$(OutDir)Minimal\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Standard'">$(OutDir)Standard\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Full'">$(OutDir)Full\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'==''">$(OutDir)Custom\</OutDir>
     <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Minimal'">$(IntDir)\Minimal\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Standard'">$(IntDir)\Standard\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Full'">$(IntDir)\Full\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'==''">$(IntDir)\Custom\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Minimal'">$(OutDir)Minimal\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Standard'">$(OutDir)Standard\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'=='Full'">$(OutDir)Full\</OutDir>
+    <OutDir Condition="'$(FeatureSet)'==''">$(OutDir)Custom\</OutDir>
     <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Minimal'">$(IntDir)\Minimal\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Standard'">$(IntDir)\Standard\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'=='Full'">$(IntDir)\Full\</IntDir>
+    <IntDir Condition="'$(FeatureSet)'==''">$(IntDir)\Custom\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Minimal'">FEATURE_SET=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Standard'">FEATURE_SET=2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Full'">FEATURE_SET=3;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -103,7 +141,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ModernNotifyIcon.lib;Psapi.lib;Comctl32.lib;Wtsapi32.lib;SetupAPI.lib;Bthprops.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ImmersiveNotifyIcon.lib;Psapi.lib;Comctl32.lib;Wtsapi32.lib;SetupAPI.lib;Bthprops.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*';%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Deps\ModernNotifyIcon\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
@@ -119,6 +157,9 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Minimal'">FEATURE_SET=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Standard'">FEATURE_SET=2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Full'">FEATURE_SET=3;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -128,7 +169,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ModernNotifyIcon.lib;Psapi.lib;Comctl32.lib;Wtsapi32.lib;SetupAPI.lib;Bthprops.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ImmersiveNotifyIcon.lib;Psapi.lib;Comctl32.lib;Wtsapi32.lib;SetupAPI.lib;Bthprops.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*';%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Deps\ModernNotifyIcon\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
@@ -142,6 +183,9 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Minimal'">FEATURE_SET=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Standard'">FEATURE_SET=2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Full'">FEATURE_SET=3;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -149,7 +193,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ModernNotifyIcon.lib;Psapi.lib;Comctl32.lib;Wtsapi32.lib;SetupAPI.lib;Bthprops.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ImmersiveNotifyIcon.lib;Psapi.lib;Comctl32.lib;Wtsapi32.lib;SetupAPI.lib;Bthprops.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*';%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Deps\ModernNotifyIcon\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
@@ -165,6 +209,9 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Minimal'">FEATURE_SET=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Standard'">FEATURE_SET=2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(FeatureSet)'=='Full'">FEATURE_SET=3;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -174,7 +221,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ModernNotifyIcon.lib;Psapi.lib;Comctl32.lib;Wtsapi32.lib;SetupAPI.lib;Bthprops.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ImmersiveNotifyIcon.lib;Psapi.lib;Comctl32.lib;Wtsapi32.lib;SetupAPI.lib;Bthprops.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*';%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Deps\ModernNotifyIcon\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
@@ -189,6 +236,7 @@
     <ClCompile Include="CaffeineIcons.cpp" />
     <ClCompile Include="CaffeineApp.cpp" />
     <ClCompile Include="CaffeineMode.cpp" />
+    <ClCompile Include="Config.cpp" />
     <ClCompile Include="Dialogs\AddWizard.cpp" />
     <ClCompile Include="Dialogs\CaffeineSettings.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -202,6 +250,7 @@
     <ClInclude Include="BluetoothIdentifier.hpp" />
     <ClInclude Include="CaffeineAppSO.hpp" />
     <ClInclude Include="CaffeineState.hpp" />
+    <ClInclude Include="Config.hpp" />
     <ClInclude Include="Dialogs\AboutDialog.hpp" />
     <ClInclude Include="CaffeineMode.hpp" />
     <ClInclude Include="CaffeineApp.hpp" />
