@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "Config.hpp"
+
 #include <filesystem>
 #include <string_view>
 
@@ -64,8 +66,11 @@ private:
 public:
     HICON CaffeineDisabled      = NULL;
     HICON CaffeineEnabled       = NULL;
+
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     HICON CaffeineAutoInactive  = NULL;
     HICON CaffeineAutoActive    = NULL;
+#endif
     HICON CaffeineTimerInactive = NULL;
     HICON CaffeineTimerActive   = NULL;
 

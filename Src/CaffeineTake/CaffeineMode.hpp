@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "Config.hpp"
+
 #include "CaffeineAppSO.hpp"
 #include "Logger.hpp"
 #include "Scanner.hpp"
@@ -33,10 +35,10 @@ namespace CaffeineTake {
 
 enum class CaffeineMode : unsigned char
 {
-    Disabled, // TODO better name?
-    Enabled,  // TODO better name?
-    Auto,
-    Timer
+    Disabled = 0,  // TODO better name?
+    Enabled  = 1,  // TODO better name?
+    Auto     = 2,
+    Timer    = 3
 };
 
 constexpr auto CaffeineModeToString (CaffeineMode mode) -> std::wstring_view
@@ -117,74 +119,54 @@ public:
     }
 };
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
+
+// Define flag to indicate at least one trigger is set (excluding schedule trigger).
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS) \
+ || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW)  \
+ || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)     \
+ || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
+
+#define FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_IS_SCANNER_REQUIRED
+#endif
+
 class AutoMode : public Mode
 {
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS)
     ProcessScanner   mProcessScanner;
+#endif
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW)
     WindowScanner    mWindowScanner;
+#endif
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)
     UsbDeviceScanner mUsbScanner;
+#endif
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
     BluetoothScanner mBluetoothScanner;
+#endif
 
-    bool             mScannerPreviousResult;
-    bool             mSchedulePreviousResult;
-
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_IS_SCANNER_REQUIRED)
+    bool             mScannerPreviousResult = false;
     ThreadTimer      mScannerTimer;
-    ThreadTimer      mScheduleTimer;
 
     auto ScannerTimerProc  (const StopToken& stop, const PauseToken& pause) -> bool;
+#endif
+
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
+    bool             mSchedulePreviousResult = false;
+    ThreadTimer      mScheduleTimer;
+
     auto ScheduleTimerProc (const StopToken& stop, const PauseToken& pause) -> bool;
+#endif
 
 public:
-    AutoMode (CaffeineAppSO app)
-        : Mode                    (app)
-        , mProcessScanner         ()
-        , mWindowScanner          ()
-        , mScannerTimer
-            ( std::bind(&AutoMode::ScannerTimerProc, this, std::placeholders::_1, std::placeholders::_2)
-            , ThreadTimer::Interval(1000)
-            , false
-            , true
-            )
-        , mScheduleTimer
-            ( std::bind(&AutoMode::ScheduleTimerProc, this, std::placeholders::_1, std::placeholders::_2)
-            , ThreadTimer::Interval(1000)
-            , false
-            , true
-            )
-        , mScannerPreviousResult  (false)
-        , mSchedulePreviousResult (false)
-    {
-    }
+    AutoMode (CaffeineAppSO app);
 
-    auto Start () -> bool override
-    {
-        mAppSO.DisableCaffeine();
-
-        const auto settingsPtr = mAppSO.GetSettings();
-        if (settingsPtr)
-        {
-            mScannerTimer.SetInterval(std::chrono::milliseconds(settingsPtr->Auto.ScanInterval));
-        }
-
-        mScheduleTimer.Start();
-        mScannerTimer.Start();
-
-        LOG_TRACE("Started Auto mode");
-
-        return true;
-    }
-
-    auto Stop () -> bool override
-    {
-        mScannerTimer.Stop();
-        mScheduleTimer.Stop();
-
-        mAppSO.DisableCaffeine();
-
-        LOG_TRACE("Stopped Auto mode");
-
-        return true;
-    }
+    auto Start () -> bool override;
+    auto Stop  () -> bool override;
 };
+
+#endif // #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
 
 class TimerMode : public Mode
 {

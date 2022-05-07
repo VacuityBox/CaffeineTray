@@ -82,7 +82,9 @@ class CaffeineApp final
     Mode*            mCurrentMode;
     DisabledMode     mDisabledMode;
     EnabledMode      mEnabledMode;
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     AutoMode         mAutoMode;
+#endif
     TimerMode        mTimerMode;
 
     auto OnCreate            ()                     -> void;
