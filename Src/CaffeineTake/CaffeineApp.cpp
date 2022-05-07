@@ -29,7 +29,6 @@
 #include "Version.hpp"
 
 #include <nlohmann/json.hpp>
-#include <spdlog/spdlog.h>
 
 #include <filesystem>
 #include <fstream>

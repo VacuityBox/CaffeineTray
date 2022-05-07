@@ -23,8 +23,6 @@
 #include "Logger.hpp"
 #include "Resource.hpp"
 
-#include <spdlog/spdlog.h>
-
 namespace CaffeineTake {
 
 inline auto CaffeineIcons::LoadFromResource (int id, int w, int h) -> HICON

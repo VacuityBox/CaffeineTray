@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "Config.hpp"
+
 #include "BluetoothIdentifier.hpp"
 #include "Settings.hpp"
 #include "ThreadTimer.hpp"
@@ -48,6 +50,7 @@ public:
     virtual auto Run (SettingsPtr, const StopToken&, const PauseToken&) -> bool = 0;
 };
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS)
 class ProcessScanner : public Scanner
 {
     std::wstring mLastProcessName = L"";
@@ -59,13 +62,17 @@ class ProcessScanner : public Scanner
 public:
     auto Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool override;
 };
+#endif
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW)
 class WindowScanner : public Scanner
 {
 public:
     auto Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool override;
 };
+#endif
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)
 class UsbDeviceScanner : public Scanner
 {
     std::wstring mLastFoundDevice = L"";
@@ -73,7 +80,9 @@ class UsbDeviceScanner : public Scanner
 public:
     auto Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool override;
 };
+#endif
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
 class BluetoothScanner : public Scanner
 {
     using LocalTime   = std::chrono::local_time<std::chrono::system_clock::duration>;
@@ -109,5 +118,6 @@ public:
 
     auto Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool override;
 };
+#endif
 
 } // namespace CaffeineTake

@@ -26,6 +26,7 @@
 
 namespace CaffeineTake {
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_IS_SCANNER_REQUIRED)
 auto AutoMode::ScannerTimerProc (const StopToken& stop, const PauseToken& pause) -> bool
 {
     const auto settingsPtr = mAppSO.GetSettings();
@@ -78,6 +79,7 @@ auto AutoMode::ScannerTimerProc (const StopToken& stop, const PauseToken& pause)
 
     return true;
 }
+#endif
 
 auto AutoMode::ScheduleTimerProc (const StopToken& stop, const PauseToken& pause) -> bool
 {

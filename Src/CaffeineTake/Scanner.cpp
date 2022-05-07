@@ -20,8 +20,6 @@
 
 #include "Scanner.hpp"
 
-#include <spdlog/spdlog.h>
-
 #include <filesystem>
 #include <memory>
 #include <optional>
@@ -35,6 +33,7 @@ namespace CaffeineTake {
 
 #pragma region "ProcessScanner"
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS)
 auto ProcessScanner::CheckLast () -> bool
 {
     auto path = GetProcessPath(mLastPid);
@@ -115,11 +114,13 @@ auto ProcessScanner::Run (SettingsPtr settings, const StopToken& stop, const Pau
         }
     );
 }
+#endif
 
 #pragma endregion
 
 #pragma region "WindowScanner"
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW)
 auto WindowScanner::Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool
 {
     if (settings->Auto.WindowTitles.empty())
@@ -149,11 +150,13 @@ auto WindowScanner::Run (SettingsPtr settings, const StopToken& stop, const Paus
         }
     );
 }
+#endif
 
 #pragma endregion
 
 #pragma region "UsbDeviceScanenr"
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)
 auto UsbDeviceScanner::Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool
 {
     if (settings->Auto.UsbDevices.empty())
@@ -273,11 +276,13 @@ auto UsbDeviceScanner::Run (SettingsPtr settings, const StopToken& stop, const P
 
     return found;
 }
+#endif
 
 #pragma endregion
 
 #pragma region "BluetoothScanner"
 
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
 auto BluetoothScanner::SystemTimeToChronoLocalTimePoint (const SYSTEMTIME& st)
 {
     auto ft     = FILETIME{};
@@ -553,6 +558,7 @@ auto BluetoothScanner::Run (SettingsPtr settings, const StopToken& stop, const P
 
     return found.IsValid();
 }
+#endif
 
 #pragma endregion
 
