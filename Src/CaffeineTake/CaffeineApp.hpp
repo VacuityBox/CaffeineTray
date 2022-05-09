@@ -71,6 +71,7 @@ class CaffeineApp final
     CaffeineState    mCaffeineState;
     bool             mKeepDisplayOn;
     bool             mInitialized;
+    bool             mShuttingDown;
     SessionState     mSessionState;
     fs::path         mExecutablePath;
     fs::path         mSettingsFilePath;
@@ -84,12 +85,8 @@ class CaffeineApp final
     Mode*            mCurrentMode;
     DisabledMode     mDisabledMode;
     EnabledMode      mEnabledMode;
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     AutoMode         mAutoMode;
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     TimerMode        mTimerMode;
-#endif
 
     auto OnCreate            ()                     -> void;
     auto OnDestroy           ()                     -> void;
@@ -124,15 +121,15 @@ class CaffeineApp final
     auto UpdateAppIcon  () -> void;
     auto UpdateJumpList () -> bool;
 
-    auto LoadSettings        () -> bool;
-    auto LoadDefaultSettings () -> bool;
-    auto SaveSettings        () -> bool;
+    auto LoadSettings () -> void;
+    auto SaveSettings () -> void;
 
-    auto LoadLang        () -> bool;
-    auto LoadDefaultLang () -> bool;
+    auto LoadLang     () -> void;
 
     auto ShowSettingsDialog () -> bool;
     auto ShowAboutDialog    () -> bool;
+
+    auto IsModeAvailable (CaffeineMode mode) -> bool;
 
     CaffeineApp            (const CaffeineApp&) = delete;
     CaffeineApp& operator= (const CaffeineApp&) = delete;

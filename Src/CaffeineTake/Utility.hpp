@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include <nlohmann/json.hpp>
-
 #include <filesystem>
 #include <functional>
 #include <optional>
@@ -29,7 +27,6 @@
 #include <string_view>
 
 #define WIN32_LEAN_AND_MEAN
-#define STRICT_TYPED_ITEMIDS
 #define NOMINMAX
 #include <Windows.h>
 
@@ -75,24 +72,3 @@ FILETIME        system_clock_to_FILETIME (SystemTimePoint systemPoint);
     do {} while (0)
 
 } // namespace CaffeineTake
-
-// std::wstring serializer/deserializer.
-namespace nlohmann {
-
-template <>
-struct adl_serializer<std::wstring>
-{
-    static void to_json(json& j, const std::wstring& opt)
-    {
-        auto utf8 = CaffeineTake::UTF16ToUTF8(opt.c_str());
-        j = utf8 ? utf8.value() : "";
-    }
-
-    static void from_json(const json& j, std::wstring& opt)
-    {
-        auto utf16 = CaffeineTake::UTF8ToUTF16(j.get<std::string>());
-        opt = utf16 ? utf16.value() : L"";
-    }
-};
-
-} // namespace nlohmann

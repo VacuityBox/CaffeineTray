@@ -22,10 +22,6 @@
 
 #include "Config.hpp"
 
-#if defined(FEATURE_CAFFEINETAKE_LOGGER)
-
-#include <spdlog/spdlog.h>
-
 #include <filesystem>
 #include <cstdarg>
 
@@ -33,18 +29,16 @@ namespace {
     namespace fs = std::filesystem;
 }
 
+#if defined(FEATURE_CAFFEINETAKE_LOGGER)
+
+#include <spdlog/spdlog.h>
+
 // Logging macros.
 #define LOG_TRACE(...)   spdlog::trace(__VA_ARGS__)
 #define LOG_DEBUG(...)   spdlog::debug(__VA_ARGS__)
 #define LOG_INFO(...)    spdlog::info(__VA_ARGS__)
 #define LOG_WARNING(...) spdlog::warn(__VA_ARGS__)
 #define LOG_ERROR(...)   spdlog::error(__VA_ARGS__)
-
-namespace CaffeineTake {
-
-auto InitLogger (const fs::path& logFilePath) -> bool;
-
-} // namespace CaffeineTake
 
 #else
 
@@ -56,3 +50,9 @@ auto InitLogger (const fs::path& logFilePath) -> bool;
 #define LOG_ERROR(...)   do{}while(0)
 
 #endif // #if defined(FEATURE_CAFFEINETAKE_LOGGER)
+
+namespace CaffeineTake {
+
+auto InitLogger (const fs::path& logFilePath) -> bool;
+
+} // namespace CaffeineTake

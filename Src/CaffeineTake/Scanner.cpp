@@ -18,6 +18,7 @@
 // 
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "Config.hpp"
 #include "Scanner.hpp"
 
 #include <filesystem>
@@ -25,15 +26,19 @@
 #include <optional>
 
 #include <initguid.h>
-#include <SetupAPI.h>
-#include <usbiodef.h>
-#include <bluetoothapis.h>
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)
+#   include <SetupAPI.h>
+#   include <usbiodef.h>
+#endif
+
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
+#   include <bluetoothapis.h>
+#endif
 
 namespace CaffeineTake {
 
 #pragma region "ProcessScanner"
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS)
 auto ProcessScanner::CheckLast () -> bool
 {
     auto path = GetProcessPath(mLastPid);
@@ -54,6 +59,9 @@ auto ProcessScanner::CheckLast () -> bool
 
 auto ProcessScanner::Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool
 {
+#if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS)
+    return false;
+#else
     if (settings->Auto.ProcessNames.empty() && settings->Auto.ProcessPaths.empty())
     {
         return false;
@@ -113,16 +121,18 @@ auto ProcessScanner::Run (SettingsPtr settings, const StopToken& stop, const Pau
             return ScanResult::Continue;
         }
     );
-}
 #endif
+}
 
 #pragma endregion
 
 #pragma region "WindowScanner"
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW)
 auto WindowScanner::Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool
 {
+#if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW)
+    return false;
+#else
     if (settings->Auto.WindowTitles.empty())
     {
         return false;
@@ -149,16 +159,18 @@ auto WindowScanner::Run (SettingsPtr settings, const StopToken& stop, const Paus
             return ScanResult::Continue;
         }
     );
-}
 #endif
+}
 
 #pragma endregion
 
 #pragma region "UsbDeviceScanenr"
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)
 auto UsbDeviceScanner::Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool
 {
+#if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)
+    return false;
+#else
     if (settings->Auto.UsbDevices.empty())
     {
         return false;
@@ -275,14 +287,13 @@ auto UsbDeviceScanner::Run (SettingsPtr settings, const StopToken& stop, const P
     }
 
     return found;
-}
 #endif
+}
 
 #pragma endregion
 
 #pragma region "BluetoothScanner"
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
 auto BluetoothScanner::SystemTimeToChronoLocalTimePoint (const SYSTEMTIME& st)
 {
     auto ft     = FILETIME{};
@@ -338,6 +349,9 @@ auto BluetoothScanner::ShouldPerformDeviceInquiry (const LocalTime& localTime, c
 
 auto BluetoothScanner::IssueDeviceInquiry () -> bool
 {
+#if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
+    return false;
+#else
     LOG_TRACE("Starting bluetooth device inquiry");
 
     auto result = true;
@@ -379,10 +393,14 @@ auto BluetoothScanner::IssueDeviceInquiry () -> bool
     LOG_TRACE("Finished bluetooth device inqury");
 
     return result;
+#endif
 }
 
 auto BluetoothScanner::CheckIfThereIsBluetoothRadio () -> bool
 {
+#if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
+    return false;
+#else
     auto params = BLUETOOTH_FIND_RADIO_PARAMS{
         .dwSize = sizeof(BLUETOOTH_FIND_RADIO_PARAMS)
     };
@@ -398,6 +416,7 @@ auto BluetoothScanner::CheckIfThereIsBluetoothRadio () -> bool
     }
 
     return found;
+#endif
 }
 
 auto BluetoothScanner::EnumerateBluetoothDevices (
@@ -407,6 +426,9 @@ auto BluetoothScanner::EnumerateBluetoothDevices (
     const StopToken&           stop
 ) -> BluetoothIdentifier
 {
+#if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
+    return BluetoothIdentifier();
+#else
     auto deviceInfo = BLUETOOTH_DEVICE_INFO{};
     ZeroMemory(&deviceInfo, sizeof(deviceInfo));
     deviceInfo.dwSize = sizeof(deviceInfo);
@@ -503,10 +525,14 @@ auto BluetoothScanner::EnumerateBluetoothDevices (
     }
 
     return found;
+#endif
 }
 
 auto BluetoothScanner::Run (SettingsPtr settings, const StopToken& stop, const PauseToken& pause) -> bool
 {
+#if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
+    return false;
+#else
     if (settings->Auto.BluetoothDevices.empty())
     {
         return false;
@@ -557,8 +583,8 @@ auto BluetoothScanner::Run (SettingsPtr settings, const StopToken& stop, const P
     }
 
     return found.IsValid();
-}
 #endif
+}
 
 #pragma endregion
 

@@ -18,22 +18,36 @@
 // 
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#pragma once
+
 #include "Config.hpp"
 
-#if defined(FEATURE_CAFFEINETAKE_IMMERSIVE_CONTEXT_MENU)
-#   pragma comment(lib, "ImmersiveNotifyIcon.lib")
-#else
-#   pragma comment(lib, "ClassicNotifyIcon.lib")
-#endif
+#if defined(FEATURE_CAFFEINETAKE_SETTINGS)
 
-#if defined(FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION)
-#   pragma comment(lib, "Wtsapi32.lib")
-#endif
+#include "Utility.hpp"
+#include <string>
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)
-#   pragma comment(lib, "SetupAPI.lib")
-#endif
+#include <nlohmann/json.hpp>
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
-#   pragma comment(lib, "Bthprops.lib")
+// std::wstring serializer/deserializer.
+namespace nlohmann {
+
+template <>
+struct adl_serializer<std::wstring>
+{
+    static void to_json(json& j, const std::wstring& opt)
+    {
+        auto utf8 = CaffeineTake::UTF16ToUTF8(opt.c_str());
+        j = utf8 ? utf8.value() : "";
+    }
+
+    static void from_json(const json& j, std::wstring& opt)
+    {
+        auto utf16 = CaffeineTake::UTF8ToUTF16(j.get<std::string>());
+        opt = utf16 ? utf16.value() : L"";
+    }
+};
+
+} // namespace nlohmann
+
 #endif

@@ -61,42 +61,30 @@ auto CaffeineIcons::LoadOriginalIcons (Theme theme, int w, int h) -> bool
     case CaffeineTake::CaffeineIcons::Theme::Light:
         CaffeineDisabled      = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_DISABLED_LIGHT, w, h);
         CaffeineEnabled       = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_ENABLED_LIGHT, w, h);
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)    
         CaffeineAutoInactive  = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_LIGHT, w, h);
         CaffeineAutoActive    = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_LIGHT, w, h);
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
         // TODO change when timer icons added
         CaffeineTimerInactive = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_LIGHT, w, h);
         CaffeineTimerActive   = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_LIGHT, w, h);
-#endif
         break;
     case CaffeineTake::CaffeineIcons::Theme::Dark:
         CaffeineDisabled      = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_DISABLED_DARK, w, h);
         CaffeineEnabled       = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_ENABLED_DARK, w, h);
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
         CaffeineAutoInactive  = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_DARK, w, h);
         CaffeineAutoActive    = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_DARK, w, h);
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
         // TODO change when timer icons added
         CaffeineTimerInactive = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_INACTIVE_DARK, w, h);
         CaffeineTimerActive   = LoadFromResource(IDI_NOTIFY_ORIGINAL_CAFFEINE_AUTO_ACTIVE_DARK, w, h);
-#endif
         break;
     }
     LOG_INFO("Finished loading icons");
 
     return CaffeineDisabled
         && CaffeineEnabled
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
         && CaffeineAutoInactive
         && CaffeineAutoActive
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
         && CaffeineTimerInactive
         && CaffeineTimerActive
-#endif
         ;
 }
 
@@ -108,40 +96,28 @@ auto CaffeineIcons::LoadSquareIcons (Theme theme, int w, int h) -> bool
     case CaffeineTake::CaffeineIcons::Theme::Light:
         CaffeineDisabled      = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_LIGHT, w, h);
         CaffeineEnabled       = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_LIGHT, w, h);
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
         CaffeineAutoInactive  = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_LIGHT, w, h);
         CaffeineAutoActive    = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_LIGHT, w, h);
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
         CaffeineTimerInactive = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_INACTIVE_LIGHT, w, h);
         CaffeineTimerActive   = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_ACTIVE_LIGHT, w, h);
-#endif
         break;
     case CaffeineTake::CaffeineIcons::Theme::Dark:
         CaffeineDisabled      = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_DISABLED_DARK, w, h);
         CaffeineEnabled       = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_ENABLED_DARK, w, h);
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
         CaffeineAutoInactive  = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_INACTIVE_DARK, w, h);
         CaffeineAutoActive    = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_DARK, w, h);
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
         CaffeineTimerInactive = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_INACTIVE_DARK, w, h);
         CaffeineTimerActive   = LoadFromResource(IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_ACTIVE_DARK, w, h);
-#endif
         break;
     }
     LOG_INFO("Finished loading icons");
 
     return CaffeineDisabled
         && CaffeineEnabled
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
         && CaffeineAutoInactive
         && CaffeineAutoActive
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
         && CaffeineTimerInactive
         && CaffeineTimerActive
-#endif
         ;
 }
 
@@ -153,40 +129,28 @@ auto CaffeineIcons::LoadCustomIcons (Theme theme, int w, int h) -> bool
     case CaffeineTake::CaffeineIcons::Theme::Light:
         CaffeineDisabled      = LoadFromFile(L"CaffeineDisabledLight.ico", w, h);
         CaffeineEnabled       = LoadFromFile(L"CaffeineEnabledLight.ico", w, h);
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
         CaffeineAutoInactive  = LoadFromFile(L"CaffeineAutoInactiveLight.ico", w, h);
         CaffeineAutoActive    = LoadFromFile(L"CaffeineAutoActiveLight.ico", w, h);
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
         CaffeineTimerInactive = LoadFromFile(L"CaffeineTimerInactiveLight.ico", w, h);
         CaffeineTimerActive   = LoadFromFile(L"CaffeineTimerActiveLight.ico", w, h);
-#endif
         break;
     case CaffeineTake::CaffeineIcons::Theme::Dark:
         CaffeineDisabled      = LoadFromFile(L"CaffeineDisabledDark.ico", w, h);
         CaffeineEnabled       = LoadFromFile(L"CaffeineEnabledDark.ico", w, h);
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
         CaffeineAutoInactive  = LoadFromFile(L"CaffeineAutoInactiveDark.ico", w, h);
         CaffeineAutoActive    = LoadFromFile(L"CaffeineAutoActiveDark.ico", w, h);
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
         CaffeineTimerInactive = LoadFromFile(L"CaffeineTimerInactiveDark.ico", w, h);
         CaffeineTimerActive   = LoadFromFile(L"CaffeineTimerActiveDark.ico", w, h);
-#endif
         break;
     }
     LOG_INFO("Finished loading icons");
 
     return CaffeineDisabled
         && CaffeineEnabled
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
         && CaffeineAutoInactive
         && CaffeineAutoActive
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
         && CaffeineTimerInactive
         && CaffeineTimerActive
-#endif
         ;
 }
 
@@ -203,7 +167,6 @@ auto CaffeineIcons::InternalCleanup () -> void
         DestroyIcon(CaffeineEnabled);
         CaffeineEnabled = NULL;
     }
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     if (CaffeineAutoInactive)
     {
         DestroyIcon(CaffeineAutoInactive);
@@ -214,8 +177,6 @@ auto CaffeineIcons::InternalCleanup () -> void
         DestroyIcon(CaffeineAutoActive);
         CaffeineAutoActive = NULL;
     }
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     if (CaffeineTimerInactive)
     {
         DestroyIcon(CaffeineTimerInactive);
@@ -226,7 +187,6 @@ auto CaffeineIcons::InternalCleanup () -> void
         DestroyIcon(CaffeineTimerActive);
         CaffeineTimerActive = NULL;
     }
-#endif
     LOG_INFO("Finished cleaning-up icons");
 }
 

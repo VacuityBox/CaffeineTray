@@ -20,21 +20,22 @@
 
 #pragma once
 
-#if defined(FEATURE_CAFFEINETAKE_MULTILANG)
-#   include "Utility.hpp"
-#   include <nlohmann/json.hpp>
-#endif
-
+#include <filesystem>
 #include <memory>
 #include <string>
 
+namespace {
+    namespace fs = std::filesystem;
+}
+
 namespace CaffeineTake {
 
-struct Lang;
+class Lang;
 using LangPtr = std::shared_ptr<Lang>;
 
-struct Lang
+class Lang final
 {
+public:
     // Those two are set manually.
     std::wstring LangId   = L"en";
     std::wstring LangName = L"English";
@@ -55,38 +56,9 @@ struct Lang
     std::wstring Tip_AutoActive              = L"Caffeine - Auto (Active)";
     std::wstring Tip_TimerInactive           = L"Caffeine - Timer (Inactive)";
     std::wstring Tip_TimerActive             = L"Caffeine - Timer (Active)";
+
+    auto Load (const fs::path& path) -> bool;
+    auto Save (const fs::path& path) -> bool;
 };
-    
-#if defined(FEATURE_CAFFEINETAKE_MULTILANG)
-
-inline auto to_json (nlohmann::json& j, const Lang& lang)
-{
-}
-
-#define LOAD_LANG_STR(_str) lang.##_str = j.value<std::wstring>(#_str, def.##_str)
-
-inline auto from_json (const nlohmann::json& j, Lang& lang)
-{
-    static auto def = Lang();
-
-    LOAD_LANG_STR(ContextMenu_DisableCaffeine);
-    LOAD_LANG_STR(ContextMenu_EnableCaffeine );
-    LOAD_LANG_STR(ContextMenu_EnableAuto     );
-    LOAD_LANG_STR(ContextMenu_EnableTimer    );
-    LOAD_LANG_STR(ContextMenu_Settings       );
-    LOAD_LANG_STR(ContextMenu_About          );
-    LOAD_LANG_STR(ContextMenu_Exit           );
-
-    LOAD_LANG_STR(Tip_DisabledInactive       );
-    LOAD_LANG_STR(Tip_DisabledActive         );
-    LOAD_LANG_STR(Tip_EnabledInactive        );
-    LOAD_LANG_STR(Tip_EnabledActive          );
-    LOAD_LANG_STR(Tip_AutoInactive           );
-    LOAD_LANG_STR(Tip_AutoActive             );
-    LOAD_LANG_STR(Tip_TimerInactive          );
-    LOAD_LANG_STR(Tip_TimerActive            );
-}
-
-#endif
 
 } // namespace CaffeineTake

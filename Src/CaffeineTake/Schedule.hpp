@@ -25,7 +25,10 @@
 #include "Logger.hpp"
 #include "Utility.hpp"
 
-#include <nlohmann/json.hpp>
+#if defined(FEATURE_CAFFEINETAKE_SETTINGS)
+#   include "StringSerializer.hpp"
+#   include <nlohmann/json.hpp>
+#endif
 
 #include <chrono>
 #include <format>
@@ -55,7 +58,9 @@ struct TimeRange
     unsigned int Begin;
     unsigned int End;
 
+#if defined(FEATURE_CAFFEINETAKE_SETTINGS)
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(TimeRange, Begin, End)
+#endif
 };
 
 using TimeRangeList = std::vector<TimeRange>;
@@ -66,10 +71,11 @@ struct ScheduleEntry
     DaysOfWeek    ActiveDays;
     TimeRangeList ActiveHours;
 
+#if defined(FEATURE_CAFFEINETAKE_SETTINGS)
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(ScheduleEntry, Name, ActiveDays, ActiveHours)
+#endif
 };
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
 class Schedule
 {
 public:
@@ -77,6 +83,9 @@ public:
         std::vector<ScheduleEntry>&                        schedule,
         std::chrono::time_point<std::chrono::system_clock> time
     ) -> bool {
+    #if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
+        return false;
+    #else
         const auto tz = std::chrono::current_zone();
         const auto localTime = tz->to_local(time);
 
@@ -129,8 +138,8 @@ public:
         }
 
         return false;
+    #endif
     }
 };
-#endif // #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
 
 } // namespace CaffeineTake

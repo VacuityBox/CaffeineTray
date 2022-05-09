@@ -21,12 +21,8 @@
 #include "CaffeineApp.hpp"
 
 #include "Dialogs/AboutDialog.hpp"
-#if defined(FEATURE_CAFFEINETAKE_SETTINGS_DIALOG)
-#   include "Dialogs/CaffeineSettings.hpp"
-#endif
-#if defined(FEATURE_CAFFEINETAKE_JUMPLISTS)
+#include "Dialogs/CaffeineSettings.hpp"
 #include "JumpList.hpp"
-#endif
 #include "Lang.hpp"
 #include "Logger.hpp"
 #include "Resource.hpp"
@@ -36,11 +32,15 @@
 
 #include <filesystem>
 #include <fstream>
+
 #include <commctrl.h>
 #include <Psapi.h>
 #include <shellapi.h>
 #include <ShlObj.h>
-#include <WtsApi32.h>
+
+#if defined(FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION)
+#   include <WtsApi32.h>
+#endif
 
 using namespace std;
 
@@ -55,6 +55,7 @@ CaffeineApp::CaffeineApp (const AppInitInfo& info)
     , mLangDirectory      (info.DataDirectory / "Lang" / "")
     , mInstanceHandle     (info.InstanceHandle)
     , mInitialized        (false)
+    , mShuttingDown       (false)
     , mSessionState       (SessionState::Unlocked)
     , mNotifyIcon         ()
     , mThemeInfo          (mni::ThemeInfo::Detect())
@@ -65,12 +66,8 @@ CaffeineApp::CaffeineApp (const AppInitInfo& info)
     , mAppSO              (this)
     , mDisabledMode       (mAppSO)
     , mEnabledMode        (mAppSO)
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     , mAutoMode           (mAppSO)
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     , mTimerMode          (mAppSO)
-#endif
     , mDpi                (96)
     , mCurrentMode        (nullptr)
 {
@@ -78,7 +75,8 @@ CaffeineApp::CaffeineApp (const AppInitInfo& info)
 
 CaffeineApp::~CaffeineApp()
 {
-    DisableCaffeine();
+    mShuttingDown = true;
+    SetCaffeineMode(CaffeineMode::Disabled);
     CoUninitialize();
 }
 
@@ -96,10 +94,7 @@ auto CaffeineApp::Init() -> bool
         }
         else
         {
-            if (!LoadSettings())
-            {
-                return false;
-            }
+            LoadSettings();
         }
     }
 
@@ -123,7 +118,7 @@ auto CaffeineApp::Init() -> bool
 
     // Create NotifyIcon.
     {
-        const auto desc = mni::NotifyIcon::Desc{
+        auto desc = mni::NotifyIcon::Desc{
             .instance    = mInstanceHandle,
             .windowTitle = L"CaffeineTake_InvisibleWindow",
             .className   = L"CaffeineTake_WndClass",
@@ -200,18 +195,22 @@ auto CaffeineApp::MainLoop () -> int
 
 auto CaffeineApp::OnCreate() -> void
 {
+#if defined(FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION)
     // Add session lock notification event.
     if (!WTSRegisterSessionNotification(mNotifyIcon.Handle(), NOTIFY_FOR_THIS_SESSION))
     {
         LOG_ERROR("Failed to register session notification event");
         LOG_INFO("DisableOnLockScreen functionality will not work");
     }
+#endif
 }
 
 auto CaffeineApp::OnDestroy() -> void
 {
     LOG_INFO("Shutting down application");
+#if defined(FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION)
     WTSUnRegisterSessionNotification(mNotifyIcon.Handle());
+#endif
 }
 
 
@@ -242,33 +241,59 @@ auto CaffeineApp::OnContextMenuOpen() -> void
     switch (mCaffeineMode)
     {
     case CaffeineMode::Disabled:
-        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
-        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
-        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_TIMER, mLang->ContextMenu_EnableTimer.c_str());
+        if (IsModeAvailable(CaffeineMode::Enabled)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
+        }
+        if (IsModeAvailable(CaffeineMode::Auto)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
+        }
+        if (IsModeAvailable(CaffeineMode::Timer)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_TIMER, mLang->ContextMenu_EnableTimer.c_str());
+        }
         break;
     case CaffeineMode::Enabled:
-        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
-        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_TIMER, mLang->ContextMenu_EnableTimer.c_str());
-        AppendMenuW(hMenu, MF_STRING, IDM_DISABLE_CAFFEINE, mLang->ContextMenu_DisableCaffeine.c_str());
+        if (IsModeAvailable(CaffeineMode::Auto)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
+        }
+        if (IsModeAvailable(CaffeineMode::Timer)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_TIMER, mLang->ContextMenu_EnableTimer.c_str());
+        }
+        if (IsModeAvailable(CaffeineMode::Disabled)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_DISABLE_CAFFEINE, mLang->ContextMenu_DisableCaffeine.c_str());
+        }
         break;
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     case CaffeineMode::Auto:
-        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
-        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_TIMER, mLang->ContextMenu_EnableTimer.c_str());
-        AppendMenuW(hMenu, MF_STRING, IDM_DISABLE_CAFFEINE, mLang->ContextMenu_DisableCaffeine.c_str());
+        if (IsModeAvailable(CaffeineMode::Enabled)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
+        }
+        if (IsModeAvailable(CaffeineMode::Timer)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_TIMER, mLang->ContextMenu_EnableTimer.c_str());
+        }
+        if (IsModeAvailable(CaffeineMode::Disabled)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_DISABLE_CAFFEINE, mLang->ContextMenu_DisableCaffeine.c_str());
+        }
         break;
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case CaffeineMode::Timer:
-        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
-        AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
-        AppendMenuW(hMenu, MF_STRING, IDM_DISABLE_CAFFEINE, mLang->ContextMenu_DisableCaffeine.c_str());
+        if (IsModeAvailable(CaffeineMode::Enabled)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
+        }
+        if (IsModeAvailable(CaffeineMode::Auto)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
+        }
+        if (IsModeAvailable(CaffeineMode::Disabled)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_DISABLE_CAFFEINE, mLang->ContextMenu_DisableCaffeine.c_str());
+        }
         break;
-#endif
     }
 
     AppendMenuW(hMenu, MF_SEPARATOR, NULL, NULL);
+
+#if defined(FEATURE_CAFFEINETAKE_SETTINGS_DIALOG)
     AppendMenuW(hMenu, MF_STRING, IDM_SETTINGS, mLang->ContextMenu_Settings.c_str());
+#else
+    AppendMenuW(hMenu, MF_STRING, IDM_ABOUT, mLang->ContextMenu_About.c_str());
+#endif
+
     AppendMenuW(hMenu, MF_STRING, IDM_EXIT, mLang->ContextMenu_Exit.c_str());
 
     AppendMenuW(hPopupMenu, MF_POPUP, reinterpret_cast<UINT_PTR>(hMenu), NULL);
@@ -299,17 +324,17 @@ auto CaffeineApp::OnContextMenuSelect(int selectedItem) -> void
         SetCaffeineMode(CaffeineMode::Enabled);
         return;
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     case IDM_ENABLE_AUTO:
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
         SetCaffeineMode(CaffeineMode::Auto);
-        return;
 #endif
+        return;
 
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case IDM_ENABLE_TIMER:
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
         SetCaffeineMode(CaffeineMode::Timer);
-        return;
 #endif
+        return;
 
     case IDM_SETTINGS:
         ShowSettingsDialog();
@@ -429,33 +454,29 @@ auto CaffeineApp::ToggleCaffeineMode() -> void
         break;
 
     case CaffeineMode::Enabled:
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
-        mode = CaffeineMode::Auto;
-#elif defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
-        mode = CaffeineMode::Timer;
-#else
-        mode = CaffeineMode::Disabled;
-#endif
+        if (IsModeAvailable(CaffeineMode::Auto)) {
+            mode = CaffeineMode::Auto;
+        }
+        else if (IsModeAvailable(CaffeineMode::Timer)) {
+            mode = CaffeineMode::Timer;
+        }
+        else {
+            mode = CaffeineMode::Disabled;
+        }
         break;
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     case CaffeineMode::Auto:
-#   if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
-        mode = CaffeineMode::Timer;
-#   else
-        mode = CaffeineMode::Disabled;
-#   endif
+        if (IsModeAvailable(CaffeineMode::Timer)) {
+            mode = CaffeineMode::Timer;
+        }
+        else {
+            mode = CaffeineMode::Disabled;
+        }
         break;
-#endif
 
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case CaffeineMode::Timer:
         mode = CaffeineMode::Disabled;
         break;
-#endif
-
-    default:
-        mode = CaffeineMode::Disabled;
     }
 
     SetCaffeineMode(mode);
@@ -468,18 +489,44 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
     auto nextMode = static_cast<Mode*>(nullptr);
     switch (mode)
     {
-    case CaffeineMode::Disabled: nextMode = &mDisabledMode; break;
-    case CaffeineMode::Enabled:  nextMode = &mEnabledMode;  break;
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
-    case CaffeineMode::Auto:     nextMode = &mAutoMode;     break;
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
-    case CaffeineMode::Timer:    nextMode = &mTimerMode;    break;
-#endif
-    default:
-        LOG_WARNING("SetCaffeineMode() Invalid mode: {}, setting mode to Disabled", static_cast<int>(mCaffeineMode));
-        nextMode = &mDisabledMode;
-        mode     = CaffeineMode::Disabled;
+    case CaffeineMode::Disabled:
+        if (IsModeAvailable(CaffeineMode::Disabled)) {
+            nextMode = &mDisabledMode;
+        }
+        else {
+            LOG_ERROR("Mode 'Disabled' is not available");
+            return;
+        }
+        break;
+
+    case CaffeineMode::Enabled:
+        if (IsModeAvailable(CaffeineMode::Enabled)) {
+            nextMode = &mEnabledMode;
+        }
+        else {
+            LOG_ERROR("Mode 'Enabled' is not available");
+            return;
+        }
+        break;
+
+    case CaffeineMode::Auto:
+        if (IsModeAvailable(CaffeineMode::Auto)) {
+            nextMode = &mAutoMode;
+        }
+        else {
+            LOG_ERROR("Mode 'Auto' is not available");
+            return;
+        }
+        break;
+
+    case CaffeineMode::Timer:
+        if (IsModeAvailable(CaffeineMode::Timer)) {
+            nextMode = &mTimerMode;
+        }
+        else {
+            LOG_ERROR("Mode 'Timer' is not available");
+            return;
+        }
         break;
     }
 
@@ -545,6 +592,7 @@ auto CaffeineApp::LoadMode () -> bool
         mode = static_cast<CaffeineMode>(data);
     }
 
+    // TODO check availability
     mCaffeineMode = mode;
     
     return result;
@@ -593,21 +641,14 @@ auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void
         keepDisplayOn = mSettings->Standard.KeepDisplayOn;
         disableOnLock = mSettings->Standard.DisableOnLockScreen;
         break;
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     case CaffeineMode::Auto:
         keepDisplayOn = mSettings->Auto.KeepDisplayOn;
         disableOnLock = mSettings->Auto.DisableOnLockScreen;
         break;
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case CaffeineMode::Timer:
         keepDisplayOn = mSettings->Timer.KeepDisplayOn;
         disableOnLock = mSettings->Timer.DisableOnLockScreen;
         break;
-#endif
-    default:
-        LOG_ERROR("UpdateExecutionState() Invalid mode: {}", static_cast<int>(mCaffeineMode));
-        return;
     }
 
     if (mCaffeineMode != CaffeineMode::Disabled)
@@ -676,7 +717,6 @@ auto CaffeineApp::UpdateIcon() -> bool
     case CaffeineMode::Enabled:
         icon = mIcons.CaffeineEnabled;
         break;
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     case CaffeineMode::Auto:
         if (mCaffeineState == CaffeineState::Inactive)
         {
@@ -687,8 +727,6 @@ auto CaffeineApp::UpdateIcon() -> bool
             icon = mIcons.CaffeineAutoActive;
         }
         break;
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
     case CaffeineMode::Timer:
         if (mCaffeineState == CaffeineState::Inactive)
         {
@@ -699,10 +737,6 @@ auto CaffeineApp::UpdateIcon() -> bool
             icon = mIcons.CaffeineTimerActive;
         }
         break;
-#endif
-    default:
-        LOG_ERROR("UpdateIcon() Invalid mode: {}", static_cast<int>(mCaffeineMode));
-        return false;
     }
 
     // No need to update.
@@ -735,7 +769,6 @@ auto CaffeineApp::UpdateTip() -> bool
         tip = mLang->Tip_EnabledActive;
         break;
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     case CaffeineMode::Auto:
         if (mCaffeineState == CaffeineState::Inactive)
         {
@@ -746,8 +779,7 @@ auto CaffeineApp::UpdateTip() -> bool
             tip = mLang->Tip_AutoActive;
         }
         break;
-#endif
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
+
     case CaffeineMode::Timer:
         if (mCaffeineState == CaffeineState::Inactive)
         {
@@ -758,10 +790,6 @@ auto CaffeineApp::UpdateTip() -> bool
             tip = mLang->Tip_TimerActive;
         }
         break;
-#endif
-    default:
-        LOG_ERROR("UpdateTip() Invalid mode: {}", static_cast<int>(mCaffeineMode));
-        return false;
     }
 
     // No need to update.
@@ -811,7 +839,11 @@ auto CaffeineApp::UpdateAppIcon() -> void
 
 auto CaffeineApp::UpdateJumpList () -> bool
 {
-#if defined(FEATURE_CAFFEINETAKE_JUMPLISTS)
+#if !defined(FEATURE_CAFFEINETAKE_JUMPLISTS)
+    // TODO it would be got to clear lists
+    return true;
+#endif
+
     const auto exe = mExecutablePath.wstring();
 
     // TODO update icons of tasks
@@ -822,53 +854,97 @@ auto CaffeineApp::UpdateJumpList () -> bool
     const auto OptionEnableTimerMode = JumpListEntry(JumpListEntry::Type::Normal, L"Enable Timer Mode", L"/task:EnableTimerMode", exe.c_str(), 0);
     const auto OptionSeparator       = JumpListEntry(JumpListEntry::Type::Separator, L"", L"", L"", 0);
     const auto OptionSettings        = JumpListEntry(JumpListEntry::Type::Normal, L"Settings", L"/task:Settings", exe.c_str(), 0);
+    const auto OptionAbout           = JumpListEntry(JumpListEntry::Type::Normal, L"About", L"/task:About", exe.c_str(), 0);
     const auto OptionExit            = JumpListEntry(JumpListEntry::Type::Normal, L"Exit", L"/task:Exit", exe.c_str(), 0);
 
     auto list = std::vector<JumpListEntry>();
 
-    switch (mCaffeineMode)
+    if (!mShuttingDown)
     {
-    case CaffeineMode::Disabled:
-        list.push_back(OptionEnableCaffeine);
-        list.push_back(OptionEnableAutoMode);
-        list.push_back(OptionEnableTimerMode);
-        //list.push_back(OptionDisableCaffeine);
-        break;
+        switch (mCaffeineMode)
+        {
+        case CaffeineMode::Disabled:
+            if (IsModeAvailable(CaffeineMode::Enabled)) {
+                list.push_back(OptionEnableCaffeine);
+            }
+            if (IsModeAvailable(CaffeineMode::Auto)) {
+                list.push_back(OptionEnableAutoMode);
+            }
+            if (IsModeAvailable(CaffeineMode::Timer)) {
+                list.push_back(OptionEnableTimerMode);
+            }
+            break;
+        case CaffeineMode::Enabled:
+            if (IsModeAvailable(CaffeineMode::Auto)) {
+                list.push_back(OptionEnableAutoMode);
+            }
+            if (IsModeAvailable(CaffeineMode::Timer)) {
+                list.push_back(OptionEnableTimerMode);
+            }
+            if (IsModeAvailable(CaffeineMode::Disabled)) {
+                list.push_back(OptionDisableCaffeine);
+            }
+            break;
+        case CaffeineMode::Auto:
+            if (IsModeAvailable(CaffeineMode::Enabled)) {
+                list.push_back(OptionEnableCaffeine);
+            }
+            if (IsModeAvailable(CaffeineMode::Timer)) {
+                list.push_back(OptionEnableTimerMode);
+            }
+            if (IsModeAvailable(CaffeineMode::Disabled)) {
+                list.push_back(OptionDisableCaffeine);
+            }
+            break;
+        case CaffeineMode::Timer:
+            if (IsModeAvailable(CaffeineMode::Enabled)) {
+                list.push_back(OptionEnableCaffeine);
+            }
+            if (IsModeAvailable(CaffeineMode::Auto)) {
+                list.push_back(OptionEnableAutoMode);
+            }
+            if (IsModeAvailable(CaffeineMode::Disabled)) {
+                list.push_back(OptionDisableCaffeine);
+            }
+            break;
+        }
 
-    case CaffeineMode::Enabled:
-        //list.push_back(OptionEnableCaffeine);
-        list.push_back(OptionEnableAutoMode);
-        list.push_back(OptionEnableTimerMode);
-        list.push_back(OptionDisableCaffeine);
-        break;
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
-    case CaffeineMode::Auto:
-        list.push_back(OptionEnableCaffeine);
-        //list.push_back(OptionEnableAutoMode);
-        list.push_back(OptionEnableTimerMode);
-        list.push_back(OptionDisableCaffeine);
-        break;
-#endif
+        list.push_back(OptionSeparator);
+        
+        if (IsFeatureAvailable(Feature::SettingsDialog)) {
+            list.push_back(OptionSettings);
+        }
+        else {
+            list.push_back(OptionAbout);
+        }
 
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
-    case CaffeineMode::Timer:
-        list.push_back(OptionEnableCaffeine);
-        list.push_back(OptionEnableAutoMode);
-        //list.push_back(OptionEnableTimerMode);
-        list.push_back(OptionDisableCaffeine);
-        break;
-#endif
+        list.push_back(OptionExit);
+    }
+    else
+    {
+        // We want to clear the list on app shutdown.
+        // TODO add option to start app with no mode change?
+        if (IsModeAvailable(CaffeineMode::Enabled)) {
+            list.push_back(OptionEnableCaffeine);
+        }
+        if (IsModeAvailable(CaffeineMode::Auto)) {
+            list.push_back(OptionEnableAutoMode);
+        }
+        if (IsModeAvailable(CaffeineMode::Timer)) {
+            list.push_back(OptionEnableTimerMode);
+        }
 
-    default:
-        LOG_ERROR("UpdateJumpList() Invalid mode: {}", static_cast<int>(mCaffeineMode));
-        return false;
+        list.push_back(OptionSeparator);
+        
+        if (IsFeatureAvailable(Feature::SettingsDialog)) {
+            list.push_back(OptionSettings);
+        }
+        else {
+            list.push_back(OptionAbout);
+        }
     }
 
-    list.push_back(OptionSeparator);
-    list.push_back(OptionSettings);
-    list.push_back(OptionExit);
-
-
+    JumpList::Clear();
     const auto result = JumpList::Update(mExecutablePath, list);
     if (result)
     {
@@ -880,136 +956,40 @@ auto CaffeineApp::UpdateJumpList () -> bool
     }
 
     return result;
-#else
-    return true;
-#endif
 }
 
-auto CaffeineApp::LoadSettings() -> bool
+auto CaffeineApp::LoadSettings () -> void
 {
-#if !defined(FEATURE_CAFFEINETAKE_SETTINGS)
-    return LoadDefaultSettings();
-#else
-    // NOTE: Settings should be in UTF-8
-    // Read Settings file.
-    auto file = std::ifstream(mSettingsFilePath);
-    if (!file)
+    if (!mSettings->Load(mSettingsFilePath))
     {
-        LOG_ERROR("Can't open Settings file '{}' for reading", mSettingsFilePath.string());
-        return LoadDefaultSettings();
+        LOG_ERROR(L"Failed to load settings, using default values");
+        mSettings = std::make_shared<Settings>();
     }
-
-    // Deserialize.
-    auto json = nlohmann::json::parse(file, nullptr, false, true);
-    if (json.is_discarded())
-    {
-        LOG_ERROR("Failed to parse json of settings file");
-        return LoadDefaultSettings();
-    }
-    
-    try
-    {
-        *mSettings = json.get<Settings>();
-    }
-    catch (nlohmann::json::exception&)
-    {
-        LOG_ERROR("Failed to deserialize settings");
-        LOG_WARNING("Using default values");
-
-        return LoadDefaultSettings();
-    }
-
-    LOG_DEBUG("{}", json.dump(4));
-    LOG_INFO("Loaded Settings '{}'", mSettingsFilePath.string());
-
-    return true;
-#endif
 }
 
-auto CaffeineApp::LoadDefaultSettings() -> bool
+auto CaffeineApp::SaveSettings () -> void
 {
-    LOG_INFO("Using default settings");
-        
-    mSettings.reset();
-    mSettings = std::make_shared<Settings>();
-
-    return true;
-}
-
-auto CaffeineApp::SaveSettings() -> bool
-{
-#if !defined(FEATURE_CAFFEINETAKE_SETTINGS)
-    return LoadDefaultLang();
-    // Open Settings file.
-    auto file = std::ofstream(mSettingsFilePath);
-    if (!file)
+    if (!mSettings->Save(mSettingsFilePath))
     {
-        LOG_ERROR("Can't open Settings file '{}' for writing", mSettingsFilePath.string());
-        return false;
+        LOG_ERROR(L"Failed to save settings");
     }
-
-    // Serialize.
-    auto json = nlohmann::json(*mSettings);
-    file << std::setw(4) << json;
-
-    LOG_INFO("Saved Settings '{}'", mSettingsFilePath.string());
-#endif
-    return true;
 }
 
-auto CaffeineApp::LoadLang () -> bool
+auto CaffeineApp::LoadLang () -> void
 {
-#if !defined(FEATURE_CAFFEINETAKE_MULTILANG)
-    return LoadDefaultLang();
-#else
-    // NOTE: Language file should be in UTF-8
-    // Read Lang file.
     const auto langPath = mLangDirectory / (mSettings->General.LangId + L".json");
-    auto file = std::ifstream(langPath);
-    if (!file)
+    if (!mLang->Load(langPath))
     {
-        LOG_ERROR("Can't open language file '{}' for reading", langPath.string());
-        return LoadDefaultLang();
+        mLang = std::make_shared<Lang>();
+        LOG_ERROR(L"Failed to load lang file, using default language '{}'", mLang->LangId);
     }
-
-    // Deserialize.
-    auto json = nlohmann::json::parse(file, nullptr, false, true);
-    if (json.is_discarded())
+    else
     {
-        LOG_ERROR("Failed to parse json of lang file");
-        return LoadDefaultLang();
+        mLang->LangId = mSettings->General.LangId;
+        // TODO get name from langid
+        //mLang->LangName = 
+        LOG_INFO(L"Loaded language: '{}' ({})", mLang->LangId, mLang->LangName);
     }
-    
-    try
-    {
-        *mLang = json.get<Lang>();
-    }
-    catch (nlohmann::json::exception&)
-    {
-        LOG_ERROR("Failed to deserialize language file");
-        return LoadDefaultLang();
-    }
-
-    LOG_DEBUG("{}", json.dump(4));
-
-    mLang->LangId = mSettings->General.LangId;
-    // TODO get name from langid
-    //mLang->LangName = 
-
-    LOG_INFO(L"Loaded language {} ({}), file: '{}'", mLang->LangName, mLang->LangId, langPath.wstring());
-
-    return true;
-#endif
-}
-
-auto CaffeineApp::LoadDefaultLang () -> bool
-{
-    LOG_INFO("Using default language (en)");
-        
-    mLang.reset();
-    mLang = std::make_shared<Lang>();
-
-    return true;
 }
 
 auto CaffeineApp::ShowSettingsDialog () -> bool
@@ -1046,6 +1026,40 @@ auto CaffeineApp::ShowAboutDialog () -> bool
     aboutDlg.Show(mNotifyIcon.Handle());
 
     return true;
+}
+
+auto CaffeineApp::IsModeAvailable (CaffeineMode mode) -> bool
+{
+    auto available = false;
+
+    switch (mode)
+    {
+    case CaffeineMode::Disabled:
+        available = true;
+        break;
+
+    case CaffeineMode::Enabled:
+        available = true;
+        break;
+
+    case CaffeineMode::Auto:
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
+        available = true;
+#else
+        available = false;
+#endif
+        break;
+
+    case CaffeineMode::Timer:
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
+        available = true;
+#else
+        available = false;
+#endif
+        break;
+    }
+
+    return available;
 }
 
 } // namespace CaffeineTake

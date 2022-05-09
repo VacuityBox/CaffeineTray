@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include "Config.hpp"
-
 #include "CaffeineAppSO.hpp"
 #include "Logger.hpp"
 #include "Scanner.hpp"
@@ -68,6 +66,8 @@ public:
     virtual auto Start () -> bool = 0;
     virtual auto Stop  () -> bool = 0;
 
+    virtual auto IsModeAvailable () -> bool = 0;
+
     //virtual auto OnCustomMessage (UINT, WPARAM, LPARAM) -> bool = 0;
 };
 
@@ -90,6 +90,11 @@ public:
     auto Stop () -> bool override
     {
         LOG_TRACE("Stopped Disabled mode");
+        return true;
+    }
+
+    auto IsModeAvailable () -> bool override
+    {
         return true;
     }
 };
@@ -117,58 +122,39 @@ public:
         LOG_TRACE("Stopped Enabled mode");
         return true;
     }
+
+    auto IsModeAvailable () -> bool override
+    {
+        return true;
+    }
 };
-
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
-
-// Define flag to indicate at least one trigger is set (excluding schedule trigger).
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS) \
- || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW)  \
- || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)     \
- || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
-
-#define FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_IS_SCANNER_REQUIRED
-#endif
 
 class AutoMode : public Mode
 {
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS)
     ProcessScanner   mProcessScanner;
-#endif
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW)
     WindowScanner    mWindowScanner;
-#endif
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)
     UsbDeviceScanner mUsbScanner;
-#endif
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
     BluetoothScanner mBluetoothScanner;
-#endif
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_IS_SCANNER_REQUIRED)
     bool             mScannerPreviousResult = false;
     ThreadTimer      mScannerTimer;
 
     auto ScannerTimerProc  (const StopToken& stop, const PauseToken& pause) -> bool;
-#endif
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
     bool             mSchedulePreviousResult = false;
     ThreadTimer      mScheduleTimer;
 
     auto ScheduleTimerProc (const StopToken& stop, const PauseToken& pause) -> bool;
-#endif
 
 public:
     AutoMode (CaffeineAppSO app);
 
     auto Start () -> bool override;
     auto Stop  () -> bool override;
+
+    auto IsModeAvailable () -> bool override;
 };
 
-#endif // #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
-
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
 class TimerMode : public Mode
 {
     ThreadTimer mTimerThread;
@@ -219,8 +205,8 @@ public:
 
         return true;
     }
-};
 
-#endif // #if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
+    auto IsModeAvailable () -> bool override;
+};
 
 } // namespace CaffeineTake

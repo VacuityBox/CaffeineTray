@@ -23,14 +23,15 @@
 #include "BluetoothIdentifier.hpp"
 #include "CaffeineIcons.hpp"
 #include "Schedule.hpp"
-#include "Utility.hpp"
 
-#include <nlohmann/json.hpp>
-
-#include <format>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
+
+namespace {
+    namespace fs = std::filesystem;
+}
 
 namespace CaffeineTake {
 
@@ -50,8 +51,6 @@ public:
             , LangId   (L"en")
         {
         }
-
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(General, IconPack, LangId)
     } General;
     
     struct Standard
@@ -64,8 +63,6 @@ public:
             , DisableOnLockScreen (true)
         {
         }
-
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(Standard, KeepDisplayOn, DisableOnLockScreen)
     } Standard;
 
     struct Auto
@@ -101,20 +98,6 @@ public:
             , ActiveTimeout       (60*1000)
         {
         }
-
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(
-            Auto,
-            KeepDisplayOn,
-            DisableOnLockScreen,
-            ScanInterval,
-            ProcessNames,
-            ProcessPaths,
-            WindowTitles,
-            ScheduleEntries,
-            UsbDevices,
-            BluetoothDevices,
-            ActiveTimeout
-        )
     } Auto;
 
     struct Timer
@@ -130,13 +113,12 @@ public:
             , Interval            (0)
         {
         }
-
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(Timer, KeepDisplayOn, DisableOnLockScreen, Interval)
     } Timer;
 
     Settings () = default;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Settings, General, Standard, Auto, Timer)
+    auto Load (const fs::path& path) -> bool;
+    auto Save (const fs::path& path) -> bool;
 };
 
 } // namespace CaffeineTake

@@ -18,15 +18,13 @@
 // 
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "Config.hpp"
 #include "CaffeineMode.hpp"
-
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
 
 #include <chrono>
 
 namespace CaffeineTake {
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_IS_SCANNER_REQUIRED)
 auto AutoMode::ScannerTimerProc (const StopToken& stop, const PauseToken& pause) -> bool
 {
     const auto settingsPtr = mAppSO.GetSettings();
@@ -79,9 +77,7 @@ auto AutoMode::ScannerTimerProc (const StopToken& stop, const PauseToken& pause)
 
     return true;
 }
-#endif
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
 auto AutoMode::ScheduleTimerProc (const StopToken& stop, const PauseToken& pause) -> bool
 {
     const auto settingsPtr = mAppSO.GetSettings();
@@ -90,10 +86,14 @@ auto AutoMode::ScheduleTimerProc (const StopToken& stop, const PauseToken& pause
         return false;
     }
 
+    auto scheduleResult = false;
+
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
     // Scan processes and windows if no process found.
-    auto scheduleResult = Schedule::CheckSchedule(
+    scheduleResult = Schedule::CheckSchedule(
         settingsPtr->Auto.ScheduleEntries, std::chrono::system_clock::now()
     );
+#endif
 
     // Only if there is state change.
     if (scheduleResult != mSchedulePreviousResult)
@@ -113,26 +113,21 @@ auto AutoMode::ScheduleTimerProc (const StopToken& stop, const PauseToken& pause
     // TODO it would be better if we first check schedule and the run scanner
     return true;
 }
-#endif
 
 AutoMode::AutoMode (CaffeineAppSO app)
     : Mode (app)
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_IS_SCANNER_REQUIRED)
     , mScannerTimer
         ( std::bind(&AutoMode::ScannerTimerProc, this, std::placeholders::_1, std::placeholders::_2)
         , ThreadTimer::Interval(1000)
         , false
         , true
         )
-#endif
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
     , mScheduleTimer
         ( std::bind(&AutoMode::ScheduleTimerProc, this, std::placeholders::_1, std::placeholders::_2)
         , ThreadTimer::Interval(1000)
         , false
         , true
         )
-#endif
 {
 }
 
@@ -145,7 +140,10 @@ auto AutoMode::Start () -> bool
     mScheduleTimer.Start();
 #endif
 
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_IS_SCANNER_REQUIRED)
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS) \
+ || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW) \
+ || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB) \
+ || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
     const auto settingsPtr = mAppSO.GetSettings();
     if (settingsPtr)
     {
@@ -166,7 +164,10 @@ auto AutoMode::Stop () -> bool
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
     mScheduleTimer.Stop();
 #endif
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_IS_SCANNER_REQUIRED)
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS) \
+ || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW) \
+ || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB) \
+ || defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
     mScannerTimer.Stop();
 #endif
 
@@ -177,6 +178,24 @@ auto AutoMode::Stop () -> bool
     return true;
 }
 
+auto AutoMode::IsModeAvailable () -> bool
+{
+#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
+    return true;
+#else
+    return false;
+#endif
+}
+
+
+auto TimerMode::IsModeAvailable () -> bool
+{
+#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
+    return true;
+#else
+    return false;
+#endif
+}
+
 } // namespace CaffeineTake
 
-#endif // #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)

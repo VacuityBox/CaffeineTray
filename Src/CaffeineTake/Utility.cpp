@@ -18,6 +18,7 @@
 // 
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "Config.hpp"
 #include "Utility.hpp"
 
 #include <array>
@@ -27,7 +28,10 @@
 #include <ShlObj.h>
 #include <shlwapi.h>
 #include <VersionHelpers.h>
-#include <wtsapi32.h>
+
+#if defined(FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION)
+    #include <wtsapi32.h>
+#endif
 
 namespace CaffeineTake {
 
@@ -121,6 +125,7 @@ auto GetAppDataPath () -> std::filesystem::path
 
 auto IsSessionLocked () -> SessionState
 {
+#if defined(FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION)
     auto wtsinfo  = std::make_unique<WTSINFOEXW*>();
     auto retBytes = DWORD{ 0 };
 
@@ -155,6 +160,9 @@ auto IsSessionLocked () -> SessionState
     WTSFreeMemory(*wtsinfo);
 
     return isLocked ? SessionState::Locked : SessionState::Unlocked;
+#else
+    return SessionState::Unlocked;
+#endif
 }
 
 auto ScanProcesses (std::function<ScanResult (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool

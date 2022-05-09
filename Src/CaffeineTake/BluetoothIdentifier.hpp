@@ -20,9 +20,10 @@
 
 #pragma once
 
-#include "Utility.hpp"
-
-#include <nlohmann/json.hpp>
+#if defined(FEATURE_CAFFEINETAKE_SETTINGS)
+#   include "Utility.hpp"
+#   include <nlohmann/json.hpp>
+#endif
 
 #include <format>
 #include <string>
@@ -87,6 +88,7 @@ struct BluetoothIdentifier
 
 };
 
+#if defined(FEATURE_CAFFEINETAKE_SETTINGS)
 inline auto to_json (nlohmann::json& j, const BluetoothIdentifier& bi) -> void
 {
     j = nlohmann::json{
@@ -137,5 +139,6 @@ inline auto from_json (const nlohmann::json& j, BluetoothIdentifier& bi) -> void
 
     bi.ull = ull;
 }
+#endif
 
 } // namespace CaffeineTake
