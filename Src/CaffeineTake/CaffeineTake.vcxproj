@@ -139,6 +139,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH.hpp</PrecompiledHeaderFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -167,6 +168,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH.hpp</PrecompiledHeaderFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -195,6 +197,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH.hpp</PrecompiledHeaderFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -223,6 +226,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Src\CaffeineTake\;$(SolutionDir)\Deps\nlohmann_json\include;$(SolutionDir)\Deps\spdlog\include;$(SolutionDir)\Deps\ModernNotifyIcon\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH.hpp</PrecompiledHeaderFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
