@@ -18,6 +18,7 @@
 // 
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "PCH.hpp"
 #include "Config.hpp"
 #include "Utility.hpp"
 
@@ -345,7 +346,8 @@ auto HexCharToInt (const char c) -> unsigned char
         return c - '0';
     }
 
-    return std::numeric_limits<unsigned char>::max();
+    //return std::numeric_limits<unsigned char>::max();
+    return UCHAR_MAX;
 }
 
 #pragma region "FILETIME to system_clock"

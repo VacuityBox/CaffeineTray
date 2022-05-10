@@ -23,10 +23,10 @@
 // Portions of this repo are provided under the SIL Open Font License.
 // See the LICENSE file in individual samples for additional details.
 
+#include "PCH.hpp"
 #include "Config.hpp"
 #include "JumpList.hpp"
 
-#define NTDDI_VERSION NTDDI_WIN7  // Specifies that the minimum required platform is Windows 7.
 #define WIN32_LEAN_AND_MEAN       // Exclude rarely-used stuff from Windows headers
 #define STRICT_TYPED_ITEMIDS      // Utilize strictly typed IDLists
 

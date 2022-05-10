@@ -18,8 +18,8 @@
 // 
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "PCH.hpp"
 #include "CaffeineAppSO.hpp"
-
 #include "CaffeineApp.hpp"
 
 namespace CaffeineTake {

@@ -19,22 +19,3 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "PCH.hpp"
-#include "Config.hpp"
-
-#if defined(FEATURE_CAFFEINETAKE_IMMERSIVE_CONTEXT_MENU)
-#   pragma comment(lib, "ImmersiveNotifyIcon.lib")
-#else
-#   pragma comment(lib, "ClassicNotifyIcon.lib")
-#endif
-
-#if defined(FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION)
-#   pragma comment(lib, "Wtsapi32.lib")
-#endif
-
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)
-#   pragma comment(lib, "SetupAPI.lib")
-#endif
-
-#if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
-#   pragma comment(lib, "Bthprops.lib")
-#endif

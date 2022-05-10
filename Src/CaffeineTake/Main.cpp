@@ -18,6 +18,8 @@
 // 
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "PCH.hpp"
+
 #include "AppInitInfo.hpp"
 #include "CaffeineApp.hpp"
 #include "InstanceGuard.hpp"

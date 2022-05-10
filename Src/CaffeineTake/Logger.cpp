@@ -18,8 +18,7 @@
 // 
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#pragma once
-
+#include "PCH.hpp"
 #include "Logger.hpp"
 
 #if defined(FEATURE_CAFFEINETAKE_LOGGER)

@@ -18,6 +18,7 @@
 // 
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "PCH.hpp"
 #include "CaffeineSettings.hpp"
 
 #include "Dialogs/AddDialog.hpp"
