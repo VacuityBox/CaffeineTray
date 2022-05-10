@@ -124,14 +124,6 @@ auto CaffeineApp::Init() -> bool
             .className   = L"CaffeineTake_WndClass",
         };
 
-        if (FAILED(mNotifyIcon.Init(desc)))
-        {
-            LOG_ERROR("Failed to create NotifyIcon");
-            return false;
-        }
-
-        LOG_INFO("Created NotifyIcon");
-
         // Register callbacks.
         mNotifyIcon.OnCreate            = std::bind(&CaffeineApp::OnCreate, this);
         mNotifyIcon.OnDestroy           = std::bind(&CaffeineApp::OnDestroy, this);
@@ -143,6 +135,13 @@ auto CaffeineApp::Init() -> bool
         mNotifyIcon.OnCustomMessage     = std::bind(&CaffeineApp::OnCustomMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
         mNotifyIcon.OnSystemMessage     = std::bind(&CaffeineApp::OnSystemMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
+        if (FAILED(mNotifyIcon.Init(desc)))
+        {
+            LOG_ERROR("Failed to create NotifyIcon");
+            return false;
+        }
+
+        LOG_INFO("Created NotifyIcon");
         mNotifyIcon.Show();
     }
 
