@@ -69,7 +69,7 @@ class CaffeineApp final
     CaffeineAppSO    mAppSO;
     CaffeineMode     mCaffeineMode;
     CaffeineState    mCaffeineState;
-    bool             mKeepDisplayOn;
+    bool             mKeepScreenOn;
     bool             mInitialized;
     bool             mShuttingDown;
     SessionState     mSessionState;

@@ -62,7 +62,7 @@ auto ProcessScanner::Run (SettingsPtr settings, const StopToken& stop, const Pau
 #if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS)
     return false;
 #else
-    if (settings->Auto.ProcessNames.empty() && settings->Auto.ProcessPaths.empty())
+    if (settings->Auto.TriggerProcess.Processes.empty())
     {
         return false;
     }
@@ -86,29 +86,26 @@ auto ProcessScanner::Run (SettingsPtr settings, const StopToken& stop, const Pau
     return ScanProcesses(
         [&](HANDLE handle, DWORD pid, fs::path path)
         {
-            // Check if process is on process names list.
-            const auto fileName = path.filename();
-            for (const auto& procName : settings->Auto.ProcessNames)
+            for (const auto& proc : settings->Auto.TriggerProcess.Processes)
             {
-                if (procName == fileName)
+                // Check path.
+                if (proc == path)
                 {
-                    mLastProcessName = procName;
+                    mLastProcessPath = path;
                     mLastPid         = pid;
 
-                    LOG_INFO(L"Found process: {} (PID: {})", procName, pid);
+                    LOG_INFO(L"Found process: {} (PID: {})", mLastProcessPath, pid);
                     return ScanResult::Success;
                 }
-            }
 
-            // Check if process is on process paths list.
-            for (const auto& procPath : settings->Auto.ProcessPaths)
-            {
-                if (procPath == path)
+                // Check filename.
+                const auto name = path.filename();
+                if (proc == name)
                 {
-                    mLastProcessPath = procPath;
+                    mLastProcessName = name;
                     mLastPid         = pid;
 
-                    LOG_INFO(L"Found process: {} (PID: {})", procPath, pid);
+                    LOG_INFO(L"Found process: {} (PID: {})", mLastProcessName, pid);
                     return ScanResult::Success;
                 }
             }
@@ -133,7 +130,7 @@ auto WindowScanner::Run (SettingsPtr settings, const StopToken& stop, const Paus
 #if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW)
     return false;
 #else
-    if (settings->Auto.WindowTitles.empty())
+    if (settings->Auto.TriggerWindow.Windows.empty())
     {
         return false;
     }
@@ -142,7 +139,7 @@ auto WindowScanner::Run (SettingsPtr settings, const StopToken& stop, const Paus
         [&](HWND hWnd, DWORD pid, std::wstring_view window)
         {
             // Check if process is on window title list.
-            for (const auto& windowTitle : settings->Auto.WindowTitles)
+            for (const auto& windowTitle : settings->Auto.TriggerWindow.Windows)
             {
                 if (windowTitle == window)
                 {
@@ -171,7 +168,7 @@ auto UsbDeviceScanner::Run (SettingsPtr settings, const StopToken& stop, const P
 #if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)
     return false;
 #else
-    if (settings->Auto.UsbDevices.empty())
+    if (settings->Auto.TriggerUsb.UsbDevices.empty())
     {
         return false;
     }
@@ -240,7 +237,7 @@ auto UsbDeviceScanner::Run (SettingsPtr settings, const StopToken& stop, const P
             }
 
             // Check if device is in the trigger list.
-            for (const auto& id : settings->Auto.UsbDevices)
+            for (const auto& id : settings->Auto.TriggerUsb.UsbDevices)
             {
                 if (id == std::wstring_view(buffer.data()))
                 {
@@ -463,7 +460,7 @@ auto BluetoothScanner::EnumerateBluetoothDevices (
         do
         {
             // Check if device is in the trigger list.
-            for (const auto& id : settings->Auto.BluetoothDevices)
+            for (const auto& id : settings->Auto.TriggerBluetooth.BluetoothDevices)
             {
                 if (id == deviceInfo.Address.ullLong)
                 {
@@ -533,7 +530,7 @@ auto BluetoothScanner::Run (SettingsPtr settings, const StopToken& stop, const P
 #if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
     return false;
 #else
-    if (settings->Auto.BluetoothDevices.empty())
+    if (settings->Auto.TriggerBluetooth.BluetoothDevices.empty())
     {
         return false;
     }
@@ -553,7 +550,7 @@ auto BluetoothScanner::Run (SettingsPtr settings, const StopToken& stop, const P
     }
 
     const auto deviceActiveTimeout = std::chrono::duration_cast<std::chrono::seconds>(
-        std::chrono::milliseconds(settings->Auto.ActiveTimeout)
+        std::chrono::milliseconds(settings->Auto.TriggerBluetooth.ActiveTimeout)
     );
 
     const auto tz = std::chrono::current_zone();

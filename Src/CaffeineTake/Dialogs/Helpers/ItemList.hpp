@@ -85,20 +85,20 @@ public:
 
             processList->Refresh();
 
-            for (auto name : settings->Auto.ProcessNames)
+            for (auto name : settings->Auto.TriggerProcess.Processes)
             {
                 auto icon = findIcon(name, ItemType::Name);
                 mItems.push_back(Item(name, ItemType::Name, icon));
             }
 
             auto iconCachePtr = processList->GetIconCache();
-            for (auto path : settings->Auto.ProcessPaths)
+            for (auto path : settings->Auto.TriggerProcess.Processes)
             {
                 auto icon = iconCachePtr->Insert(path);
                 mItems.push_back(Item(path, ItemType::Path, icon));
             }
 
-            for (auto window : settings->Auto.WindowTitles)
+            for (auto window : settings->Auto.TriggerWindow.Windows)
             {
                 auto icon = findIcon(window, ItemType::Window);
                 mItems.push_back(Item(window, ItemType::Window, icon));
@@ -166,13 +166,13 @@ public:
             switch (item.type)
             {
             case ItemType::Name:
-                settings.Auto.ProcessNames.push_back(item.value);
+                settings.Auto.TriggerProcess.Processes.push_back(item.value);
                 break;
             case ItemType::Path:
-                settings.Auto.ProcessPaths.push_back(item.value);
+                settings.Auto.TriggerProcess.Processes.push_back(item.value);
                 break;
             case ItemType::Window:
-                settings.Auto.WindowTitles.push_back(item.value);
+                settings.Auto.TriggerWindow.Windows.push_back(item.value);
                 break;
             }
         }

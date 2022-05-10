@@ -62,7 +62,7 @@ CaffeineApp::CaffeineApp (const AppInitInfo& info)
     , mIcons              (info.InstanceHandle)
     , mCaffeineState      (CaffeineState::Inactive)
     , mCaffeineMode       (CaffeineMode::Disabled)
-    , mKeepDisplayOn      (false)
+    , mKeepScreenOn       (false)
     , mAppSO              (this)
     , mDisabledMode       (mAppSO)
     , mEnabledMode        (mAppSO)
@@ -629,8 +629,8 @@ auto CaffeineApp::SaveMode () -> bool
 
 auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void
 {
-    auto keepDisplayOn = false;
-    auto disableOnLock = false;
+    auto keepScreenOn      = false;
+    auto whenSessionLocked = false;
 
     switch (mCaffeineMode)
     {
@@ -638,51 +638,56 @@ auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void
         break;
 
     case CaffeineMode::Enabled:
-        keepDisplayOn = mSettings->Standard.KeepDisplayOn;
-        disableOnLock = mSettings->Standard.DisableOnLockScreen;
+        keepScreenOn      = mSettings->Standard.KeepScreenOn;
+        whenSessionLocked = mSettings->Standard.WhenSessionLocked;
         break;
     case CaffeineMode::Auto:
-        keepDisplayOn = mSettings->Auto.KeepDisplayOn;
-        disableOnLock = mSettings->Auto.DisableOnLockScreen;
+        keepScreenOn      = mSettings->Auto.KeepScreenOn;
+        whenSessionLocked = mSettings->Auto.WhenSessionLocked;
         break;
     case CaffeineMode::Timer:
-        keepDisplayOn = mSettings->Timer.KeepDisplayOn;
-        disableOnLock = mSettings->Timer.DisableOnLockScreen;
+        keepScreenOn      = mSettings->Timer.KeepScreenOn;
+        whenSessionLocked = mSettings->Timer.WhenSessionLocked;
         break;
     }
 
+    auto needUpdate = true;
     if (mCaffeineMode != CaffeineMode::Disabled)
     {
-        if (mSessionState == SessionState::Locked && keepDisplayOn)
+        if (mSessionState == SessionState::Locked)
         {
-            keepDisplayOn = !disableOnLock;
+            keepScreenOn = whenSessionLocked;
         }
 
-        if (mCaffeineState == state && mKeepDisplayOn == keepDisplayOn)
+        if (mCaffeineState == state && mKeepScreenOn == keepScreenOn)
         {
-            LOG_DEBUG("No need to update execution state, continuing");
-            return;
+            needUpdate = false;
         }
     }
     else
     {
         if (mCaffeineState == state)
         {
-            LOG_DEBUG("No need to update execution state, continuing");
-            return;
+            needUpdate = false;
         }
+    }
+
+    if (!needUpdate)
+    {
+        LOG_DEBUG("No need to update execution state, continuing");
+        return;
     }
 
     // Update Execution State.
     mCaffeineState = state;
-    mKeepDisplayOn = keepDisplayOn;
+    mKeepScreenOn = keepScreenOn;
 
     auto flags = EXECUTION_STATE{ES_CONTINUOUS};
     if (mCaffeineState == CaffeineState::Active)
     {
         flags |= ES_SYSTEM_REQUIRED;
 
-        if (keepDisplayOn)
+        if (keepScreenOn)
         {
             flags |= ES_DISPLAY_REQUIRED;
         }
@@ -694,10 +699,11 @@ auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void
         return;
     }
 
-    LOG_INFO("Updated execution state");
+    LOG_INFO("Updated execution state, State: {}, Display: {}", static_cast<int>(mCaffeineState), mKeepScreenOn);
 
     UpdateIcon();
     UpdateTip();
+    UpdateJumpList();
 }
 
 auto CaffeineApp::RefreshExecutionState () -> void

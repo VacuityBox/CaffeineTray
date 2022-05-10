@@ -43,76 +43,74 @@ class Settings final
 public:
     struct General
     {
-        CaffeineIcons::IconPack IconPack;
-        std::wstring            LangId;
+        std::wstring            LangId        = L"en";
+        CaffeineIcons::IconPack IconPack      = CaffeineIcons::IconPack::Original;
+        bool                    UseNotifyIcon = true;
+        bool                    UseJumpLists  = false;
+        bool                    UseDockMode   = false;
+        bool                    AutoStart     = false;
 
-        General ()
-            : IconPack (CaffeineIcons::IconPack::Original)
-            , LangId   (L"en")
-        {
-        }
+        General () = default;
     } General;
     
     struct Standard
     {
-        bool KeepDisplayOn;
-        bool DisableOnLockScreen;  // TODO rename to more adequate name, this one might be mistaken with disabling Caffeine at all
+        bool Enabled            = true;
+        bool KeepScreenOn       = true;
+        bool WhenSessionLocked  = false;
 
-        Standard ()
-            : KeepDisplayOn       (true)
-            , DisableOnLockScreen (true)
-        {
-        }
+        Standard () = default;
     } Standard;
 
     struct Auto
     {
-        bool KeepDisplayOn;
-        bool DisableOnLockScreen; // TODO rename to more adequate name, this one might be mistaken with disabling Caffeine at all
+        bool         Enabled            = true;
+        bool         KeepScreenOn       = true;
+        bool         WhenSessionLocked  = false;
+        unsigned int ScanInterval       = 2000;  // in ms
 
-        // Scan interval for Process/Window triggers.
-        // TODO rename?
-        unsigned int ScanInterval;  // in ms
-
-        // Process trigger.
-        std::vector<std::wstring> ProcessNames;
-        std::vector<std::wstring> ProcessPaths;
-
-        // Window trigger.
-        std::vector<std::wstring> WindowTitles;
-
-        // Schedule trigger.
-        std::vector<ScheduleEntry> ScheduleEntries;
-
-        // USB Device trigger.
-        std::vector<std::wstring> UsbDevices;
-
-        // Bluetooth Device trigger.
-        std::vector<BluetoothIdentifier> BluetoothDevices;
-        unsigned int                     ActiveTimeout;   // in ms
-
-        Auto ()
-            : KeepDisplayOn       (true)
-            , DisableOnLockScreen (true)
-            , ScanInterval        (2000)
-            , ActiveTimeout       (60*1000)
+        struct TriggerProcess
         {
-        }
+            bool                             Enabled          = true; 
+            std::vector<std::wstring>        Processes        = std::vector<std::wstring>();
+        } TriggerProcess;
+
+        struct TriggerWindow
+        {
+            bool                             Enabled          = true; 
+            std::vector<std::wstring>        Windows          = std::vector<std::wstring>();
+        } TriggerWindow;
+        
+        struct TriggerUsb
+        {
+            bool                             Enabled          = true;
+            std::vector<std::wstring>        UsbDevices       = std::vector<std::wstring>();
+        } TriggerUsb;
+        
+        struct TriggerBluetooth
+        {
+            bool                             Enabled          = true;
+            std::vector<BluetoothIdentifier> BluetoothDevices = std::vector<BluetoothIdentifier>();
+            unsigned int                     ActiveTimeout    = 60*1000;   // in ms
+        } TriggerBluetooth;
+
+        struct TriggerSchedule
+        {
+            bool                             Enabled          = true;
+            std::vector<ScheduleEntry>       ScheduleEntries  = std::vector<ScheduleEntry>();
+        } TriggerSchedule;
+
+        Auto () = default;
     } Auto;
 
     struct Timer
     {
-        bool KeepDisplayOn;
-        bool DisableOnLockScreen;  // TODO rename to more adequate name, this one might be mistaken with disabling Caffeine at all
+        bool         Enabled           = true;
+        bool         KeepScreenOn      = true;
+        bool         WhenSessionLocked = false;
+        unsigned int Interval          = 60*1000;
 
-        unsigned int Interval;
-
-        Timer ()
-            : KeepDisplayOn       (true)
-            , DisableOnLockScreen (true)
-            , Interval            (0)
-        {
-        }
+        Timer () = default;
     } Timer;
 
     Settings () = default;

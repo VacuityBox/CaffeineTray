@@ -74,22 +74,22 @@ auto CaffeineSettings::OnInit (HWND dlgHandle) -> bool
     // Set checkboxes state.
     Button_SetCheck(
         GetDlgItem(dlgHandle, IDC_CHECKBOX_STANDARD_KEEP_DISPLAY_ON),
-        mCurrentSettings->Standard.KeepDisplayOn ? BST_CHECKED : BST_UNCHECKED
+        mCurrentSettings->Standard.KeepScreenOn ? BST_CHECKED : BST_UNCHECKED
     );
 
     Button_SetCheck(
         GetDlgItem(dlgHandle, IDC_CHECKBOX_STANDARD_DISABLE_ON_LOCK_SCREEN),
-        mCurrentSettings->Standard.DisableOnLockScreen ? BST_CHECKED : BST_UNCHECKED
+        mCurrentSettings->Standard.WhenSessionLocked ? BST_CHECKED : BST_UNCHECKED
     );
         
     Button_SetCheck(
         GetDlgItem(dlgHandle, IDC_CHECKBOX_AUTO_KEEP_DISPLAY_ON),
-        mCurrentSettings->Auto.KeepDisplayOn ? BST_CHECKED : BST_UNCHECKED
+        mCurrentSettings->Auto.KeepScreenOn ? BST_CHECKED : BST_UNCHECKED
     );
 
     Button_SetCheck(
         GetDlgItem(dlgHandle, IDC_CHECKBOX_AUTO_DISABLE_ON_LOCK_SCREEN),
-        mCurrentSettings->Auto.DisableOnLockScreen ? BST_CHECKED : BST_UNCHECKED
+        mCurrentSettings->Auto.WhenSessionLocked ? BST_CHECKED : BST_UNCHECKED
     );
 
     // Disable edit/remove button because noting is selected.
@@ -110,19 +110,19 @@ auto CaffeineSettings::OnOk () -> bool
     mResult = mItems->ToSettings();
 
     // Store checkbox values.
-    mResult.Standard.KeepDisplayOn = Button_GetCheck(
+    mResult.Standard.KeepScreenOn = Button_GetCheck(
         GetDlgItem(mDlgHandle, IDC_CHECKBOX_STANDARD_KEEP_DISPLAY_ON)
     ) == BST_CHECKED;
 
-    mResult.Standard.DisableOnLockScreen = Button_GetCheck(
+    mResult.Standard.WhenSessionLocked = Button_GetCheck(
         GetDlgItem(mDlgHandle, IDC_CHECKBOX_STANDARD_DISABLE_ON_LOCK_SCREEN)
     ) == BST_CHECKED;
 
-    mResult.Auto.KeepDisplayOn = Button_GetCheck(
+    mResult.Auto.KeepScreenOn = Button_GetCheck(
         GetDlgItem(mDlgHandle, IDC_CHECKBOX_AUTO_KEEP_DISPLAY_ON)
     ) == BST_CHECKED;
 
-    mResult.Auto.DisableOnLockScreen = Button_GetCheck(
+    mResult.Auto.WhenSessionLocked = Button_GetCheck(
         GetDlgItem(mDlgHandle, IDC_CHECKBOX_AUTO_DISABLE_ON_LOCK_SCREEN)
     ) == BST_CHECKED;
 

@@ -33,22 +33,28 @@ namespace CaffeineTake {
 
 #if defined(FEATURE_CAFFEINETAKE_SETTINGS)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::General, IconPack, LangId)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::Standard, KeepDisplayOn, DisableOnLockScreen)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::General, LangId, IconPack, UseNotifyIcon, UseJumpLists, UseDockMode, AutoStart)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::Standard, Enabled, KeepScreenOn, WhenSessionLocked)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::Auto::TriggerProcess, Enabled, Processes)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::Auto::TriggerWindow, Enabled, Windows)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::Auto::TriggerUsb, Enabled, UsbDevices)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::Auto::TriggerBluetooth, Enabled, BluetoothDevices, ActiveTimeout)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::Auto::TriggerSchedule, Enabled, ScheduleEntries)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
     struct Settings::Auto,
-    KeepDisplayOn,
-    DisableOnLockScreen,
+    Enabled,
+    KeepScreenOn,
+    WhenSessionLocked,
     ScanInterval,
-    ProcessNames,
-    ProcessPaths,
-    WindowTitles,
-    ScheduleEntries,
-    UsbDevices,
-    BluetoothDevices,
-    ActiveTimeout
+    TriggerProcess,
+    TriggerWindow,
+    TriggerUsb,
+    TriggerBluetooth,
+    TriggerSchedule
 )
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::Timer, KeepDisplayOn, DisableOnLockScreen, Interval)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::Timer, Enabled, KeepScreenOn, WhenSessionLocked, Interval)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings, General, Standard, Auto, Timer)
 
 #endif
