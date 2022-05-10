@@ -20,6 +20,7 @@
 
 #include "Config.hpp"
 #include "Scanner.hpp"
+#include "Logger.hpp"
 
 #include <filesystem>
 #include <memory>

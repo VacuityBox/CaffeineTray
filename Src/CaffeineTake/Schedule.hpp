@@ -20,13 +20,7 @@
 
 #pragma once
 
-#include "Config.hpp"
-
-#include "Logger.hpp"
-#include "Utility.hpp"
-
 #include <chrono>
-#include <format>
 #include <string>
 #include <vector>
 
@@ -69,72 +63,7 @@ public:
     static auto CheckSchedule (
         const std::vector<ScheduleEntry>&                  schedule,
         std::chrono::time_point<std::chrono::system_clock> time
-    ) -> bool {
-    #if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
-        return false;
-    #else
-        static auto s_IsInSchedule = false;
-        
-        const auto tz = std::chrono::current_zone();
-        const auto localTime = tz->to_local(time);
-
-        const auto hh  = std::stoul(std::format("{:%H}", localTime));
-        const auto mm  = std::stoul(std::format("{:%M}", localTime));
-        const auto ss  = std::stoul(std::format("{:%S}", localTime));
-        const auto day = std::stoul(std::format("{:%u}", localTime));
-
-        // Convert day to DaysOfWeek.
-        const auto timeDayOfWeek = [&](){
-            switch (day)
-            {
-            case 0: return DaysOfWeek::Sunday;
-            case 1: return DaysOfWeek::Monday;
-            case 2: return DaysOfWeek::Tuesday;
-            case 3: return DaysOfWeek::Wednesday;
-            case 4: return DaysOfWeek::Thursday;
-            case 5: return DaysOfWeek::Friday;
-            case 6: return DaysOfWeek::Saturday;
-            case 7: return DaysOfWeek::Sunday;
-            }
-            
-            return DaysOfWeek::Monday;
-        }();
-
-        const auto timeSeconds = (hh * 3600) + (mm * 60) + ss;
-
-        for (const auto& entry : schedule)
-        {
-            // Check if day match.
-            if ((entry.ActiveDays & timeDayOfWeek) == timeDayOfWeek)
-            {
-                // Check if time match.
-                for (const auto& tr : entry.ActiveHours)
-                {
-                    if (tr.Begin <= timeSeconds && timeSeconds <= tr.End)
-                    {
-                        if (!s_IsInSchedule)
-                        {
-                            const auto fmt = std::format(
-                                "Time is in schedule, {} in {}:[{}, {}]",
-                                localTime,
-                                static_cast<unsigned int>(timeDayOfWeek),
-                                tr.Begin,
-                                tr.End
-                            );
-                            LOG_INFO("{}", fmt);
-                        }
-                        s_IsInSchedule = true;
-                        return true;
-                    }
-                }
-            }
-        }
-
-        s_IsInSchedule = false;
-
-        return false;
-    #endif
-    }
+    ) -> bool;
 };
 
 } // namespace CaffeineTake
