@@ -36,25 +36,25 @@ auto AutoMode::ScannerTimerProc (const StopToken& stop, const PauseToken& pause)
     auto scannerResult = false;
     
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_PROCESS)
-    if (!scannerResult)
+    if (!scannerResult && settingsPtr->Auto.TriggerProcess.Enabled)
     {
         scannerResult = mProcessScanner.Run(settingsPtr, stop, pause);
     }
 #endif
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_WINDOW)
-    if (!scannerResult)
+    if (!scannerResult && settingsPtr->Auto.TriggerWindow.Enabled)
     {
         scannerResult = mWindowScanner.Run(settingsPtr, stop, pause);
     }
 #endif
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_USB)
-    if (!scannerResult)
+    if (!scannerResult && settingsPtr->Auto.TriggerUsb.Enabled)
     {
         scannerResult = mUsbScanner.Run(settingsPtr, stop, pause);
     }
 #endif
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
-    if (!scannerResult)
+    if (!scannerResult && settingsPtr->Auto.TriggerBluetooth.Enabled)
     {
         scannerResult = mBluetoothScanner.Run(settingsPtr, stop, pause);
     }
@@ -89,10 +89,12 @@ auto AutoMode::ScheduleTimerProc (const StopToken& stop, const PauseToken& pause
     auto scheduleResult = false;
 
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
-    // Scan processes and windows if no process found.
-    scheduleResult = Schedule::CheckSchedule(
-        settingsPtr->Auto.ScheduleEntries, std::chrono::system_clock::now()
-    );
+    if (settingsPtr->Auto.TriggerSchedule.Enabled)
+    {
+        scheduleResult = Schedule::CheckSchedule(
+            settingsPtr->Auto.TriggerSchedule.ScheduleEntries, std::chrono::system_clock::now()
+        );
+    }
 #endif
 
     // Only if there is state change.

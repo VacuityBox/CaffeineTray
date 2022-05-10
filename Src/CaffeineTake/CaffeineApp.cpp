@@ -1044,12 +1044,18 @@ auto CaffeineApp::IsModeAvailable (CaffeineMode mode) -> bool
         break;
 
     case CaffeineMode::Enabled:
-        available = true;
+        if (mSettings->Standard.Enabled)
+        {
+            available = true;
+        }
         break;
 
     case CaffeineMode::Auto:
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
-        available = true;
+        if (mSettings->Auto.Enabled)
+        {
+            available = true;
+        }
 #else
         available = false;
 #endif
@@ -1057,7 +1063,10 @@ auto CaffeineApp::IsModeAvailable (CaffeineMode mode) -> bool
 
     case CaffeineMode::Timer:
 #if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
-        available = true;
+        if (mSettings->Timer.Enabled)
+        {
+            available = true;
+        }
 #else
         available = false;
 #endif
