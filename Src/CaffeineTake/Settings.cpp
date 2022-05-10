@@ -23,7 +23,7 @@
 
 #if defined(FEATURE_CAFFEINETAKE_SETTINGS)
 #   include "Logger.hpp"
-#   include "StringSerializer.hpp"
+#   include "Serializers.hpp"
 #   include <filesystem>
 #   include <fstream>
 #   include <string>

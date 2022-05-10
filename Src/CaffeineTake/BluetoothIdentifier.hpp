@@ -20,11 +20,6 @@
 
 #pragma once
 
-#if defined(FEATURE_CAFFEINETAKE_SETTINGS)
-#   include "Utility.hpp"
-#   include <nlohmann/json.hpp>
-#endif
-
 #include <format>
 #include <string>
 
@@ -85,60 +80,6 @@ struct BluetoothIdentifier
             bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]
         );
     }
-
 };
-
-#if defined(FEATURE_CAFFEINETAKE_SETTINGS)
-inline auto to_json (nlohmann::json& j, const BluetoothIdentifier& bi) -> void
-{
-    j = nlohmann::json{
-        std::format(
-            "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
-            bi.bytes[5], bi.bytes[4], bi.bytes[3],
-            bi.bytes[2], bi.bytes[1], bi.bytes[0]
-        )
-    };
-}
-
-inline auto from_json (const nlohmann::json& j, BluetoothIdentifier& bi) -> void
-{
-    const auto s = j.get<std::string>();
-
-    // Example id: 00:00:00:00:00:00
-    auto ull = 0ull;
-    if (s.length() == 17)
-    {
-        auto index = 0;
-        for (const auto c : s)
-        {
-            if (index == 2)
-            {
-                if (c != ':')
-                {
-                    ull = 0;
-                    break;
-                }
-
-                index = 0;
-            }
-            else
-            {
-                const auto d = HexCharToInt(c);
-                if (d == UCHAR_MAX)
-                {
-                    ull = 0;
-                    break;
-                }
-
-                ull = (ull << 4) | (d & 0x0F);
-
-                index += 1;
-            }
-        }
-    }
-
-    bi.ull = ull;
-}
-#endif
 
 } // namespace CaffeineTake

@@ -277,7 +277,7 @@
     <ClInclude Include="Schedule.hpp" />
     <ClInclude Include="Settings.hpp" />
     <ClInclude Include="JumpList.hpp" />
-    <ClInclude Include="StringSerializer.hpp" />
+    <ClInclude Include="Serializers.hpp" />
     <ClInclude Include="ThreadTimer.hpp" />
     <ClInclude Include="Utility.hpp" />
     <ClInclude Include="Version.hpp" />

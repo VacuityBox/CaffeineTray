@@ -176,7 +176,7 @@
     <ClInclude Include="Config.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StringSerializer.hpp">
+    <ClInclude Include="Serializers.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

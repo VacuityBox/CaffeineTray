@@ -23,7 +23,7 @@
 
 #if defined(FEATURE_CAFFEINETAKE_MULTILANG)
 #   include "Logger.hpp"
-#   include "StringSerializer.hpp"
+#   include "Serializers.hpp"
 #   include <nlohmann/json.hpp>
 #   include <fstream>
 #endif

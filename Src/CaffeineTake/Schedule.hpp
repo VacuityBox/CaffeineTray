@@ -25,11 +25,6 @@
 #include "Logger.hpp"
 #include "Utility.hpp"
 
-#if defined(FEATURE_CAFFEINETAKE_SETTINGS)
-#   include "StringSerializer.hpp"
-#   include <nlohmann/json.hpp>
-#endif
-
 #include <chrono>
 #include <format>
 #include <string>
@@ -57,10 +52,6 @@ struct TimeRange
 {
     unsigned int Begin;
     unsigned int End;
-
-#if defined(FEATURE_CAFFEINETAKE_SETTINGS)
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(TimeRange, Begin, End)
-#endif
 };
 
 using TimeRangeList = std::vector<TimeRange>;
@@ -70,22 +61,20 @@ struct ScheduleEntry
     std::wstring  Name;         // optional
     DaysOfWeek    ActiveDays;
     TimeRangeList ActiveHours;
-
-#if defined(FEATURE_CAFFEINETAKE_SETTINGS)
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(ScheduleEntry, Name, ActiveDays, ActiveHours)
-#endif
 };
 
 class Schedule
 {
 public:
     static auto CheckSchedule (
-        std::vector<ScheduleEntry>&                        schedule,
+        const std::vector<ScheduleEntry>&                  schedule,
         std::chrono::time_point<std::chrono::system_clock> time
     ) -> bool {
     #if !defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
         return false;
     #else
+        static auto s_IsInSchedule = false;
+        
         const auto tz = std::chrono::current_zone();
         const auto localTime = tz->to_local(time);
 
@@ -123,19 +112,25 @@ public:
                 {
                     if (tr.Begin <= timeSeconds && timeSeconds <= tr.End)
                     {
-                        const auto fmt = std::format(
-                            "Time is in schedule, {} in {}:[{}, {}]",
-                            localTime,
-                            static_cast<unsigned int>(timeDayOfWeek),
-                            tr.Begin,
-                            tr.End
-                        );
-                        LOG_DEBUG("{}", fmt);
+                        if (!s_IsInSchedule)
+                        {
+                            const auto fmt = std::format(
+                                "Time is in schedule, {} in {}:[{}, {}]",
+                                localTime,
+                                static_cast<unsigned int>(timeDayOfWeek),
+                                tr.Begin,
+                                tr.End
+                            );
+                            LOG_INFO("{}", fmt);
+                        }
+                        s_IsInSchedule = true;
                         return true;
                     }
                 }
             }
         }
+
+        s_IsInSchedule = false;
 
         return false;
     #endif
