@@ -33,8 +33,8 @@ namespace CaffeineTake {
 
 enum class CaffeineMode : unsigned char
 {
-    Disabled = 0,  // TODO better name?
-    Enabled  = 1,  // TODO better name?
+    Disabled = 0,
+    Standard = 1, // aka Enabled, aka Active
     Auto     = 2,
     Timer    = 3
 };
@@ -44,7 +44,7 @@ constexpr auto CaffeineModeToString (CaffeineMode mode) -> std::wstring_view
     switch (mode)
     {
     case CaffeineMode::Disabled: return L"Disabled";
-    case CaffeineMode::Enabled:  return L"Enabled";
+    case CaffeineMode::Standard: return L"Standard";
     case CaffeineMode::Auto:     return L"Auto";
     case CaffeineMode::Timer:    return L"Timer";
     }
@@ -74,59 +74,23 @@ public:
 class DisabledMode : public Mode
 {
 public:
-    DisabledMode (CaffeineAppSO app)
-        : Mode (app)
-    {
-    }
+    DisabledMode (CaffeineAppSO app);
 
-    auto Start () -> bool override
-    {
-        mAppSO.DisableCaffeine();
+    auto Start () -> bool override;
+    auto Stop () -> bool override;
 
-        LOG_TRACE("Started Disabled mode");
-        return true;
-    }
-
-    auto Stop () -> bool override
-    {
-        LOG_TRACE("Stopped Disabled mode");
-        return true;
-    }
-
-    auto IsModeAvailable () -> bool override
-    {
-        return true;
-    }
+    auto IsModeAvailable () -> bool override;
 };
 
-class EnabledMode : public Mode
+class StandardMode : public Mode
 {
 public:
-    EnabledMode (CaffeineAppSO app)
-        : Mode (app)
-    {
-    }
+    StandardMode (CaffeineAppSO app);
 
-    auto Start () -> bool override
-    {
-        mAppSO.EnableCaffeine();
+    auto Start () -> bool override;
+    auto Stop () -> bool override;
 
-        LOG_TRACE("Started Enabled mode");
-        return true;
-    }
-
-    auto Stop () -> bool override
-    {
-        mAppSO.DisableCaffeine();
-
-        LOG_TRACE("Stopped Enabled mode");
-        return true;
-    }
-
-    auto IsModeAvailable () -> bool override
-    {
-        return true;
-    }
+    auto IsModeAvailable () -> bool override;
 };
 
 class AutoMode : public Mode
@@ -159,52 +123,13 @@ class TimerMode : public Mode
 {
     ThreadTimer mTimerThread;
 
-    auto TimerProc (const StopToken& stop, const PauseToken& pause) -> bool
-    {
-        mAppSO.DisableCaffeine();
-
-        return false;
-    }
+    auto TimerProc (const StopToken& stop, const PauseToken& pause) -> bool;
 
 public:
-    TimerMode (CaffeineAppSO app)
-        : Mode         (app)
-        , mTimerThread
-            ( std::bind(&TimerMode::TimerProc, this, std::placeholders::_1, std::placeholders::_2)
-            , ThreadTimer::Interval(1000)
-            , false
-            , false
-            )
-    {
-    }
+    TimerMode (CaffeineAppSO app);
 
-    auto Start () -> bool override
-    {
-        const auto settingsPtr = mAppSO.GetSettings();
-        if (settingsPtr)
-        {
-            mTimerThread.SetInterval(std::chrono::milliseconds(settingsPtr->Timer.Interval));
-        }
-
-        // TOOD FIXME if interval is 0 dont start
-
-        mAppSO.EnableCaffeine();
-        mTimerThread.Start();
-
-        LOG_TRACE("Started Timer mode");
-
-        return true;
-    }
-
-    auto Stop () -> bool override
-    {
-        mTimerThread.Stop();
-        mAppSO.DisableCaffeine();
-
-        LOG_TRACE("Stopped Timer mode");
-
-        return true;
-    }
+    auto Start () -> bool override;
+    auto Stop () -> bool override;
 
     auto IsModeAvailable () -> bool override;
 };

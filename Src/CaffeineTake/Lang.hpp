@@ -41,17 +41,17 @@ public:
     std::wstring LangName = L"English";
 
     std::wstring ContextMenu_DisableCaffeine = L"Disable Caffeine";
-    std::wstring ContextMenu_EnableCaffeine  = L"Enable Caffeine";
+    std::wstring ContextMenu_EnableStandard  = L"Enable Caffeine (Standard)";
     std::wstring ContextMenu_EnableAuto      = L"Enable Caffeine (Auto)";
     std::wstring ContextMenu_EnableTimer     = L"Enable Caffeine (Timer)";
     std::wstring ContextMenu_Settings        = L"Settings";
     std::wstring ContextMenu_About           = L"About";
     std::wstring ContextMenu_Exit            = L"Exit";
 
-    std::wstring Tip_DisabledInactive        = L"Caffeine - Off";
-    std::wstring Tip_DisabledActive          = L"Caffeine - Off";
-    std::wstring Tip_EnabledInactive         = L"Caffeine - On";
-    std::wstring Tip_EnabledActive           = L"Caffeine - On";
+    std::wstring Tip_DisabledInactive        = L"Caffeine - Disabled";
+    std::wstring Tip_DisabledActive          = L"Caffeine - Disabled";
+    std::wstring Tip_StandardInactive        = L"Caffeine - Standard (Inactive)";
+    std::wstring Tip_StandardActive          = L"Caffeine - Standard (Active)";
     std::wstring Tip_AutoInactive            = L"Caffeine - Auto (Inactive)";
     std::wstring Tip_AutoActive              = L"Caffeine - Auto (Active)";
     std::wstring Tip_TimerInactive           = L"Caffeine - Timer (Inactive)";

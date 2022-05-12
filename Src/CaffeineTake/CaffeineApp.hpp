@@ -84,7 +84,7 @@ class CaffeineApp final
 
     Mode*            mCurrentMode;
     DisabledMode     mDisabledMode;
-    EnabledMode      mEnabledMode;
+    StandardMode      mEnabledMode;
     AutoMode         mAutoMode;
     TimerMode        mTimerMode;
 

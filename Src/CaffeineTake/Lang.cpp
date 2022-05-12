@@ -44,7 +44,7 @@ inline auto from_json (const nlohmann::json& j, Lang& lang)
     static auto def = Lang();
 
     LOAD_LANG_STR(ContextMenu_DisableCaffeine);
-    LOAD_LANG_STR(ContextMenu_EnableCaffeine );
+    LOAD_LANG_STR(ContextMenu_EnableStandard );
     LOAD_LANG_STR(ContextMenu_EnableAuto     );
     LOAD_LANG_STR(ContextMenu_EnableTimer    );
     LOAD_LANG_STR(ContextMenu_Settings       );
@@ -53,8 +53,8 @@ inline auto from_json (const nlohmann::json& j, Lang& lang)
 
     LOAD_LANG_STR(Tip_DisabledInactive       );
     LOAD_LANG_STR(Tip_DisabledActive         );
-    LOAD_LANG_STR(Tip_EnabledInactive        );
-    LOAD_LANG_STR(Tip_EnabledActive          );
+    LOAD_LANG_STR(Tip_StandardInactive        );
+    LOAD_LANG_STR(Tip_StandardActive          );
     LOAD_LANG_STR(Tip_AutoInactive           );
     LOAD_LANG_STR(Tip_AutoActive             );
     LOAD_LANG_STR(Tip_TimerInactive          );

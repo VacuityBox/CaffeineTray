@@ -213,7 +213,6 @@ auto CaffeineApp::OnDestroy() -> void
 #endif
 }
 
-
 auto CaffeineApp::OnClick(int x, int y) -> void
 {
     LOG_TRACE("NotifyIcon::OnClick");
@@ -241,8 +240,8 @@ auto CaffeineApp::OnContextMenuOpen() -> void
     switch (mCaffeineMode)
     {
     case CaffeineMode::Disabled:
-        if (IsModeAvailable(CaffeineMode::Enabled)) {
-            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
+        if (IsModeAvailable(CaffeineMode::Standard)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableStandard.c_str());
         }
         if (IsModeAvailable(CaffeineMode::Auto)) {
             AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
@@ -251,7 +250,7 @@ auto CaffeineApp::OnContextMenuOpen() -> void
             AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_TIMER, mLang->ContextMenu_EnableTimer.c_str());
         }
         break;
-    case CaffeineMode::Enabled:
+    case CaffeineMode::Standard:
         if (IsModeAvailable(CaffeineMode::Auto)) {
             AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
         }
@@ -263,8 +262,8 @@ auto CaffeineApp::OnContextMenuOpen() -> void
         }
         break;
     case CaffeineMode::Auto:
-        if (IsModeAvailable(CaffeineMode::Enabled)) {
-            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
+        if (IsModeAvailable(CaffeineMode::Standard)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableStandard.c_str());
         }
         if (IsModeAvailable(CaffeineMode::Timer)) {
             AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_TIMER, mLang->ContextMenu_EnableTimer.c_str());
@@ -274,8 +273,8 @@ auto CaffeineApp::OnContextMenuOpen() -> void
         }
         break;
     case CaffeineMode::Timer:
-        if (IsModeAvailable(CaffeineMode::Enabled)) {
-            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableCaffeine.c_str());
+        if (IsModeAvailable(CaffeineMode::Standard)) {
+            AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_CAFFEINE, mLang->ContextMenu_EnableStandard.c_str());
         }
         if (IsModeAvailable(CaffeineMode::Auto)) {
             AppendMenuW(hMenu, MF_STRING, IDM_ENABLE_AUTO, mLang->ContextMenu_EnableAuto.c_str());
@@ -321,7 +320,7 @@ auto CaffeineApp::OnContextMenuSelect(int selectedItem) -> void
         return;
 
     case IDM_ENABLE_CAFFEINE:
-        SetCaffeineMode(CaffeineMode::Enabled);
+        SetCaffeineMode(CaffeineMode::Standard);
         return;
 
     case IDM_ENABLE_AUTO:
@@ -450,10 +449,10 @@ auto CaffeineApp::ToggleCaffeineMode() -> void
     switch (mCaffeineMode)
     {
     case CaffeineMode::Disabled:
-        mode = CaffeineMode::Enabled;
+        mode = CaffeineMode::Standard;
         break;
 
-    case CaffeineMode::Enabled:
+    case CaffeineMode::Standard:
         if (IsModeAvailable(CaffeineMode::Auto)) {
             mode = CaffeineMode::Auto;
         }
@@ -499,12 +498,12 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
         }
         break;
 
-    case CaffeineMode::Enabled:
-        if (IsModeAvailable(CaffeineMode::Enabled)) {
+    case CaffeineMode::Standard:
+        if (IsModeAvailable(CaffeineMode::Standard)) {
             nextMode = &mEnabledMode;
         }
         else {
-            LOG_ERROR("Mode 'Enabled' is not available");
+            LOG_ERROR("Mode 'Standard' is not available");
             return;
         }
         break;
@@ -637,7 +636,7 @@ auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void
     case CaffeineMode::Disabled:
         break;
 
-    case CaffeineMode::Enabled:
+    case CaffeineMode::Standard:
         keepScreenOn      = mSettings->Standard.KeepScreenOn;
         whenSessionLocked = mSettings->Standard.WhenSessionLocked;
         break;
@@ -720,7 +719,7 @@ auto CaffeineApp::UpdateIcon() -> bool
     case CaffeineMode::Disabled:
         icon = mIcons.CaffeineDisabled;
         break;
-    case CaffeineMode::Enabled:
+    case CaffeineMode::Standard:
         icon = mIcons.CaffeineEnabled;
         break;
     case CaffeineMode::Auto:
@@ -771,8 +770,8 @@ auto CaffeineApp::UpdateTip() -> bool
         tip = mLang->Tip_DisabledInactive;
         break;
 
-    case CaffeineMode::Enabled:
-        tip = mLang->Tip_EnabledActive;
+    case CaffeineMode::Standard:
+        tip = mLang->Tip_StandardActive;
         break;
 
     case CaffeineMode::Auto:
@@ -870,7 +869,7 @@ auto CaffeineApp::UpdateJumpList () -> bool
         switch (mCaffeineMode)
         {
         case CaffeineMode::Disabled:
-            if (IsModeAvailable(CaffeineMode::Enabled)) {
+            if (IsModeAvailable(CaffeineMode::Standard)) {
                 list.push_back(OptionEnableCaffeine);
             }
             if (IsModeAvailable(CaffeineMode::Auto)) {
@@ -880,7 +879,7 @@ auto CaffeineApp::UpdateJumpList () -> bool
                 list.push_back(OptionEnableTimerMode);
             }
             break;
-        case CaffeineMode::Enabled:
+        case CaffeineMode::Standard:
             if (IsModeAvailable(CaffeineMode::Auto)) {
                 list.push_back(OptionEnableAutoMode);
             }
@@ -892,7 +891,7 @@ auto CaffeineApp::UpdateJumpList () -> bool
             }
             break;
         case CaffeineMode::Auto:
-            if (IsModeAvailable(CaffeineMode::Enabled)) {
+            if (IsModeAvailable(CaffeineMode::Standard)) {
                 list.push_back(OptionEnableCaffeine);
             }
             if (IsModeAvailable(CaffeineMode::Timer)) {
@@ -903,7 +902,7 @@ auto CaffeineApp::UpdateJumpList () -> bool
             }
             break;
         case CaffeineMode::Timer:
-            if (IsModeAvailable(CaffeineMode::Enabled)) {
+            if (IsModeAvailable(CaffeineMode::Standard)) {
                 list.push_back(OptionEnableCaffeine);
             }
             if (IsModeAvailable(CaffeineMode::Auto)) {
@@ -930,7 +929,7 @@ auto CaffeineApp::UpdateJumpList () -> bool
     {
         // We want to clear the list on app shutdown.
         // TODO add option to start app with no mode change?
-        if (IsModeAvailable(CaffeineMode::Enabled)) {
+        if (IsModeAvailable(CaffeineMode::Standard)) {
             list.push_back(OptionEnableCaffeine);
         }
         if (IsModeAvailable(CaffeineMode::Auto)) {
@@ -1044,7 +1043,7 @@ auto CaffeineApp::IsModeAvailable (CaffeineMode mode) -> bool
         available = true;
         break;
 
-    case CaffeineMode::Enabled:
+    case CaffeineMode::Standard:
         if (mSettings->Standard.Enabled)
         {
             available = true;
