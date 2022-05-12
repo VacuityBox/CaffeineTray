@@ -188,6 +188,9 @@
     <ClInclude Include="PCH.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ForwardDeclaration.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

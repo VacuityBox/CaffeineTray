@@ -20,32 +20,14 @@
 
 #pragma once
 
-#include "ForwardDeclaration.hpp"
+#include <memory>
 
 namespace CaffeineTake {
 
-class CaffeineApp;
+class Settings;
+using SettingsPtr = std::shared_ptr<Settings>;
 
-// App shared object.
-class CaffeineAppSO final
-{
-    CaffeineApp* mApp;
-
-public:
-    constexpr CaffeineAppSO (CaffeineApp* app)
-        : mApp (app)
-    {
-    }
-
-    ~CaffeineAppSO ()
-    {
-        mApp = nullptr;
-    }
-
-    auto EnableCaffeine  () -> void;
-    auto DisableCaffeine () -> void;
-
-    auto GetSettings () -> SettingsPtr;
-};
+class Lang;
+using LangPtr = std::shared_ptr<Lang>;
 
 } // namespace CaffeineTake

@@ -27,8 +27,7 @@
 #include "CaffeineIcons.hpp"
 #include "CaffeineMode.hpp"
 #include "CaffeineState.hpp"
-#include "Lang.hpp"
-#include "Settings.hpp"
+#include "ForwardDeclaration.hpp"
 
 #if defined(FEATURE_CAFFEINETAKE_IMMERSIVE_CONTEXT_MENU)
 #   include <mni/ImmersiveNotifyIcon.hpp>

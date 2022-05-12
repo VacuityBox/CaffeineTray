@@ -20,32 +20,14 @@
 
 #pragma once
 
-#include "ForwardDeclaration.hpp"
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 
 namespace CaffeineTake {
 
-class CaffeineApp;
-
-// App shared object.
-class CaffeineAppSO final
+class DockMode
 {
-    CaffeineApp* mApp;
-
 public:
-    constexpr CaffeineAppSO (CaffeineApp* app)
-        : mApp (app)
-    {
-    }
-
-    ~CaffeineAppSO ()
-    {
-        mApp = nullptr;
-    }
-
-    auto EnableCaffeine  () -> void;
-    auto DisableCaffeine () -> void;
-
-    auto GetSettings () -> SettingsPtr;
 };
 
 } // namespace CaffeineTake

@@ -21,7 +21,7 @@
 #pragma once
 
 #include "BluetoothIdentifier.hpp"
-#include "Settings.hpp"
+#include "ForwardDeclaration.hpp"
 #include "ThreadTimer.hpp"
 #include "Utility.hpp"
 

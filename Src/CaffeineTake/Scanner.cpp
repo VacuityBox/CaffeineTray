@@ -21,6 +21,7 @@
 #include "PCH.hpp"
 #include "Config.hpp"
 #include "Scanner.hpp"
+#include "Settings.hpp"
 #include "Logger.hpp"
 
 #include <filesystem>

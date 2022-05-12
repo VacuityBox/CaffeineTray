@@ -292,6 +292,7 @@
     <ClInclude Include="Dialogs\Helpers\RunningProcess.hpp" />
     <ClInclude Include="Dialogs\CaffeineSettings.hpp" />
     <ClInclude Include="CaffeineIcons.hpp" />
+    <ClInclude Include="ForwardDeclaration.hpp" />
     <ClInclude Include="InstanceGuard.hpp" />
     <ClInclude Include="Lang.hpp" />
     <ClInclude Include="Logger.hpp" />
