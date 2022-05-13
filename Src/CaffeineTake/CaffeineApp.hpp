@@ -24,7 +24,6 @@
 
 #include "AppInitInfo.hpp"
 #include "CaffeineAppSO.hpp"
-#include "CaffeineIcons.hpp"
 #include "CaffeineMode.hpp"
 #include "CaffeineState.hpp"
 #include "ForwardDeclaration.hpp"
@@ -64,7 +63,6 @@ class CaffeineApp final
     HINSTANCE        mInstanceHandle;
     mni::NotifyIcon  mNotifyIcon;
     mni::ThemeInfo   mThemeInfo;
-    CaffeineIcons    mIcons;
     CaffeineAppSO    mAppSO;
     CaffeineMode     mCaffeineMode;
     CaffeineState    mCaffeineState;
@@ -80,10 +78,11 @@ class CaffeineApp final
 
     SettingsPtr      mSettings;
     LangPtr          mLang;
+    CaffeineIconsPtr mIcons;
 
-    Mode*            mCurrentMode;
+    Mode*            mModePtr;
     DisabledMode     mDisabledMode;
-    StandardMode      mEnabledMode;
+    StandardMode     mStandardMode;
     AutoMode         mAutoMode;
     TimerMode        mTimerMode;
 

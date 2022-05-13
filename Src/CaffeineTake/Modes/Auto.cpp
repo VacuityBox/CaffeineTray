@@ -20,78 +20,29 @@
 
 #include "PCH.hpp"
 #include "Config.hpp"
-#include "CaffeineMode.hpp"
+#include "../CaffeineMode.hpp"
 
-#include <chrono>
+#include "Lang.hpp"
+#include "Logger.hpp"
+#include "Settings.hpp"
 
 namespace CaffeineTake {
-
-#pragma region DisabledMode
-
-DisabledMode::DisabledMode (CaffeineAppSO app)
-    : Mode (app)
-{
-}
-
-auto DisabledMode::Start () -> bool
-{
-    mAppSO.DisableCaffeine();
-
-    LOG_TRACE("Started Disabled mode");
-    return true;
-}
-
-auto DisabledMode::Stop () -> bool
-{
-    LOG_TRACE("Stopped Disabled mode");
-    return true;
-}
-
-auto DisabledMode::IsModeAvailable () -> bool
-{
-    return true;
-}
-
-#pragma endregion
-
-#pragma region StandardMode
-
-StandardMode::StandardMode (CaffeineAppSO app)
-    : Mode (app)
-{
-}
-
-auto StandardMode::Start () -> bool
-{
-    mAppSO.EnableCaffeine();
-
-    LOG_TRACE("Started Standard mode");
-    return true;
-}
-
-auto StandardMode::Stop () -> bool
-{
-    mAppSO.DisableCaffeine();
-
-    LOG_TRACE("Stopped Standard mode");
-    return true;
-}
-
-auto StandardMode::IsModeAvailable () -> bool
-{
-    return true;
-}
-
-#pragma endregion
-
-#pragma region AutoMode
 
 auto AutoMode::ScannerTimerProc (const StopToken& stop, const PauseToken& pause) -> bool
 {
     const auto settingsPtr = mAppSO.GetSettings();
     if (!settingsPtr)
     {
-        return false;
+        return true;
+    }
+
+    // If schedule is hit we don't need to scan.
+    {
+        auto lockGuard = std::lock_guard<std::mutex>(mScanMutex);
+        if (mScheduleResult)
+        {
+            return true;
+        }
     }
 
     auto scannerResult = false;
@@ -122,7 +73,7 @@ auto AutoMode::ScannerTimerProc (const StopToken& stop, const PauseToken& pause)
 #endif
 
     // Only if there is state change.
-    if (scannerResult != mScannerPreviousResult)
+    if (scannerResult != mScannerResult)
     {
         if (scannerResult)
         {
@@ -133,7 +84,12 @@ auto AutoMode::ScannerTimerProc (const StopToken& stop, const PauseToken& pause)
             mAppSO.DisableCaffeine();
         }
 
-        mScannerPreviousResult = scannerResult;
+        mScannerResult = scannerResult;
+    }
+
+    if (stop)
+    {
+        return false;
     }
 
     return true;
@@ -144,7 +100,7 @@ auto AutoMode::ScheduleTimerProc (const StopToken& stop, const PauseToken& pause
     const auto settingsPtr = mAppSO.GetSettings();
     if (!settingsPtr)
     {
-        return false;
+        return true;
     }
 
     auto scheduleResult = false;
@@ -159,21 +115,23 @@ auto AutoMode::ScheduleTimerProc (const StopToken& stop, const PauseToken& pause
 #endif
 
     // Only if there is state change.
-    if (scheduleResult != mSchedulePreviousResult)
     {
-        if (scheduleResult)
+        auto lockGuard = std::lock_guard<std::mutex>(mScanMutex);
+        if (scheduleResult != mScheduleResult)
         {
-            mAppSO.EnableCaffeine();
-        }
-        else
-        {
-            mAppSO.DisableCaffeine();
-        }
+            if (scheduleResult)
+            {
+                mAppSO.EnableCaffeine();
+            }
+            else
+            {
+                mAppSO.DisableCaffeine();
+            }
 
-        mSchedulePreviousResult = scheduleResult;
+            mScheduleResult = scheduleResult;
+        }
     }
 
-    // TODO it would be better if we first check schedule and the run scanner
     return true;
 }
 
@@ -199,7 +157,7 @@ auto AutoMode::Start () -> bool
     mAppSO.DisableCaffeine();
 
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_SCHEDULE)
-    mSchedulePreviousResult = false;
+    mScheduleResult = false;
     mScheduleTimer.Start();
 #endif
 
@@ -213,7 +171,7 @@ auto AutoMode::Start () -> bool
         mScannerTimer.SetInterval(std::chrono::milliseconds(settingsPtr->Auto.ScanInterval));
     }
 
-    mScannerPreviousResult = false;
+    mScannerResult = false;
     mScannerTimer.Start();
 #endif
 
@@ -241,7 +199,33 @@ auto AutoMode::Stop () -> bool
     return true;
 }
 
-auto AutoMode::IsModeAvailable () -> bool
+auto AutoMode::GetIcon (CaffeineState state) const -> const HICON
+{
+    auto icons = mAppSO.GetIcons();
+
+    switch (state)
+    {
+    case CaffeineTake::CaffeineState::Inactive: return icons->CaffeineAutoInactive;
+    case CaffeineTake::CaffeineState::Active:   return icons->CaffeineAutoActive;
+    }
+
+    return NULL;
+}
+
+auto AutoMode::GetTip (CaffeineState state) const -> const std::wstring&
+{
+    auto lang = mAppSO.GetLang();
+
+    switch (state)
+    {
+    case CaffeineTake::CaffeineState::Inactive: return lang->Tip_AutoInactive;
+    case CaffeineTake::CaffeineState::Active:   return lang->Tip_AutoActive;
+    }
+
+    return L"";
+}
+
+auto AutoMode::IsModeAvailable () const -> bool
 {
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE)
     return true;
@@ -250,70 +234,9 @@ auto AutoMode::IsModeAvailable () -> bool
 #endif
 }
 
-#pragma endregion
-
-#pragma region TimerMode
-
-auto TimerMode::TimerProc (const StopToken& stop, const PauseToken& pause) -> bool
+auto AutoMode::GetName () const -> std::wstring_view
 {
-    mAppSO.DisableCaffeine();
-
-    return false;
+    return L"Auto";
 }
-
-TimerMode::TimerMode (CaffeineAppSO app)
-    : Mode         (app)
-    , mTimerThread
-        ( std::bind(&TimerMode::TimerProc, this, std::placeholders::_1, std::placeholders::_2)
-        , ThreadTimer::Interval(1000)
-        , false
-        , false
-        )
-{
-}
-
-auto TimerMode::Start () -> bool
-{
-    const auto settingsPtr = mAppSO.GetSettings();
-    if (settingsPtr)
-    {
-        mTimerThread.SetInterval(std::chrono::milliseconds(settingsPtr->Timer.Interval));
-    }
-
-    if (settingsPtr->Timer.Interval == 0)
-    {
-        LOG_ERROR("Failed to start TimerMode, Interval is 0");
-        return false;
-    }
-
-    mAppSO.EnableCaffeine();
-    mTimerThread.Start();
-
-    LOG_TRACE("Started Timer mode");
-
-    return true;
-}
-
-auto TimerMode::Stop () -> bool
-{
-    mTimerThread.Stop();
-    mAppSO.DisableCaffeine();
-
-    LOG_TRACE("Stopped Timer mode");
-
-    return true;
-}
-
-auto TimerMode::IsModeAvailable () -> bool
-{
-#if defined(FEATURE_CAFFEINETAKE_TIMER_MODE)
-    return true;
-#else
-    return false;
-#endif
-}
-
-#pragma endregion
 
 } // namespace CaffeineTake
-

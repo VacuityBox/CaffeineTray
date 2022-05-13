@@ -45,7 +45,9 @@ public:
     auto EnableCaffeine  () -> void;
     auto DisableCaffeine () -> void;
 
-    auto GetSettings () -> SettingsPtr;
+    auto GetSettings () const -> SettingsPtr;
+    auto GetLang     () const -> LangPtr;
+    auto GetIcons    () const -> CaffeineIconsPtr;
 };
 
 } // namespace CaffeineTake

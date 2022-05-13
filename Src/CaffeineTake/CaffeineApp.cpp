@@ -60,17 +60,17 @@ CaffeineApp::CaffeineApp (const AppInitInfo& info)
     , mSessionState       (SessionState::Unlocked)
     , mNotifyIcon         ()
     , mThemeInfo          (mni::ThemeInfo::Detect())
-    , mIcons              (info.InstanceHandle)
+    , mIcons              (std::make_shared<CaffeineIcons>(info.InstanceHandle, mCustomIconsPath))
     , mCaffeineState      (CaffeineState::Inactive)
     , mCaffeineMode       (CaffeineMode::Disabled)
     , mKeepScreenOn       (false)
     , mAppSO              (this)
     , mDisabledMode       (mAppSO)
-    , mEnabledMode        (mAppSO)
+    , mStandardMode        (mAppSO)
     , mAutoMode           (mAppSO)
     , mTimerMode          (mAppSO)
     , mDpi                (96)
-    , mCurrentMode        (nullptr)
+    , mModePtr            (nullptr)
 {
 }
 
@@ -162,7 +162,7 @@ auto CaffeineApp::Init() -> bool
         const auto w = (16 * mDpi) / 96;
         const auto h = (16 * mDpi) / 96;
 
-        mIcons.Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+        mIcons->Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
     }
 
     // Load language.
@@ -360,7 +360,7 @@ auto CaffeineApp::OnThemeChange(mni::ThemeInfo ti) -> void
 
     // Load proper icons.
     // TODO pick right icons for high contrast
-    mIcons.Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+    mIcons->Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
 
     UpdateIcon();
     UpdateAppIcon();
@@ -377,7 +377,7 @@ auto CaffeineApp::OnDpiChange(int dpi) -> void
 
     // TODO pick right icons for high contrast
     // it can be specific icon override
-    mIcons.Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+    mIcons->Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
 
     UpdateIcon();
 }
@@ -483,8 +483,6 @@ auto CaffeineApp::ToggleCaffeineMode() -> void
 
 auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
 {
-    LOG_INFO(L"Setting CaffeineMode to {}", CaffeineModeToString(mode));
-
     auto nextMode = static_cast<Mode*>(nullptr);
     switch (mode)
     {
@@ -500,7 +498,7 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
 
     case CaffeineMode::Standard:
         if (IsModeAvailable(CaffeineMode::Standard)) {
-            nextMode = &mEnabledMode;
+            nextMode = &mStandardMode;
         }
         else {
             LOG_ERROR("Mode 'Standard' is not available");
@@ -534,8 +532,9 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
 
     // Start new one.
     mCaffeineMode = mode;
-    mCurrentMode = nextMode;
+    mModePtr = nextMode;
 
+    LOG_INFO(L"Setting CaffeineMode to {}", mModePtr->GetName());
     StartMode();
 
     UpdateIcon();
@@ -547,17 +546,17 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
 
 auto CaffeineApp::StartMode () -> void
 {
-    if (mCurrentMode)
+    if (mModePtr)
     {
-        mCurrentMode->Start();
+        mModePtr->Start();
     }
 }
 
 auto CaffeineApp::StopMode () -> void
 {
-    if (mCurrentMode)
+    if (mModePtr)
     {
-        mCurrentMode->Stop();
+        mModePtr->Stop();
     }
 }
 
@@ -712,37 +711,7 @@ auto CaffeineApp::RefreshExecutionState () -> void
 
 auto CaffeineApp::UpdateIcon() -> bool
 {
-    auto icon = HICON{0};
-
-    switch (mCaffeineMode)
-    {
-    case CaffeineMode::Disabled:
-        icon = mIcons.CaffeineDisabled;
-        break;
-    case CaffeineMode::Standard:
-        icon = mIcons.CaffeineEnabled;
-        break;
-    case CaffeineMode::Auto:
-        if (mCaffeineState == CaffeineState::Inactive)
-        {
-            icon = mIcons.CaffeineAutoInactive;
-        }
-        else
-        {
-            icon = mIcons.CaffeineAutoActive;
-        }
-        break;
-    case CaffeineMode::Timer:
-        if (mCaffeineState == CaffeineState::Inactive)
-        {
-            icon = mIcons.CaffeineTimerInactive;
-        }
-        else
-        {
-            icon = mIcons.CaffeineTimerActive;
-        }
-        break;
-    }
+    auto icon = mModePtr->GetIcon(mCaffeineState);
 
     // No need to update.
     if (mNotifyIcon.GetIcon() == icon)
@@ -762,40 +731,7 @@ auto CaffeineApp::UpdateIcon() -> bool
 
 auto CaffeineApp::UpdateTip() -> bool
 {
-    auto tip = std::wstring_view();
-
-    switch (mCaffeineMode)
-    {
-    case CaffeineMode::Disabled:
-        tip = mLang->Tip_DisabledInactive;
-        break;
-
-    case CaffeineMode::Standard:
-        tip = mLang->Tip_StandardActive;
-        break;
-
-    case CaffeineMode::Auto:
-        if (mCaffeineState == CaffeineState::Inactive)
-        {
-            tip = mLang->Tip_AutoInactive;
-        }
-        else
-        {
-            tip = mLang->Tip_AutoActive;
-        }
-        break;
-
-    case CaffeineMode::Timer:
-        if (mCaffeineState == CaffeineState::Inactive)
-        {
-            tip = mLang->Tip_TimerInactive;
-        }
-        else
-        {
-            tip = mLang->Tip_TimerActive;
-        }
-        break;
-    }
+    auto tip = mModePtr->GetTip(mCaffeineState);
 
     // No need to update.
     if (mNotifyIcon.GetTip() == tip.data())
@@ -949,7 +885,7 @@ auto CaffeineApp::UpdateJumpList () -> bool
         }
     }
 
-    JumpList::Clear();
+    //JumpList::Clear();
     const auto result = JumpList::Update(mExecutablePath, list);
     if (result)
     {

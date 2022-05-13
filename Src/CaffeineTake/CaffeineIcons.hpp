@@ -62,12 +62,14 @@ private:
     auto InternalCleanup () -> void;
 
 public:
-    HICON CaffeineDisabled      = NULL;
-    HICON CaffeineEnabled       = NULL;
-    HICON CaffeineAutoInactive  = NULL;
-    HICON CaffeineAutoActive    = NULL;
-    HICON CaffeineTimerInactive = NULL;
-    HICON CaffeineTimerActive   = NULL;
+    HICON CaffeineDisabledInactive  = NULL;
+    HICON CaffeineDisabledActive    = NULL;
+    HICON CaffeineStandardInactive  = NULL;
+    HICON CaffeineStandardActive    = NULL;
+    HICON CaffeineAutoInactive      = NULL;
+    HICON CaffeineAutoActive        = NULL;
+    HICON CaffeineTimerInactive     = NULL;
+    HICON CaffeineTimerActive       = NULL;
 
 public:
     CaffeineIcons  (HINSTANCE hInstance);

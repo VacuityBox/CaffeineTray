@@ -40,7 +40,7 @@ auto CaffeineAppSO::DisableCaffeine () -> void
     }
 }
 
-auto CaffeineAppSO::GetSettings () -> SettingsPtr
+auto CaffeineAppSO::GetSettings () const -> SettingsPtr
 {
     if (mApp)
     {
@@ -50,5 +50,24 @@ auto CaffeineAppSO::GetSettings () -> SettingsPtr
     return nullptr;
 }
 
+auto CaffeineAppSO::GetLang () const -> LangPtr
+{
+    if (mApp)
+    {
+        return mApp->mLang;
+    }
+
+    return nullptr;
+}
+
+auto CaffeineAppSO::GetIcons () const -> CaffeineIconsPtr
+{
+    if (mApp)
+    {
+        return mApp->mIcons;
+    }
+
+    return nullptr;
+}
 } // namespace CaffeineTake
     

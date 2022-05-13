@@ -31,6 +31,9 @@
     <Filter Include="Resource Files\Icons\Square">
       <UniqueIdentifier>{600d2695-c80e-4583-9734-4f65ba2058fb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Modes">
+      <UniqueIdentifier>{f5f10d2e-2a15-4b26-9189-556a188f2ee2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -57,9 +60,6 @@
     <ClCompile Include="AppInitInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CaffeineMode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Scanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -83,6 +83,18 @@
     </ClCompile>
     <ClCompile Include="PCH.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Modes\Disabled.cpp">
+      <Filter>Source Files\Modes</Filter>
+    </ClCompile>
+    <ClCompile Include="Modes\Standard.cpp">
+      <Filter>Source Files\Modes</Filter>
+    </ClCompile>
+    <ClCompile Include="Modes\Auto.cpp">
+      <Filter>Source Files\Modes</Filter>
+    </ClCompile>
+    <ClCompile Include="Modes\Timer.cpp">
+      <Filter>Source Files\Modes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -21,12 +21,14 @@
 #pragma once
 
 #include "CaffeineAppSO.hpp"
-#include "Logger.hpp"
+#include "CaffeineState.hpp"
+#include "ForwardDeclaration.hpp"
 #include "Scanner.hpp"
 #include "Schedule.hpp"
-#include "Settings.hpp"
 #include "ThreadTimer.hpp"
 
+#include <atomic>
+#include <mutex>
 #include <string_view>
 
 namespace CaffeineTake {
@@ -39,34 +41,26 @@ enum class CaffeineMode : unsigned char
     Timer    = 3
 };
 
-constexpr auto CaffeineModeToString (CaffeineMode mode) -> std::wstring_view
-{
-    switch (mode)
-    {
-    case CaffeineMode::Disabled: return L"Disabled";
-    case CaffeineMode::Standard: return L"Standard";
-    case CaffeineMode::Auto:     return L"Auto";
-    case CaffeineMode::Timer:    return L"Timer";
-    }
-
-    return L"Invalid CaffeineMode";
-}
-
 class Mode
 {
 protected:
-    CaffeineAppSO mAppSO = nullptr;
+    CaffeineAppSO mAppSO;
 
 public:
     Mode (CaffeineAppSO app)
         : mAppSO (app)
     {
     }
+    virtual ~Mode() = default;
 
     virtual auto Start () -> bool = 0;
     virtual auto Stop  () -> bool = 0;
 
-    virtual auto IsModeAvailable () -> bool = 0;
+    virtual auto GetIcon (CaffeineState state) const -> const HICON = 0;
+    virtual auto GetTip  (CaffeineState state) const -> const std::wstring& = 0;
+
+    virtual auto IsModeAvailable () const -> bool = 0;
+    virtual auto GetName         () const -> std::wstring_view = 0;
 
     //virtual auto OnCustomMessage (UINT, WPARAM, LPARAM) -> bool = 0;
 };
@@ -77,9 +71,13 @@ public:
     DisabledMode (CaffeineAppSO app);
 
     auto Start () -> bool override;
-    auto Stop () -> bool override;
+    auto Stop  () -> bool override;
 
-    auto IsModeAvailable () -> bool override;
+    auto GetIcon (CaffeineState state) const -> const HICON override;
+    auto GetTip  (CaffeineState state) const -> const std::wstring& override;
+
+    auto IsModeAvailable () const -> bool override;
+    auto GetName         () const -> std::wstring_view override;
 };
 
 class StandardMode : public Mode
@@ -90,24 +88,28 @@ public:
     auto Start () -> bool override;
     auto Stop () -> bool override;
 
-    auto IsModeAvailable () -> bool override;
+    auto GetIcon (CaffeineState state) const -> const HICON override;
+    auto GetTip  (CaffeineState state) const -> const std::wstring& override;
+
+    auto IsModeAvailable () const -> bool override;
+    auto GetName         () const -> std::wstring_view override;
 };
 
 class AutoMode : public Mode
 {
-    ProcessScanner   mProcessScanner;
-    WindowScanner    mWindowScanner;
-    UsbDeviceScanner mUsbScanner;
-    BluetoothScanner mBluetoothScanner;
+    std::mutex         mScanMutex;
+    std::atomic<bool>  mScannerResult;
+    std::atomic<bool>  mScheduleResult;
 
-    bool             mScannerPreviousResult = false;
-    ThreadTimer      mScannerTimer;
+    ProcessScanner     mProcessScanner;
+    WindowScanner      mWindowScanner;
+    UsbDeviceScanner   mUsbScanner;
+    BluetoothScanner   mBluetoothScanner;
+
+    ThreadTimer        mScannerTimer;
+    ThreadTimer        mScheduleTimer;
 
     auto ScannerTimerProc  (const StopToken& stop, const PauseToken& pause) -> bool;
-
-    bool             mSchedulePreviousResult = false;
-    ThreadTimer      mScheduleTimer;
-
     auto ScheduleTimerProc (const StopToken& stop, const PauseToken& pause) -> bool;
 
 public:
@@ -116,7 +118,11 @@ public:
     auto Start () -> bool override;
     auto Stop  () -> bool override;
 
-    auto IsModeAvailable () -> bool override;
+    auto GetIcon (CaffeineState state) const -> const HICON override;
+    auto GetTip  (CaffeineState state) const -> const std::wstring& override;
+
+    auto IsModeAvailable () const -> bool override;
+    auto GetName         () const -> std::wstring_view override;
 };
 
 class TimerMode : public Mode
@@ -129,9 +135,13 @@ public:
     TimerMode (CaffeineAppSO app);
 
     auto Start () -> bool override;
-    auto Stop () -> bool override;
+    auto Stop  () -> bool override;
 
-    auto IsModeAvailable () -> bool override;
+    auto GetIcon (CaffeineState state) const -> const HICON override;
+    auto GetTip  (CaffeineState state) const -> const std::wstring& override;
+
+    auto IsModeAvailable () const -> bool override;
+    auto GetName         () const -> std::wstring_view override;
 };
 
 } // namespace CaffeineTake
