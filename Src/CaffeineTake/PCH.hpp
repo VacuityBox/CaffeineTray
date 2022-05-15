@@ -90,3 +90,6 @@
 
 // Lockscreen Detection
 #include <WtsApi32.h>
+
+// PlaySound
+#include <mmsystem.h>

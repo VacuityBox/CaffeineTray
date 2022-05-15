@@ -21,6 +21,8 @@
 #include "PCH.hpp"
 #include "CaffeineApp.hpp"
 
+#include "CaffeineIcons.hpp"
+#include "CaffeineSounds.hpp"
 #include "Dialogs/AboutDialog.hpp"
 #include "Dialogs/CaffeineSettings.hpp"
 #include "JumpList.hpp"
@@ -53,20 +55,24 @@ CaffeineApp::CaffeineApp (const AppInitInfo& info)
     , mExecutablePath     (info.ExecutablePath)
     , mSettingsFilePath   (info.SettingsPath)
     , mCustomIconsPath    (info.DataDirectory / "Icons" / "")
+    , mCustomSoundsPath   (info.DataDirectory / "Sounds" / "")
     , mLangDirectory      (info.DataDirectory / "Lang" / "")
     , mInstanceHandle     (info.InstanceHandle)
     , mInitialized        (false)
     , mShuttingDown       (false)
+    , mIsStopping         (false)
+    , mUpdatedByES        (false)
     , mSessionState       (SessionState::Unlocked)
     , mNotifyIcon         ()
     , mThemeInfo          (mni::ThemeInfo::Detect())
     , mIcons              (std::make_shared<CaffeineIcons>(info.InstanceHandle, mCustomIconsPath))
+    , mSounds             (std::make_shared<CaffeineSounds>(info.InstanceHandle, mCustomSoundsPath))
     , mCaffeineState      (CaffeineState::Inactive)
     , mCaffeineMode       (CaffeineMode::Disabled)
     , mKeepScreenOn       (false)
     , mAppSO              (this)
     , mDisabledMode       (mAppSO)
-    , mStandardMode        (mAppSO)
+    , mStandardMode       (mAppSO)
     , mAutoMode           (mAppSO)
     , mTimerMode          (mAppSO)
     , mDpi                (96)
@@ -163,6 +169,11 @@ auto CaffeineApp::Init() -> bool
         const auto h = (16 * mDpi) / 96;
 
         mIcons->Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+    }
+
+    // Load sounds.
+    {
+        mSounds->Load(mSettings->General.SoundPack);
     }
 
     // Load language.
@@ -528,18 +539,28 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
     }
 
     // Stop current mode.
+    mIsStopping = true;
     StopMode();
+    mIsStopping = false;
+    mUpdatedByES = false;
 
     // Start new one.
     mCaffeineMode = mode;
     mModePtr = nextMode;
 
-    LOG_INFO(L"Setting CaffeineMode to {}", mModePtr->GetName());
+    if (mModePtr) {
+        LOG_INFO(L"Setting CaffeineMode to {}", mModePtr->GetName());
+    }
     StartMode();
 
-    UpdateIcon();
-    UpdateTip();
-    UpdateJumpList();
+    if (!mUpdatedByES)
+    {
+        UpdateIcon();
+        UpdateTip();
+        UpdateJumpList();
+        ShowNotificationBalloon();
+        PlayNotificationSound();
+    }
 
     SaveMode();
 }
@@ -699,9 +720,13 @@ auto CaffeineApp::UpdateExecutionState(CaffeineState state) -> void
 
     LOG_INFO("Updated execution state, State: {}, Display: {}", static_cast<int>(mCaffeineState), mKeepScreenOn);
 
+    mUpdatedByES = true;
+
     UpdateIcon();
     UpdateTip();
     UpdateJumpList();
+    ShowNotificationBalloon();
+    PlayNotificationSound();
 }
 
 auto CaffeineApp::RefreshExecutionState () -> void
@@ -897,6 +922,72 @@ auto CaffeineApp::UpdateJumpList () -> bool
     }
 
     return result;
+}
+
+auto CaffeineApp::ShowNotificationBalloon () -> void
+{
+    if (mSettings->General.ShowNotifications && !mIsStopping)
+    {
+        auto title = L"";
+        auto text  = L"";
+
+        switch (mCaffeineMode)
+        {
+        case CaffeineMode::Disabled:
+            title = L"Standard Mode";
+            text = L"Caffeine Inactive";
+            break;
+        case CaffeineMode::Standard:
+            title = L"Standard Mode";
+            text = L"Caffeine Active";
+            break;
+        case CaffeineMode::Auto:
+            title = L"Auto Mode";
+            if (mCaffeineState == CaffeineState::Inactive)
+            {
+                text = L"Caffeine Inactive";
+            }
+            else
+            {
+                text = L"Caffeine Active";
+            }
+            break;
+        case CaffeineMode::Timer:
+            title = L"Timer Mode";
+            if (mCaffeineState == CaffeineState::Inactive)
+            {
+                text = L"Caffeine Inactive";
+            }
+            else
+            {
+                text = L"Caffeine Active";
+            }
+            break;
+
+        }
+        
+        //mNotifyIcon.RemoveBalloonNotification();
+
+        const auto flags = mni::BalloonFlags::Realtime | mni::BalloonFlags::RespectQuietTime;
+        mNotifyIcon.SendBalloonNotification(title, text, mni::BalloonIconType::NoIcon, NULL, flags);
+    }
+}
+
+auto CaffeineApp::PlayNotificationSound () -> void
+{
+    // TODO respect quiet mode
+    if (mSettings->General.PlayNotificationSound)
+    {
+        switch (mCaffeineState)
+        {
+        case CaffeineState::Active:
+            mSounds->PlayActivateSound();
+            break;
+        case CaffeineState::Inactive:
+            mSounds->PlayDeactivateSound();
+            break;
+        }
+    }
 }
 
 auto CaffeineApp::LoadSettings () -> void

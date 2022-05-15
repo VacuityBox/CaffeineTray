@@ -34,6 +34,12 @@
     <Filter Include="Source Files\Modes">
       <UniqueIdentifier>{f5f10d2e-2a15-4b26-9189-556a188f2ee2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Sounds">
+      <UniqueIdentifier>{d114cfa4-e7f3-485c-b0b1-dec789411577}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Sounds\Original">
+      <UniqueIdentifier>{429d385c-2469-41c4-86d3-64ff931a055a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -95,6 +101,9 @@
     </ClCompile>
     <ClCompile Include="Modes\Timer.cpp">
       <Filter>Source Files\Modes</Filter>
+    </ClCompile>
+    <ClCompile Include="CaffeineSounds.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -203,6 +212,9 @@
     <ClInclude Include="ForwardDeclaration.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CaffeineSounds.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
@@ -279,5 +291,13 @@
     <Image Include="..\..\Resources\Icons\Square\CaffeineTimerInactiveLight.ico">
       <Filter>Resource Files\Icons\Square</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\..\Resources\Sounds\Original\Active.wav">
+      <Filter>Resource Files\Sounds\Original</Filter>
+    </Media>
+    <Media Include="..\..\Resources\Sounds\Original\Inactive.wav">
+      <Filter>Resource Files\Sounds\Original</Filter>
+    </Media>
   </ItemGroup>
 </Project>

@@ -247,6 +247,7 @@
     <ClCompile Include="CaffeineAppSO.cpp" />
     <ClCompile Include="CaffeineIcons.cpp" />
     <ClCompile Include="CaffeineApp.cpp" />
+    <ClCompile Include="CaffeineSounds.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Dialogs\AddWizard.cpp" />
     <ClCompile Include="Dialogs\CaffeineSettings.cpp" />
@@ -277,6 +278,7 @@
     <ClInclude Include="AppInitInfo.hpp" />
     <ClInclude Include="BluetoothIdentifier.hpp" />
     <ClInclude Include="CaffeineAppSO.hpp" />
+    <ClInclude Include="CaffeineSounds.hpp" />
     <ClInclude Include="CaffeineState.hpp" />
     <ClInclude Include="Config.hpp" />
     <ClInclude Include="Dialogs\AboutDialog.hpp" />
@@ -337,6 +339,10 @@
     <Image Include="..\..\Resources\Icons\Square\CaffeineTimerActiveLight.ico" />
     <Image Include="..\..\Resources\Icons\Square\CaffeineTimerInactiveDark.ico" />
     <Image Include="..\..\Resources\Icons\Square\CaffeineTimerInactiveLight.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\..\Resources\Sounds\Original\Active.wav" />
+    <Media Include="..\..\Resources\Sounds\Original\Inactive.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -112,6 +112,10 @@
 #define IDC_ABOUT_LICENSE                            1305
 #define IDC_ABOUT_BUTTON_3RDPARTY                    1306
 
+// Sounds.
+#define IDW_ORIGINAL_ACTIVE                          1400
+#define IDW_ORIGINAL_INACTIVE                        1401
+
 // Notify Area ContextMenu Commands.
 #define IDM_TOGGLE_CAFFEINE                          40001
 #define IDM_SETTINGS                                 40002

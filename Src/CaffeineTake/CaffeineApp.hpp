@@ -60,31 +60,35 @@ class CaffeineApp final
 {
     friend class CaffeineAppSO;
 
-    HINSTANCE        mInstanceHandle;
-    mni::NotifyIcon  mNotifyIcon;
-    mni::ThemeInfo   mThemeInfo;
-    CaffeineAppSO    mAppSO;
-    CaffeineMode     mCaffeineMode;
-    CaffeineState    mCaffeineState;
-    bool             mKeepScreenOn;
-    bool             mInitialized;
-    bool             mShuttingDown;
-    SessionState     mSessionState;
-    fs::path         mExecutablePath;
-    fs::path         mSettingsFilePath;
-    fs::path         mCustomIconsPath;
-    fs::path         mLangDirectory;
-    int              mDpi;
+    HINSTANCE          mInstanceHandle;
+    mni::NotifyIcon    mNotifyIcon;
+    mni::ThemeInfo     mThemeInfo;
+    CaffeineAppSO      mAppSO;
+    CaffeineMode       mCaffeineMode;
+    CaffeineState      mCaffeineState;
+    bool               mKeepScreenOn;
+    bool               mInitialized;
+    bool               mShuttingDown;
+    bool               mIsStopping;
+    bool               mUpdatedByES;
+    SessionState       mSessionState;
+    fs::path           mExecutablePath;
+    fs::path           mSettingsFilePath;
+    fs::path           mCustomIconsPath;
+    fs::path           mCustomSoundsPath;
+    fs::path           mLangDirectory;
+    int                mDpi;
 
-    SettingsPtr      mSettings;
-    LangPtr          mLang;
-    CaffeineIconsPtr mIcons;
+    SettingsPtr        mSettings;
+    LangPtr            mLang;
+    CaffeineIconsPtr   mIcons;
+    CaffeineSoundsPtr  mSounds;
 
-    Mode*            mModePtr;
-    DisabledMode     mDisabledMode;
-    StandardMode     mStandardMode;
-    AutoMode         mAutoMode;
-    TimerMode        mTimerMode;
+    Mode*              mModePtr;
+    DisabledMode       mDisabledMode;
+    StandardMode       mStandardMode;
+    AutoMode           mAutoMode;
+    TimerMode          mTimerMode;
 
     auto OnCreate            ()                     -> void;
     auto OnDestroy           ()                     -> void;
@@ -118,6 +122,9 @@ class CaffeineApp final
     auto UpdateTip      () -> bool;
     auto UpdateAppIcon  () -> void;
     auto UpdateJumpList () -> bool;
+
+    auto ShowNotificationBalloon () -> void;
+    auto PlayNotificationSound   () -> void;
 
     auto LoadSettings () -> void;
     auto SaveSettings () -> void;

@@ -33,4 +33,8 @@ using LangPtr = std::shared_ptr<Lang>;
 class CaffeineIcons;
 using CaffeineIconsPtr = std::shared_ptr<CaffeineIcons>;
 
+class CaffeineSounds;
+using CaffeineSoundsPtr = std::shared_ptr<CaffeineSounds>;
+
+
 } // namespace CaffeineTake

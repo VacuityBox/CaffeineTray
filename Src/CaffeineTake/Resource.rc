@@ -142,6 +142,14 @@ IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_DARK       ICON                    "..\\.
 IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_INACTIVE_DARK    ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineTimerInactiveDark.ico"
 IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_ACTIVE_DARK      ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineTimerActiveDark.ico"
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Sounds
+//
+IDW_ORIGINAL_ACTIVE          WAVE    "..\\..\\Resources\\Sounds\\Original\\Active.wav"
+IDW_ORIGINAL_INACTIVE        WAVE    "..\\..\\Resources\\Sounds\\Original\\Inactive.wav"
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version

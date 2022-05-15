@@ -22,6 +22,7 @@
 
 #include "BluetoothIdentifier.hpp"
 #include "CaffeineIcons.hpp"
+#include "CaffeineSounds.hpp"
 #include "Schedule.hpp"
 
 #include <filesystem>
@@ -35,20 +36,20 @@ namespace {
 
 namespace CaffeineTake {
 
-class Settings;
-using SettingsPtr = std::shared_ptr<Settings>;
-
 class Settings final
 {
 public:
     struct General
     {
-        std::wstring            LangId        = L"en";
-        CaffeineIcons::IconPack IconPack      = CaffeineIcons::IconPack::Original;
-        bool                    UseNotifyIcon = true;
-        bool                    UseJumpLists  = false;
-        bool                    UseDockMode   = false;
-        bool                    AutoStart     = false;
+        std::wstring              LangId                = L"en";
+        CaffeineIcons::IconPack   IconPack              = CaffeineIcons::IconPack::Original;
+        bool                      UseNotifyIcon         = true;
+        bool                      UseJumpLists          = false;
+        bool                      UseDockMode           = false;
+        bool                      AutoStart             = false;
+        bool                      ShowNotifications     = false;
+        bool                      PlayNotificationSound = true;
+        CaffeineSounds::SoundPack SoundPack             = CaffeineSounds::SoundPack::System;
 
         General () = default;
     } General;

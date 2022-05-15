@@ -34,7 +34,18 @@ namespace CaffeineTake {
 
 #if defined(FEATURE_CAFFEINETAKE_SETTINGS)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::General, LangId, IconPack, UseNotifyIcon, UseJumpLists, UseDockMode, AutoStart)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
+    struct Settings::General,
+    LangId,
+    IconPack,
+    UseNotifyIcon,
+    UseJumpLists,
+    UseDockMode,
+    AutoStart,
+    ShowNotifications,
+    PlayNotificationSound,
+    SoundPack
+)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::Standard, Enabled, KeepScreenOn, WhenSessionLocked)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Settings::Auto::TriggerProcess, Enabled, Processes)

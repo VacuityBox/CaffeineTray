@@ -37,8 +37,11 @@
 #define ENABLE_FEATURE_JUMPLISTS
 #define ENABLE_FEATURE_SETTINGS_DIALOG
 #define ENABLE_FEATURE_CUSTOM_ICONS
+#define ENABLE_FEATURE_CUSTOM_SOUNDS
 #define ENABLE_FEATURE_MULTILANG
 #define ENABLE_FEATURE_LOCKSCREEN_DETECTION
+#define ENABLE_FEATURE_NOTIFICATION_BALLOON
+#define ENABLE_FEATURE_NOTIFICATION_SOUND
 
 // ============================ //
 // Don't modify anything below! //
@@ -59,8 +62,11 @@ enum class Feature
     JumpLists,
     SettingsDialog,
     CustomIcons,
+    CustomSounds,
     Multilang,
     LockscreenDetection,
+    NotificationBalloon,
+    NotificationSound,
 };
 
 constexpr auto IsFeatureAvailable (const Feature f) -> bool;
@@ -118,8 +124,11 @@ constexpr auto FeatureToString    (const Feature f) -> const wchar_t*;
 #   define FEATURE_CAFFEINETAKE_JUMPLISTS
 #   define FEATURE_CAFFEINETAKE_SETTINGS_DIALOG
 #   define FEATURE_CAFFEINETAKE_CUSTOM_ICONS
+#   define FEATURE_CAFFEINETAKE_CUSTOM_SOUNDS
 #   define FEATURE_CAFFEINETAKE_MULTILANG
 #   define FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION
+#   define FEATURE_CAFFEINETAKE_NOTIFICATION_BALLOON
+#   define FEATURE_CAFFEINETAKE_NOTIFICATION_SOUND
 #endif
 
 // ========================== //
@@ -141,8 +150,11 @@ constexpr auto FeatureToString    (const Feature f) -> const wchar_t*;
 #   define FEATURE_CAFFEINETAKE_JUMPLISTS
 #   define FEATURE_CAFFEINETAKE_SETTINGS_DIALOG
 #   define FEATURE_CAFFEINETAKE_CUSTOM_ICONS
+#   define FEATURE_CAFFEINETAKE_CUSTOM_SOUNDS
 #   define FEATURE_CAFFEINETAKE_MULTILANG
 #   define FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION
+#   define FEATURE_CAFFEINETAKE_NOTIFICATION_BALLOON
+#   define FEATURE_CAFFEINETAKE_NOTIFICATION_SOUND
 #endif
 
 // ========================== //
@@ -213,14 +225,29 @@ constexpr auto FeatureToString    (const Feature f) -> const wchar_t*;
 #   define FEATURE_CAFFEINETAKE_CUSTOM_ICONS
 #endif
 
+// Custom Sounds.
+#if defined(ENABLE_FEATURE_CUSTOM_SOUNDS) && defined(ENABLE_FEATURE_NOTIFICATION_SOUND)
+#   define FEATURE_CAFFEINETAKE_CUSTOM_SOUNDS
+#endif
+
 // Language Support.
 #if defined(ENABLE_FEATURE_MULTILANG)
 #   define FEATURE_CAFFEINETAKE_MULTILANG
 #endif
 
-// Lockscreen Detection
+// Lockscreen Detection.
 #if defined(ENABLE_FEATURE_LOCKSCREEN_DETECTION)
 #   define FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION
+#endif
+
+// Notification Balloon.
+#if defined(ENABLE_FEATURE_NOTIFICATION_BALLOON)
+#   define FEATURE_CAFFEINETAKE_NOTIFICATION_BALLOON
+#endif
+
+// Notification Sounds.
+#if defined(ENABLE_FEATURE_NOTIFICATION_SOUND)
+#   define FEATURE_CAFFEINETAKE_NOTIFICATION_SOUND
 #endif
 
 #endif // #if FEATURE_SET == FEATURE_SET_CUSTOM
@@ -242,8 +269,11 @@ constexpr auto FeatureToString    (const Feature f) -> const wchar_t*;
 #undef ENABLE_FEATURE_JUMPLISTS
 #undef ENABLE_FEATURE_SETTINGS_DIALOG
 #undef ENABLE_FEATURE_CUSTOM_ICONS
+#undef ENABLE_FEATURE_CUSTOM_SOUNDS
 #undef ENABLE_FEATURE_MULTILANG
 #undef ENABLE_FEATURE_LOCKSCREEN_DETECTION
+#undef ENABLE_FEATURE_NOTIFICATION_BALLOON
+#undef ENABLE_FEATURE_NOTIFICATION_SOUND
 
 // ========= //
 // Functions //
@@ -330,6 +360,12 @@ constexpr auto IsFeatureAvailable(const Feature f) -> bool
 #else
         return false;
 #endif
+case Feature::CustomSounds:
+#if defined(FEATURE_CAFFEINETAKE_CUSTOM_SOUNDS)
+        return true;
+#else
+        return false;
+#endif
     case Feature::Multilang:
 #if defined(FEATURE_CAFFEINETAKE_MULTILANG)
         return true;
@@ -338,6 +374,18 @@ constexpr auto IsFeatureAvailable(const Feature f) -> bool
 #endif
     case Feature::LockscreenDetection:
 #if defined(FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION)
+        return true;
+#else
+        return false;
+#endif
+    case Feature::NotificationBalloon:
+#if defined(FEATURE_CAFFEINETAKE_NOTIFICATION_BALLOON)
+        return true;
+#else
+        return false;
+#endif
+    case Feature::NotificationSound:
+#if defined(FEATURE_CAFFEINETAKE_NOTIFICATION_SOUND)
         return true;
 #else
         return false;
@@ -364,8 +412,11 @@ constexpr auto FeatureToString  (const Feature f) -> const wchar_t*
     case Feature::JumpLists:                    return L"JumpLists";
     case Feature::SettingsDialog:               return L"SettingsDialog";
     case Feature::CustomIcons:                  return L"CustomIcons";
+    case Feature::CustomSounds:                 return L"CustomSounds";
     case Feature::Multilang:                    return L"Multilang";
     case Feature::LockscreenDetection:          return L"LockscreenDetection";
+    case Feature::NotificationBalloon:          return L"NotificationBalloon";
+    case Feature::NotificationSound:            return L"NotificationSound";
     }
     return L"Invalid Feature";
 }

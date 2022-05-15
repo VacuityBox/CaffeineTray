@@ -38,3 +38,7 @@
 #if defined(FEATURE_CAFFEINETAKE_AUTO_MODE_TRIGGER_BLUETOOTH)
 #   pragma comment(lib, "Bthprops.lib")
 #endif
+
+#if defined(FEATURE_CAFFEINETAKE_NOTIFICATION_SOUND)
+#   pragma comment(lib, "Winmm.lib")
+#endif

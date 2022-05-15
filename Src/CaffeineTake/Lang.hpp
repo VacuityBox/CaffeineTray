@@ -30,9 +30,6 @@ namespace {
 
 namespace CaffeineTake {
 
-class Lang;
-using LangPtr = std::shared_ptr<Lang>;
-
 class Lang final
 {
 public:
