@@ -51,13 +51,7 @@ auto DisabledMode::GetIcon (CaffeineState state) const -> const HICON
 {
     auto icons = mAppSO.GetIcons();
 
-    switch (state)
-    {
-    case CaffeineTake::CaffeineState::Inactive: return icons->CaffeineDisabledInactive;
-    case CaffeineTake::CaffeineState::Active:   return icons->CaffeineDisabledActive;
-    }
-
-    return NULL;
+    return icons->CaffeineStandardInactive;
 }
 
 auto DisabledMode::GetTip  (CaffeineState state) const -> const std::wstring&

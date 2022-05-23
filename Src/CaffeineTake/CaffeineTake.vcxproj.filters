@@ -40,6 +40,9 @@
     <Filter Include="Resource Files\Sounds\Original">
       <UniqueIdentifier>{429d385c-2469-41c4-86d3-64ff931a055a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Icons\Round">
+      <UniqueIdentifier>{e2af52a5-9e16-4f29-84bf-666684f51de8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">

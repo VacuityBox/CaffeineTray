@@ -43,13 +43,26 @@ public:
     {
         std::wstring              LangId                = L"en";
         CaffeineIcons::IconPack   IconPack              = CaffeineIcons::IconPack::Original;
+        CaffeineIcons::IconTheme  IconTheme             = CaffeineIcons::IconTheme::System;
         bool                      UseNotifyIcon         = true;
         bool                      UseJumpLists          = false;
         bool                      UseDockMode           = false;
         bool                      AutoStart             = false;
         bool                      ShowNotifications     = false;
-        bool                      PlayNotificationSound = true;
+        bool                      PlayNotificationSound = false;
         CaffeineSounds::SoundPack SoundPack             = CaffeineSounds::SoundPack::System;
+        bool                      PrepareIconColors     = true;
+
+        // When icon pack is Custom.
+        struct IconColorList
+        {
+            CaffeineIcons::IconColors StandardMode_Inactive = CaffeineIcons::IconColors();
+            CaffeineIcons::IconColors StandardMode_Active   = CaffeineIcons::IconColors();
+            CaffeineIcons::IconColors AutoMode_Inactive     = CaffeineIcons::IconColors();
+            CaffeineIcons::IconColors AutoMode_Active       = CaffeineIcons::IconColors();
+            CaffeineIcons::IconColors TimerMode_Inactive    = CaffeineIcons::IconColors();
+            CaffeineIcons::IconColors TimerMode_Active      = CaffeineIcons::IconColors();
+        } IconColors;
 
         General () = default;
     } General;
@@ -91,7 +104,7 @@ public:
         struct TriggerBluetooth
         {
             bool                             Enabled          = true;
-            std::vector<BluetoothIdentifier> BluetoothDevices = std::vector<BluetoothIdentifier>();
+            std::vector<BluetoothIdentifier> BluetoothDevices = std::vector<BluetoothIdentifier>({});
             unsigned int                     ActiveTimeout    = 60*1000;   // in ms
         } TriggerBluetooth;
 

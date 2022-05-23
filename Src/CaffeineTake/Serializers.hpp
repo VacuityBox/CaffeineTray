@@ -25,6 +25,7 @@
 #if defined(FEATURE_CAFFEINETAKE_SETTINGS)
 
 #include "BluetoothIdentifier.hpp"
+#include "CaffeineIcons.hpp"
 #include "Schedule.hpp"
 #include "Utility.hpp"
 
@@ -61,16 +62,39 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(TimeRange, Begin, End)
 // ScheduleEntry serializer.
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ScheduleEntry, Name, ActiveDays, ActiveHours)
 
+// IconColors serializer.
+//NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(CaffeineIcons::IconColors, CupBorder, CupFill, Steam, ModeIndicator)
+inline auto to_json (nlohmann::json& j, const CaffeineIcons::IconColors& ic) -> void
+{
+    j["CupBorder"]     = nlohmann::json(std::format("0x{:08x}", ic.CupBorder));
+    j["CupFill"]       = nlohmann::json(std::format("0x{:08x}", ic.CupFill));
+    j["Steam"]         = nlohmann::json(std::format("0x{:08x}", ic.Steam));
+    j["ModeIndicator"] = nlohmann::json(std::format("0x{:08x}", ic.ModeIndicator));
+}
+
+inline auto from_json (const nlohmann::json& j, CaffeineIcons::IconColors& ic) -> void
+{
+    const auto border  = j.at("CupBorder").get<std::string>();
+    const auto fill    = j.at("CupFill").get<std::string>();
+    const auto steam   = j.at("Steam").get<std::string>();
+    const auto mode    = j.at("ModeIndicator").get<std::string>();
+
+    ic.CupBorder     = std::stoul(border, nullptr, 16);
+    ic.CupFill       = std::stoul(fill, nullptr, 16);
+    ic.Steam         = std::stoul(steam, nullptr, 16);
+    ic.ModeIndicator = std::stoul(mode, nullptr, 16);
+}
+
 // BluetoothIdentifier serialzier.
 inline auto to_json (nlohmann::json& j, const BluetoothIdentifier& bi) -> void
 {
-    j = nlohmann::json{
+    j = nlohmann::json(
         std::format(
             "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
             bi.bytes[5], bi.bytes[4], bi.bytes[3],
             bi.bytes[2], bi.bytes[1], bi.bytes[0]
         )
-    };
+    );
 }
 
 inline auto from_json (const nlohmann::json& j, BluetoothIdentifier& bi) -> void

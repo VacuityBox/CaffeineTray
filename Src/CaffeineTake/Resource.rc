@@ -142,6 +142,9 @@ IDI_NOTIFY_SQUARE_CAFFEINE_AUTO_ACTIVE_DARK       ICON                    "..\\.
 IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_INACTIVE_DARK    ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineTimerInactiveDark.ico"
 IDI_NOTIFY_SQUARE_CAFFEINE_TIMER_ACTIVE_DARK      ICON                    "..\\..\\Resources\\Icons\\Square\\CaffeineTimerActiveDark.ico"
 
+IDI_NOTIFY_ROUND_CAFFEINE_STANDARD_MODE             ICON                    "..\\..\\Resources\\Icons\\Round\\Standard.ico"
+IDI_NOTIFY_ROUND_CAFFEINE_AUTO_MODE                 ICON                    "..\\..\\Resources\\Icons\\Round\\Auto.ico"
+IDI_NOTIFY_ROUND_CAFFEINE_TIMER_MODE                ICON                    "..\\..\\Resources\\Icons\\Round\\Timer.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

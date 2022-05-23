@@ -168,7 +168,7 @@ auto CaffeineApp::Init() -> bool
         const auto w = (16 * mDpi) / 96;
         const auto h = (16 * mDpi) / 96;
 
-        mIcons->Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+        mIcons->Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::SystemTheme::Light : CaffeineIcons::SystemTheme::Dark, w, h, mSettings);
     }
 
     // Load sounds.
@@ -371,7 +371,7 @@ auto CaffeineApp::OnThemeChange(mni::ThemeInfo ti) -> void
 
     // Load proper icons.
     // TODO pick right icons for high contrast
-    mIcons->Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+    mIcons->Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::SystemTheme::Light : CaffeineIcons::SystemTheme::Dark, w, h, mSettings);
 
     UpdateIcon();
     UpdateAppIcon();
@@ -388,7 +388,7 @@ auto CaffeineApp::OnDpiChange(int dpi) -> void
 
     // TODO pick right icons for high contrast
     // it can be specific icon override
-    mIcons->Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::Theme::Light : CaffeineIcons::Theme::Dark, w, h);
+    mIcons->Load(mSettings->General.IconPack, mThemeInfo.IsDark() ? CaffeineIcons::SystemTheme::Light : CaffeineIcons::SystemTheme::Dark, w, h, mSettings);
 
     UpdateIcon();
 }
@@ -744,7 +744,7 @@ auto CaffeineApp::UpdateIcon() -> bool
         return false;
     }
 
-    if (FAILED(mNotifyIcon.SetIcon(icon)))
+    if (FAILED(mNotifyIcon.SetIcon(icon, mni::NotifyIcon::RDP::Manual)))
     {
         LOG_ERROR("Failed to update notifyicon icon");
         return false;
