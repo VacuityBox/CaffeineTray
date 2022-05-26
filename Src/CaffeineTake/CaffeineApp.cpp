@@ -113,7 +113,7 @@ auto CaffeineApp::Init() -> bool
         InitCommonControlsEx(&ccs);
     }
 
-    // For Jump Lists.
+    // For Jump Lists and shortcut.
     {
         auto hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
         if (FAILED(hr))

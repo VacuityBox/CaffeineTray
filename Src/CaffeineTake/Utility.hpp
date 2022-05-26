@@ -54,6 +54,11 @@ auto UTF16ToUTF8 (const std::wstring_view str) -> std::optional<std::string>;
 auto GetAppDataPath  () -> std::filesystem::path;
 auto IsSessionLocked () -> SessionState;
 
+auto IsShortcutStartupEnabled (const std::wstring& lnk) -> bool;
+auto EnableShortcutAutoStart  (const std::wstring& lnk) -> bool;
+auto DisableShortcutAutoStart (const std::wstring& lnk) -> bool;
+auto AddShortcutToStartup     (const std::wstring& lnk, const std::filesystem::path& target) -> bool;
+
 auto ScanProcesses  (std::function<ScanResult (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool;
 auto ScanWindows    (std::function<ScanResult (HWND, DWORD, const std::wstring_view)> checkFn, bool onlyVisible = true) -> bool;
 auto GetProcessPath (DWORD pid) -> std::filesystem::path;

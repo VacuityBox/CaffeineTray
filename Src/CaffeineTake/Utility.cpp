@@ -25,10 +25,15 @@
 #include <array>
 #include <filesystem>
 
+#include <ObjBase.h>
+#include <ObjIdl.h>
 #include <Psapi.h>
+#include <ShlGuid.h>
 #include <ShlObj.h>
+#include <ShObjIdl.h>
 #include <shlwapi.h>
 #include <VersionHelpers.h>
+#include <WinNls.h>
 
 #if defined(FEATURE_CAFFEINETAKE_LOCKSCREEN_DETECTION)
     #include <wtsapi32.h>
@@ -164,6 +169,174 @@ auto IsSessionLocked () -> SessionState
 #else
     return SessionState::Unlocked;
 #endif
+}
+
+struct ShortcutStartupRegistryData
+{
+    DWORD    Flags;
+    FILETIME DisabledTime;
+
+    ShortcutStartupRegistryData ()
+    {
+        Flags = 0;
+        DisabledTime.dwLowDateTime  = 0;
+        DisabledTime.dwHighDateTime = 0;
+    }
+};
+
+enum ShortcutStartupRegistryFlags
+{
+    SSRF_DISABLED = 1,
+    SSRF_DEFAULT  = 2
+};
+
+auto GetShortcutStartupRegistryData (const std::wstring& lnk) -> std::optional<ShortcutStartupRegistryData>
+{
+    auto subKey = std::wstring(L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\\");
+    auto ssrd   = ShortcutStartupRegistryData{};
+    auto cbSize = DWORD{sizeof(ssrd)};
+    
+    auto status = ::RegGetValueW(
+        HKEY_CURRENT_USER,
+        subKey.c_str(),
+        lnk.c_str(),
+        RRF_RT_REG_BINARY,
+        NULL,
+        &ssrd,
+        &cbSize
+    );
+
+    return status == ERROR_SUCCESS ? ssrd : std::optional<ShortcutStartupRegistryData>(std::nullopt);
+}
+
+auto SetShortcutStartupRegistryData (const std::wstring& lnk, const ShortcutStartupRegistryData& ssrd) -> bool
+{
+    auto subKey = std::wstring(L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\\");
+    auto cbSize = DWORD{sizeof(ssrd)};
+
+    auto status = ::RegSetKeyValueW(
+        HKEY_CURRENT_USER,
+        subKey.c_str(),
+        lnk.c_str(),
+        REG_BINARY,
+        reinterpret_cast<LPCWSTR>(&ssrd),
+        cbSize
+    );
+
+    return status == ERROR_SUCCESS;
+}
+
+auto IsShortcutStartupEnabled (const std::wstring& lnk) -> bool
+{
+    auto result = false;
+    if (const auto ssrd = GetShortcutStartupRegistryData(lnk))
+    {
+        const auto entry = ssrd.value();
+
+        // 2 it's enabled, 
+        // 3 it's disabled.
+        if ((entry.Flags & SSRF_DISABLED) != 0)
+        {
+            result = false;
+        }
+        else
+        {
+            result = true;
+        }
+    }
+
+    return result;
+}
+
+auto EnableShortcutAutoStart (const std::wstring& lnk) -> bool
+{
+    auto entry = ShortcutStartupRegistryData();
+
+    if (const auto ssrd = GetShortcutStartupRegistryData(lnk))
+    {
+        entry = ssrd.value();
+        entry.Flags |= SSRF_DEFAULT;
+    }
+    else
+    {
+        entry.Flags = SSRF_DEFAULT;
+    }
+
+    entry.Flags = entry.Flags & ~SSRF_DISABLED;
+    entry.DisabledTime.dwLowDateTime  = 0;
+    entry.DisabledTime.dwHighDateTime = 0;
+        
+    return SetShortcutStartupRegistryData(lnk, entry);
+}
+
+auto DisableShortcutAutoStart (const std::wstring& lnk) -> bool
+{
+    auto entry = ShortcutStartupRegistryData();
+
+    if (const auto ssrd = GetShortcutStartupRegistryData(lnk))
+    {
+        entry = ssrd.value();
+    }
+    else
+    {
+        entry.Flags = SSRF_DEFAULT;
+    }
+
+    entry.Flags = entry.Flags | SSRF_DISABLED;
+    GetSystemTimeAsFileTime(&entry.DisabledTime);
+        
+    return SetShortcutStartupRegistryData(lnk, entry);
+}
+
+auto AddShortcutToStartup (const std::wstring& lnk, const std::filesystem::path& target) -> bool
+{
+    auto hr = S_OK;
+
+    // Get startup directory path.
+    auto startupPath = static_cast<wchar_t*>(nullptr);
+    hr = SHGetKnownFolderPath(FOLDERID_Startup, 0, NULL, reinterpret_cast<PWSTR*>(&startupPath));
+    if (FAILED(hr))
+    {
+        return false;
+    }
+
+    auto shortcut = std::filesystem::path(startupPath) / lnk;
+
+    // If shortcut exists, then remove.
+    if (std::filesystem::exists(shortcut))
+    {
+        std::filesystem::remove(shortcut);
+    }
+
+    auto psl = static_cast<IShellLinkW*>(nullptr);
+
+    hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, reinterpret_cast<LPVOID*>(&psl));
+    if (SUCCEEDED(hr))
+    {
+        auto ppf = static_cast<IPersistFile*>(nullptr);
+ 
+        // Set the path to the shortcut target and add the description.'
+        const auto exePathStr = target.wstring();
+        const auto exeDirStr  = target.parent_path().wstring();
+
+        psl->SetPath(exePathStr.c_str());
+        psl->SetWorkingDirectory(exeDirStr.c_str());
+        //psl->SetDescription(desc);
+ 
+        // Query IShellLink for the IPersistFile interface, used for saving the
+        // shortcut in persistent storage.
+        hr = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+        if (SUCCEEDED(hr))
+        {
+            // Save the link by calling IPersistFile::Save.
+            auto pathStr = shortcut.wstring();
+            hr = ppf->Save(pathStr.c_str(), TRUE);
+            ppf->Release();
+        }
+        psl->Release();
+    }
+    
+    return hr == S_OK;
 }
 
 auto ScanProcesses (std::function<ScanResult (HANDLE, DWORD, const std::wstring_view)> checkFn) -> bool
