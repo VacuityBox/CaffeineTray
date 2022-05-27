@@ -22,19 +22,25 @@
 
 #include "AppInitInfo.hpp"
 #include "CaffeineApp.hpp"
+#include "CommandLineArgs.hpp"
 #include "InstanceGuard.hpp"
 #include "Logger.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+auto WINAPI wWinMain (
+    _In_     HINSTANCE hInstance,
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_     LPWSTR    lpCmdLine,
+    _In_     int       nShowCmd
+) -> int
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(pCmdLine);
-    UNREFERENCED_PARAMETER(nCmdShow);
+    UNREFERENCED_PARAMETER(lpCmdLine);
+    UNREFERENCED_PARAMETER(nShowCmd);
 
-    // Check if application is not running already.
+    // Protect the instance with guard.
     auto guard = CaffeineTake::InstanceGuard();
     if (!guard.Protect())
     {
@@ -47,12 +53,26 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         return -1;
     }
 
+    // Parse command line.
+    auto args = CaffeineTake::ParseCommandLine(lpCmdLine);
+    
+    // Check if application is not running already.
     if (guard.IsOtherInstance())
     {
+        // Main instance is running, so if there is Task to be executed send it.
+        if (args.Task != CaffeineTake::Task::Invalid())
+        {
+            CaffeineTake::CaffeineApp::SendMessageToMainInstance(
+                CaffeineTake::WM_CAFFEINE_TAKE_SECOND_INSTANCE_MESSAGE,
+                static_cast<WPARAM>(args.Task.MessageId),
+                NULL
+            );
+        }
+
         return 1;
     }
     
-    const auto info = CaffeineTake::GetAppInitInfo(hInstance);
+    const auto info = CaffeineTake::GetAppInitInfo(hInstance, args);
     if (!info)
     {
         MessageBoxW(
@@ -69,7 +89,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 #endif
 
     auto caffeineTray = CaffeineTake::CaffeineApp(info.value());
-    if (!caffeineTray.Init())
+    if (!caffeineTray.Init(info.value()))
     {
         MessageBoxW(
             0,

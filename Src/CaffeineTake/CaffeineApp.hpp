@@ -51,7 +51,8 @@ namespace {
 namespace CaffeineTake {
 
 // Custom messages.
-constexpr auto WM_CAFFEINE_TAKE_UPDATE_EXECUTION_STATE = (MNI_USER_MESSAGE_ID + 0);
+constexpr auto WM_CAFFEINE_TAKE_UPDATE_EXECUTION_STATE  = (MNI_USER_MESSAGE_ID + 0);
+constexpr auto WM_CAFFEINE_TAKE_SECOND_INSTANCE_MESSAGE = (MNI_USER_MESSAGE_ID + 1);
 
 // Forward declaration of shared object.
 class CaffeineAppSO;
@@ -126,6 +127,8 @@ class CaffeineApp final
     auto ShowNotificationBalloon () -> void;
     auto PlayNotificationSound   () -> void;
 
+    auto ProcessTask (unsigned int msg) -> bool;
+
     auto LoadSettings () -> void;
     auto SaveSettings () -> void;
 
@@ -145,8 +148,10 @@ public:
     CaffeineApp  (const AppInitInfo& info);
     ~CaffeineApp ();
 
-    auto Init     () -> bool;
+    auto Init     (const AppInitInfo& info) -> bool;
     auto MainLoop () -> int;
+
+    static auto SendMessageToMainInstance (UINT uMsg, WPARAM wParam, LPARAM lParam) -> bool;
 };
 
 } // namespace CaffeineTake

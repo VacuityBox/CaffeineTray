@@ -30,6 +30,7 @@
 #include "Logger.hpp"
 #include "Resource.hpp"
 #include "Settings.hpp"
+#include "Tasks.hpp"
 #include "Utility.hpp"
 #include "Version.hpp"
 
@@ -48,6 +49,10 @@
 using namespace std;
 
 namespace CaffeineTake {
+
+// Window Title and Class Name.
+constexpr auto CAFFEINE_TAKE_WINDOW_TITLE = L"CaffeineTake_WndClass";
+constexpr auto CAFFEINE_TAKE_CLASS_NAME   = L"CaffeineTake_InvisibleWindow";
 
 CaffeineApp::CaffeineApp (const AppInitInfo& info)
     : mSettings           (std::make_shared<Settings>())
@@ -87,7 +92,7 @@ CaffeineApp::~CaffeineApp()
     CoUninitialize();
 }
 
-auto CaffeineApp::Init() -> bool
+auto CaffeineApp::Init (const AppInitInfo& info) -> bool
 {
     LOG_INFO("Initializing CaffeineTake...");
 
@@ -127,8 +132,8 @@ auto CaffeineApp::Init() -> bool
     {
         auto desc = mni::NotifyIcon::Desc{
             .instance    = mInstanceHandle,
-            .windowTitle = L"CaffeineTake_InvisibleWindow",
-            .className   = L"CaffeineTake_WndClass",
+            .windowTitle = CAFFEINE_TAKE_WINDOW_TITLE,
+            .className   = CAFFEINE_TAKE_CLASS_NAME
         };
 
         // Register callbacks.
@@ -183,13 +188,18 @@ auto CaffeineApp::Init() -> bool
 
     // Update mode, icons, execution state, tip.
     {
-        if (!LoadMode())
+        // If app was launched from jump list we that to set mode.
+        if (!ProcessTask(info.Args.Task.MessageId))
         {
-            LOG_INFO("Writing default mode to registry");
-            SaveMode();
+            if (!LoadMode())
+            {
+                LOG_INFO("Writing default mode to registry");
+                SaveMode();
+            }
+            
+            SetCaffeineMode(mCaffeineMode);
         }
 
-        SetCaffeineMode(mCaffeineMode);
         UpdateAppIcon();
     }
 
@@ -407,6 +417,11 @@ auto CaffeineApp::OnCustomMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) -> vo
         {
             UpdateExecutionState(CaffeineState::Inactive);
         }
+        break;
+
+    case WM_CAFFEINE_TAKE_SECOND_INSTANCE_MESSAGE:
+        LOG_INFO("Received message from jumplist {}", static_cast<unsigned int>(wParam));
+        ProcessTask(static_cast<unsigned int>(wParam));
         break;
     }
 }
@@ -813,15 +828,14 @@ auto CaffeineApp::UpdateJumpList () -> bool
     const auto exe = mExecutablePath.wstring();
 
     // TODO update icons of tasks
-    // TODO translate
-    const auto OptionDisableCaffeine = JumpListEntry(JumpListEntry::Type::Normal, L"Disable Caffeine", L"/task:DisableCaffeine", exe.c_str(), 0);
-    const auto OptionEnableCaffeine  = JumpListEntry(JumpListEntry::Type::Normal, L"Enable Caffeine", L"/task:EnableCaffeine", exe.c_str(), 0);
-    const auto OptionEnableAutoMode  = JumpListEntry(JumpListEntry::Type::Normal, L"Enable Auto Mode", L"/task:EnableAutoMode", exe.c_str(), 0);
-    const auto OptionEnableTimerMode = JumpListEntry(JumpListEntry::Type::Normal, L"Enable Timer Mode", L"/task:EnableTimerMode", exe.c_str(), 0);
+    const auto OptionDisableCaffeine = JumpListEntry(JumpListEntry::Type::Normal, mLang->Task_DisableCaffeine,    TASK_DISBALE_CAFFEINE,     exe.c_str(), 0);
+    const auto OptionEnableCaffeine  = JumpListEntry(JumpListEntry::Type::Normal, mLang->Task_EnableStandardMode, TASK_ENABLE_STANDARD_MODE, exe.c_str(), 1);
+    const auto OptionEnableAutoMode  = JumpListEntry(JumpListEntry::Type::Normal, mLang->Task_EnableAutoMode,     TASK_ENABLE_AUTO_MODE,     exe.c_str(), 2);
+    const auto OptionEnableTimerMode = JumpListEntry(JumpListEntry::Type::Normal, mLang->Task_EnableTimerMode,    TASK_ENABLE_TIMER_MODE,    exe.c_str(), 3);
+    const auto OptionSettings        = JumpListEntry(JumpListEntry::Type::Normal, mLang->Task_Settings,           TASK_SHOW_SETTINGS_DIALOG, exe.c_str(), 4);
+    const auto OptionAbout           = JumpListEntry(JumpListEntry::Type::Normal, mLang->Task_About,              TASK_SHOW_ABOUT_DIALOG,    exe.c_str(), 5);
+    const auto OptionExit            = JumpListEntry(JumpListEntry::Type::Normal, mLang->Task_Exit,               TASK_EXIT,                 exe.c_str(), 6);
     const auto OptionSeparator       = JumpListEntry(JumpListEntry::Type::Separator, L"", L"", L"", 0);
-    const auto OptionSettings        = JumpListEntry(JumpListEntry::Type::Normal, L"Settings", L"/task:Settings", exe.c_str(), 0);
-    const auto OptionAbout           = JumpListEntry(JumpListEntry::Type::Normal, L"About", L"/task:About", exe.c_str(), 0);
-    const auto OptionExit            = JumpListEntry(JumpListEntry::Type::Normal, L"Exit", L"/task:Exit", exe.c_str(), 0);
 
     auto list = std::vector<JumpListEntry>();
 
@@ -990,6 +1004,42 @@ auto CaffeineApp::PlayNotificationSound () -> void
     }
 }
 
+auto CaffeineApp::ProcessTask (unsigned int msg) -> bool
+{
+    auto modeChanged = false;
+
+    switch (msg)
+    {
+    case TASK_DISBALE_CAFFEINE.MessageId:
+        SetCaffeineMode(CaffeineMode::Disabled);
+        modeChanged = true;
+        break;
+    case TASK_ENABLE_STANDARD_MODE.MessageId:
+        SetCaffeineMode(CaffeineMode::Standard);
+        modeChanged = true;
+        break;
+    case TASK_ENABLE_AUTO_MODE.MessageId:
+        SetCaffeineMode(CaffeineMode::Auto);
+        modeChanged = true;
+        break;
+    case TASK_ENABLE_TIMER_MODE.MessageId:
+        SetCaffeineMode(CaffeineMode::Timer);
+        modeChanged = true;
+        break;
+    case TASK_SHOW_SETTINGS_DIALOG.MessageId:
+        ShowSettingsDialog();
+        break;
+    case TASK_SHOW_ABOUT_DIALOG.MessageId:
+        ShowAboutDialog();
+        break;
+    case TASK_EXIT.MessageId:
+        mNotifyIcon.Quit();
+        break;
+    }
+
+    return modeChanged;
+}
+
 auto CaffeineApp::LoadSettings () -> void
 {
     if (!mSettings->Load(mSettingsFilePath))
@@ -1101,6 +1151,18 @@ auto CaffeineApp::IsModeAvailable (CaffeineMode mode) -> bool
     }
 
     return available;
+}
+
+auto CaffeineApp::SendMessageToMainInstance (UINT uMsg, WPARAM wParam, LPARAM lParam) -> bool
+{    
+    auto hWnd = FindWindowW(CAFFEINE_TAKE_CLASS_NAME, CAFFEINE_TAKE_WINDOW_TITLE);
+    if (hWnd)
+    {
+        SendMessageW(hWnd, uMsg, wParam, lParam);
+        return true;
+    }
+
+    return false;
 }
 
 } // namespace CaffeineTake

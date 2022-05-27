@@ -54,6 +54,14 @@ public:
     std::wstring Tip_TimerInactive           = L"Caffeine - Timer (Inactive)";
     std::wstring Tip_TimerActive             = L"Caffeine - Timer (Active)";
 
+    std::wstring Task_DisableCaffeine        = L"Disable Caffeine";
+    std::wstring Task_EnableStandardMode     = L"Enable Standard Mode";
+    std::wstring Task_EnableAutoMode         = L"Enable Auto Mode";
+    std::wstring Task_EnableTimerMode        = L"Enable Timer Mode";
+    std::wstring Task_Settings               = L"Settings";
+    std::wstring Task_About                  = L"About";
+    std::wstring Task_Exit                   = L"Exit";          
+
     auto Load (const fs::path& path) -> bool;
     auto Save (const fs::path& path) -> bool;
 };

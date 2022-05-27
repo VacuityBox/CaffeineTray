@@ -248,6 +248,7 @@
     <ClCompile Include="CaffeineIcons.cpp" />
     <ClCompile Include="CaffeineApp.cpp" />
     <ClCompile Include="CaffeineSounds.cpp" />
+    <ClCompile Include="CommandLineArgs.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Dialogs\AddWizard.cpp" />
     <ClCompile Include="Dialogs\CaffeineSettings.cpp" />
@@ -280,6 +281,7 @@
     <ClInclude Include="CaffeineAppSO.hpp" />
     <ClInclude Include="CaffeineSounds.hpp" />
     <ClInclude Include="CaffeineState.hpp" />
+    <ClInclude Include="CommandLineArgs.hpp" />
     <ClInclude Include="Config.hpp" />
     <ClInclude Include="Dialogs\AboutDialog.hpp" />
     <ClInclude Include="CaffeineMode.hpp" />
@@ -308,6 +310,7 @@
     <ClInclude Include="Settings.hpp" />
     <ClInclude Include="JumpList.hpp" />
     <ClInclude Include="Serializers.hpp" />
+    <ClInclude Include="Tasks.hpp" />
     <ClInclude Include="ThreadTimer.hpp" />
     <ClInclude Include="Utility.hpp" />
     <ClInclude Include="Version.hpp" />

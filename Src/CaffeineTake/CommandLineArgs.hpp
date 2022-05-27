@@ -20,31 +20,17 @@
 
 #pragma once
 
-#include "CommandLineArgs.hpp"
+#include "Tasks.hpp"
 
-#include <filesystem>
-#include <optional>
-
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
-namespace {
-    namespace fs = std::filesystem;
-}
+#include <string_view>
 
 namespace CaffeineTake {
 
-struct AppInitInfo
+struct CommandLineArgs
 {
-    HINSTANCE       InstanceHandle;
-    fs::path        ExecutablePath;
-    fs::path        DataDirectory;
-    fs::path        SettingsPath;
-    fs::path        LogFilePath;
-    bool            IsPortable;
-    CommandLineArgs Args;
+    Task Task = Task::Invalid();
 };
 
-auto GetAppInitInfo (HINSTANCE hInstance, CommandLineArgs args) -> std::optional<AppInitInfo>;
+auto ParseCommandLine (const std::wstring_view cmdline) -> CommandLineArgs;
 
 } // namespace CaffeineTake

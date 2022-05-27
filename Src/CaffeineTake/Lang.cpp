@@ -53,12 +53,20 @@ inline auto from_json (const nlohmann::json& j, Lang& lang)
 
     LOAD_LANG_STR(Tip_DisabledInactive       );
     LOAD_LANG_STR(Tip_DisabledActive         );
-    LOAD_LANG_STR(Tip_StandardInactive        );
-    LOAD_LANG_STR(Tip_StandardActive          );
+    LOAD_LANG_STR(Tip_StandardInactive       );
+    LOAD_LANG_STR(Tip_StandardActive         );
     LOAD_LANG_STR(Tip_AutoInactive           );
     LOAD_LANG_STR(Tip_AutoActive             );
     LOAD_LANG_STR(Tip_TimerInactive          );
     LOAD_LANG_STR(Tip_TimerActive            );
+
+    LOAD_LANG_STR(Task_DisableCaffeine       );
+    LOAD_LANG_STR(Task_EnableStandardMode    );
+    LOAD_LANG_STR(Task_EnableAutoMode        );
+    LOAD_LANG_STR(Task_EnableTimerMode       );
+    LOAD_LANG_STR(Task_Settings              );
+    LOAD_LANG_STR(Task_About                 );
+    LOAD_LANG_STR(Task_Exit                  );
 }
 
 #undef LOAD_LANG_STR

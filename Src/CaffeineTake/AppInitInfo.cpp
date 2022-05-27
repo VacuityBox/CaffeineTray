@@ -29,7 +29,7 @@
 
 namespace CaffeineTake {
 
-auto GetAppInitInfo (HINSTANCE hInstance) -> std::optional<AppInitInfo>
+auto GetAppInitInfo (HINSTANCE hInstance, CommandLineArgs args) -> std::optional<AppInitInfo>
 {
     auto stackBuffer = std::array<wchar_t, MAX_PATH>();
     stackBuffer.fill(L'\0');
@@ -93,7 +93,8 @@ auto GetAppInitInfo (HINSTANCE hInstance) -> std::optional<AppInitInfo>
         .DataDirectory  = root,
         .SettingsPath   = settings,
         .LogFilePath    = root / CAFFEINE_TAKE_LOG_FILENAME,
-        .IsPortable     = isPortable
+        .IsPortable     = isPortable,
+        .Args           = args
     };
 }
 
