@@ -577,7 +577,10 @@ auto CaffeineApp::SetCaffeineMode(CaffeineMode mode) -> void
         PlayNotificationSound();
     }
 
-    SaveMode();
+    if (!mShuttingDown)
+    {
+        SaveMode();
+    }
 }
 
 auto CaffeineApp::StartMode () -> void
